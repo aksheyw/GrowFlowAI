@@ -10,15 +10,33 @@ type FilterType = 'all' | 'my-tasks' | 'not-started' | 'in-progress' | 'done';
 type SortType = 'newest' | 'oldest';
 type ViewType = 'card' | 'list';
 
+const STORAGE_KEYS = {
+  VIEW_TYPE: 'growflow_view_type',
+  FILTER: 'growflow_filter',
+  SORT_BY: 'growflow_sort_by',
+  SEARCH_QUERY: 'growflow_search_query',
+};
+
 export default function DashboardPage() {
   const { profile, signOut } = useAuth();
   const navigate = useNavigate();
   const [tasks, setTasks] = useState<Task[]>([]);
   const [loading, setLoading] = useState(true);
-  const [filter, setFilter] = useState<FilterType>('all');
-  const [searchQuery, setSearchQuery] = useState('');
-  const [sortBy, setSortBy] = useState<SortType>('newest');
-  const [viewType, setViewType] = useState<ViewType>('card');
+  const [filter, setFilter] = useState<FilterType>(() => {
+    const saved = localStorage.getItem(STORAGE_KEYS.FILTER);
+    return (saved as FilterType) || 'all';
+  });
+  const [searchQuery, setSearchQuery] = useState(() => {
+    return localStorage.getItem(STORAGE_KEYS.SEARCH_QUERY) || '';
+  });
+  const [sortBy, setSortBy] = useState<SortType>(() => {
+    const saved = localStorage.getItem(STORAGE_KEYS.SORT_BY);
+    return (saved as SortType) || 'newest';
+  });
+  const [viewType, setViewType] = useState<ViewType>(() => {
+    const saved = localStorage.getItem(STORAGE_KEYS.VIEW_TYPE);
+    return (saved as ViewType) || 'card';
+  });
   const [showFilters, setShowFilters] = useState(false);
   const [showMobileSearch, setShowMobileSearch] = useState(false);
   const [filterByName, setFilterByName] = useState('');
@@ -33,6 +51,22 @@ export default function DashboardPage() {
   useEffect(() => {
     loadTasks();
   }, []);
+
+  useEffect(() => {
+    localStorage.setItem(STORAGE_KEYS.VIEW_TYPE, viewType);
+  }, [viewType]);
+
+  useEffect(() => {
+    localStorage.setItem(STORAGE_KEYS.FILTER, filter);
+  }, [filter]);
+
+  useEffect(() => {
+    localStorage.setItem(STORAGE_KEYS.SORT_BY, sortBy);
+  }, [sortBy]);
+
+  useEffect(() => {
+    localStorage.setItem(STORAGE_KEYS.SEARCH_QUERY, searchQuery);
+  }, [searchQuery]);
 
   useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
