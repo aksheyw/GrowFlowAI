@@ -7,6 +7,7 @@ import LoginPage from './pages/LoginPage';
 import DashboardPage from './pages/DashboardPage';
 import AddNotePage from './pages/AddNotePage';
 import TestNotificationPage from './pages/TestNotificationPage';
+import TestEdgeFunctionPage from './pages/TestEdgeFunctionPage';
 import TaskDetailPage from './pages/TaskDetailPage';
 
 function App() {
@@ -38,6 +39,14 @@ function App() {
               element={
                 <ProtectedRoute>
                   <TestNotificationPage />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/test-edge-function"
+              element={
+                <ProtectedRoute>
+                  <TestEdgeFunctionPage />
                 </ProtectedRoute>
               }
             />

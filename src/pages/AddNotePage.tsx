@@ -1,8 +1,14 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { supabase } from '../lib/supabase';
-import { ArrowLeft, Loader2, CheckCircle2 } from 'lucide-react';
+import { ArrowLeft, Loader2, CheckCircle2, AlertCircle } from 'lucide-react';
+
+interface ParsedTask {
+  description: string;
+  priority?: 'Low' | 'Medium' | 'High';
+  deadline?: string;
+}
 
 export default function AddNotePage() {
   const navigate = useNavigate();
@@ -12,52 +18,59 @@ export default function AddNotePage() {
   const [processingStatus, setProcessingStatus] = useState('');
   const [tasksCreated, setTasksCreated] = useState(0);
   const [success, setSuccess] = useState(false);
-  const initialTaskCountRef = useRef<number>(0);
-  const pollingIntervalRef = useRef<NodeJS.Timeout>();
+  const [error, setError] = useState('');
 
-  useEffect(() => {
-    return () => {
-      if (pollingIntervalRef.current) {
-        clearInterval(pollingIntervalRef.current);
+  function parseNotesToTasks(noteText: string): ParsedTask[] {
+    const lines = noteText.split('\n').filter(line => line.trim());
+    const tasks: ParsedTask[] = [];
+
+    for (const line of lines) {
+      const trimmed = line.trim();
+
+      if (trimmed.length < 5) continue;
+
+      let description = trimmed.replace(/^[-*•]\s*/, '');
+      let priority: 'Low' | 'Medium' | 'High' = 'Medium';
+      let deadline: string | undefined;
+
+      if (/(urgent|asap|critical|high priority)/i.test(description)) {
+        priority = 'High';
+      } else if (/(low priority|when possible|eventually)/i.test(description)) {
+        priority = 'Low';
       }
-    };
-  }, []);
 
-  async function getTaskCount() {
-    try {
-      const { count, error } = await supabase
-        .from('tasks')
-        .select('*', { count: 'exact', head: true })
-        .eq('assignee_id', user?.id);
-
-      if (error) throw error;
-      return count || 0;
-    } catch (error) {
-      console.error('Error getting task count:', error);
-      return 0;
-    }
-  }
-
-  async function pollForNewTasks(startCount: number, maxAttempts = 30) {
-    let attempts = 0;
-
-    return new Promise<number>((resolve) => {
-      pollingIntervalRef.current = setInterval(async () => {
-        attempts++;
-        const currentCount = await getTaskCount();
-        const newTasks = currentCount - startCount;
-
-        if (newTasks > 0) {
-          clearInterval(pollingIntervalRef.current);
-          resolve(newTasks);
-        } else if (attempts >= maxAttempts) {
-          clearInterval(pollingIntervalRef.current);
-          resolve(0);
-        } else {
-          setProcessingStatus(`AI is processing your notes... (${attempts}s)`);
+      const dateMatch = description.match(/(?:by|before|due|deadline:?)\s*(\d{1,2}[-/]\d{1,2}[-/]\d{2,4})/i);
+      if (dateMatch) {
+        try {
+          const dateParts = dateMatch[1].split(/[-/]/);
+          if (dateParts.length === 3) {
+            let year = parseInt(dateParts[2]);
+            if (year < 100) year += 2000;
+            const month = parseInt(dateParts[0]);
+            const day = parseInt(dateParts[1]);
+            deadline = `${year}-${String(month).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+          }
+        } catch (e) {
+          console.warn('Failed to parse date:', e);
         }
-      }, 1000);
-    });
+      }
+
+      description = description.replace(/\b(urgent|asap|critical|high priority|low priority|when possible|eventually)\b/gi, '').trim();
+      description = description.replace(/(?:by|before|due|deadline:?)\s*\d{1,2}[-/]\d{1,2}[-/]\d{2,4}/gi, '').trim();
+
+      if (description.length > 0) {
+        tasks.push({ description, priority, deadline });
+      }
+    }
+
+    if (tasks.length === 0 && noteText.trim().length > 0) {
+      tasks.push({
+        description: noteText.trim(),
+        priority: 'Medium'
+      });
+    }
+
+    return tasks;
   }
 
   async function handleSubmit(e: React.FormEvent) {
@@ -66,76 +79,74 @@ export default function AddNotePage() {
 
     setLoading(true);
     setSuccess(false);
+    setError('');
     setTasksCreated(0);
-    setProcessingStatus('Sending notes to AI...');
-
-    const n8nWebhookURL = "https://aksheyw1.app.n8n.cloud/webhook/1d398de3-892a-4d5a-a941-62feab1e0250";
+    setProcessingStatus('Parsing your notes and creating tasks...');
 
     try {
-      initialTaskCountRef.current = await getTaskCount();
+      console.log('Parsing notes:', content);
 
-      // First call n8n to process the notes with AI
-      const n8nResponse = await fetch(n8nWebhookURL, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
-          user_id: user.id,
-          note_text: content.trim(),
-          note_id: crypto.randomUUID()
-        })
-      });
+      const tasks = parseNotesToTasks(content);
+      console.log('Parsed tasks:', tasks);
 
-      if (!n8nResponse.ok) {
-        throw new Error('Failed to process notes with AI');
+      if (tasks.length === 0) {
+        setError('No tasks found in your notes. Please add some actionable items.');
+        setLoading(false);
+        return;
       }
 
-      // n8n should return the structured tasks
-      const n8nData = await n8nResponse.json();
+      setProcessingStatus(`Creating ${tasks.length} task${tasks.length > 1 ? 's' : ''}...`);
 
-      setProcessingStatus('AI processed your notes. Creating tasks in database...');
+      let created = 0;
+      const errors: string[] = [];
 
-      // Now send the tasks to our Edge Function to insert into database
-      const edgeFunctionUrl = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/process-ai-notes`;
+      for (const task of tasks) {
+        try {
+          const { error: insertError } = await supabase
+            .from('tasks')
+            .insert({
+              user_id: user.id,
+              assignee_id: user.id,
+              description: task.description,
+              priority: task.priority || 'Medium',
+              status: 'Not Started',
+              deadline: task.deadline || null
+            });
 
-      const edgeResponse = await fetch(edgeFunctionUrl, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY}`
-        },
-        body: JSON.stringify({
-          user_id: user.id,
-          tasks: n8nData.tasks || []
-        })
-      });
-
-      if (!edgeResponse.ok) {
-        throw new Error('Failed to create tasks in database');
+          if (insertError) {
+            console.error('Failed to create task:', insertError);
+            errors.push(`${task.description}: ${insertError.message}`);
+          } else {
+            created++;
+          }
+        } catch (taskError) {
+          console.error('Error creating task:', taskError);
+          errors.push(`${task.description}: Unknown error`);
+        }
       }
 
-      const edgeData = await edgeResponse.json();
-
-      if (edgeData.created > 0) {
-        setTasksCreated(edgeData.created);
+      if (created > 0) {
+        setTasksCreated(created);
         setSuccess(true);
         setContent('');
-        setProcessingStatus(`Successfully created ${edgeData.created} task${edgeData.created > 1 ? 's' : ''}!`);
+        setProcessingStatus(`Successfully created ${created} task${created > 1 ? 's' : ''}!`);
+
+        if (errors.length > 0) {
+          console.warn('Some tasks failed to create:', errors);
+        }
 
         setTimeout(() => {
           navigate('/dashboard');
         }, 2000);
       } else {
-        setProcessingStatus('Processing complete, but no tasks were created. The AI may not have found actionable items in your notes.');
-        setTimeout(() => {
-          navigate('/dashboard');
-        }, 3000);
+        setError(`Failed to create tasks: ${errors.join(', ')}`);
+        setProcessingStatus('');
       }
-    } catch (error) {
-      console.error('Error processing note:', error);
+    } catch (err) {
+      console.error('Error processing note:', err);
+      const errorMessage = err instanceof Error ? err.message : 'Unknown error occurred';
+      setError(`Failed to process notes: ${errorMessage}`);
       setProcessingStatus('');
-      alert('Failed to process note. Please try again.');
     } finally {
       setLoading(false);
     }
@@ -188,7 +199,17 @@ Example:
               />
             </div>
 
-            {processingStatus && (
+            {error && (
+              <div className="mb-6 px-4 py-3 rounded-lg flex items-center gap-3 bg-red-50 border border-red-200 text-red-700">
+                <AlertCircle className="w-5 h-5 flex-shrink-0" />
+                <div className="flex-1">
+                  <p className="font-medium">{error}</p>
+                  <p className="text-sm mt-1">Check the browser console for detailed error logs.</p>
+                </div>
+              </div>
+            )}
+
+            {processingStatus && !error && (
               <div className={`mb-6 px-4 py-3 rounded-lg flex items-center gap-3 ${
                 success
                   ? 'bg-green-50 border border-green-200 text-green-700'
