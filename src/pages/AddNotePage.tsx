@@ -1,7 +1,8 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
-import { supabase } from '../lib/supabase';
+// You don't need supabase here anymore for this page's logic!
+// import { supabase } from '../lib/supabase'; 
 import { ArrowLeft, Loader2 } from 'lucide-react';
 
 export default function AddNotePage() {
@@ -11,6 +12,7 @@ export default function AddNotePage() {
   const [loading, setLoading] = useState(false);
   const [success, setSuccess] = useState(false);
 
+  // THIS IS THE NEW, CORRECT SUBMIT FUNCTION
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     if (!user || !content.trim()) return;
@@ -18,52 +20,38 @@ export default function AddNotePage() {
     setLoading(true);
     setSuccess(false);
 
+    // 1. This is your live n8n Production URL
+    const n8nWebhookURL = "https://aksheyw1.app.n8n.cloud/webhook/1d398de3-892a-4d5a-a941-62feab1e0250";
+
     try {
-      const { data: noteData, error: noteError } = await supabase
-        .from('notes')
-        .insert([
-          {
-            user_id: user.id,
-            content: content.trim(),
-            processed: true,
-          },
-        ])
-        .select()
-        .single();
+      const response = await fetch(n8nWebhookURL, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        // 2. Send the exact JSON your n8n webhook is waiting for
+        body: JSON.stringify({
+          user_id: user.id, // The logged-in user's ID
+          note_text: content.trim(), // The notes from the text box
+          note_id: crypto.randomUUID() // A unique ID for this entry
+        })
+      });
 
-      if (noteError) throw noteError;
-
-      const lines = content.trim().split('\n').filter(line => line.trim());
-      const tasks = [];
-
-      for (const line of lines) {
-        const trimmedLine = line.trim();
-        if (trimmedLine.length > 10) {
-          tasks.push({
-            note_id: noteData.id,
-            user_id: user.id,
-            assignee_id: user.id,
-            description: trimmedLine.replace(/^[-*•]\s*/, ''),
-            status: 'Not Started',
-            priority: 'Medium',
-          });
-        }
+      if (response.ok) {
+        // 3. Success! The n8n workflow is running.
+        setSuccess(true);
+        setContent('');
+        setTimeout(() => {
+          navigate('/dashboard');
+        }, 1500);
+      } else {
+        // Handle HTTP errors
+        throw new Error('Webhook call failed');
       }
-
-      if (tasks.length > 0) {
-        const { error: tasksError } = await supabase.from('tasks').insert(tasks);
-        if (tasksError) throw tasksError;
-      }
-
-      setSuccess(true);
-      setContent('');
-
-      setTimeout(() => {
-        navigate('/dashboard');
-      }, 1500);
     } catch (error) {
-      console.error('Error saving note:', error);
-      alert('Failed to save note. Please try again.');
+      // Handle network errors
+      console.error('Error processing note:', error);
+      alert('Failed to process note. Please try again.');
     } finally {
       setLoading(false);
     }
@@ -94,6 +82,7 @@ export default function AddNotePage() {
             </p>
           </div>
 
+          {/* This form now correctly calls your new handleSubmit function */}
           <form onSubmit={handleSubmit}>
             <div className="mb-6">
               <label htmlFor="notes" className="block text-sm font-medium text-gray-700 mb-2">
