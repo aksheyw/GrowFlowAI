@@ -55,6 +55,21 @@ export default function DashboardPage() {
     }
   }
 
+  async function handleDeleteTask(taskId: string) {
+    try {
+      const { error } = await supabase
+        .from('tasks')
+        .delete()
+        .eq('id', taskId);
+
+      if (error) throw error;
+
+      setTasks(tasks.filter(task => task.id !== taskId));
+    } catch (error) {
+      console.error('Error deleting task:', error);
+    }
+  }
+
   async function handleLogout() {
     await signOut();
     navigate('/login');
@@ -228,6 +243,7 @@ export default function DashboardPage() {
                 key={task.id}
                 task={task}
                 onStatusChange={handleStatusChange}
+                onDelete={handleDeleteTask}
               />
             ))}
           </div>

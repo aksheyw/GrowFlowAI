@@ -53,3 +53,12 @@ export type Notification = {
   updated_at: string;
   actor?: Profile;
 };
+
+export type TaskDetail = {
+  id: string;
+  task_id: string;
+  content: string;
+  order_index: number;
+  created_at: string;
+  updated_at: string;
+};

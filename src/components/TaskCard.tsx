@@ -1,10 +1,11 @@
 import { useNavigate } from 'react-router-dom';
 import { Task } from '../lib/supabase';
-import { Calendar, Clock } from 'lucide-react';
+import { Calendar, Clock, Trash2 } from 'lucide-react';
 
 interface TaskCardProps {
   task: Task;
   onStatusChange: (taskId: string, newStatus: Task['status']) => void;
+  onDelete: (taskId: string) => void;
 }
 
 const PLANT_STAGES = {
@@ -19,8 +20,18 @@ const PRIORITY_COLORS = {
   High: 'bg-red-100 text-red-700'
 };
 
-export default function TaskCard({ task, onStatusChange }: TaskCardProps) {
+export default function TaskCard({ task, onStatusChange, onDelete }: TaskCardProps) {
   const navigate = useNavigate();
+
+  const handleDelete = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    const confirmDelete = window.confirm(
+      'Are you sure you want to delete this task? This action cannot be undone.'
+    );
+    if (confirmDelete) {
+      onDelete(task.id);
+    }
+  };
 
   const getInitials = (name: string) => {
     return name
@@ -57,9 +68,18 @@ export default function TaskCard({ task, onStatusChange }: TaskCardProps) {
     >
       <div className="flex items-start justify-between mb-3">
         <div className="text-4xl">{PLANT_STAGES[task.status]}</div>
-        <span className={`px-2 py-1 rounded-full text-xs font-medium ${PRIORITY_COLORS[task.priority]}`}>
-          {task.priority}
-        </span>
+        <div className="flex items-center gap-2">
+          <span className={`px-2 py-1 rounded-full text-xs font-medium ${PRIORITY_COLORS[task.priority]}`}>
+            {task.priority}
+          </span>
+          <button
+            onClick={handleDelete}
+            className="p-1.5 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+            title="Delete task"
+          >
+            <Trash2 className="w-4 h-4" />
+          </button>
+        </div>
       </div>
 
       <p className="text-gray-900 font-medium mb-4 line-clamp-3">

@@ -1,8 +1,8 @@
 import { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
-import { supabase, Task, Profile } from '../lib/supabase';
-import { ArrowLeft, Calendar, Clock, User, Loader2, Plus, X } from 'lucide-react';
+import { supabase, Task, Profile, TaskDetail } from '../lib/supabase';
+import { ArrowLeft, Calendar, Clock, User, Loader2, Plus, X, Trash2 } from 'lucide-react';
 import { useToast } from '../contexts/ToastContext';
 
 export default function TaskDetailPage() {
@@ -15,7 +15,8 @@ export default function TaskDetailPage() {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [newDetail, setNewDetail] = useState('');
-  const [details, setDetails] = useState<string[]>([]);
+  const [details, setDetails] = useState<TaskDetail[]>([]);
+  const [deleting, setDeleting] = useState(false);
 
   useEffect(() => {
     if (taskId) {
@@ -25,7 +26,7 @@ export default function TaskDetailPage() {
 
   async function loadTaskAndProfiles() {
     try {
-      const [taskResult, profilesResult] = await Promise.all([
+      const [taskResult, profilesResult, detailsResult] = await Promise.all([
         supabase
           .from('tasks')
           .select(`
@@ -38,14 +39,21 @@ export default function TaskDetailPage() {
         supabase
           .from('profiles')
           .select('*')
-          .order('full_name')
+          .order('full_name'),
+        supabase
+          .from('task_details')
+          .select('*')
+          .eq('task_id', taskId)
+          .order('order_index')
       ]);
 
       if (taskResult.error) throw taskResult.error;
       if (profilesResult.error) throw profilesResult.error;
+      if (detailsResult.error) throw detailsResult.error;
 
       setTask(taskResult.data);
       setProfiles(profilesResult.data || []);
+      setDetails(detailsResult.data || []);
     } catch (error) {
       console.error('Error loading task:', error);
       showToast('Failed to load task details', 'error');
@@ -77,15 +85,73 @@ export default function TaskDetailPage() {
     }
   }
 
-  function handleAddDetail() {
-    if (newDetail.trim()) {
-      setDetails([...details, newDetail.trim()]);
+  async function handleAddDetail() {
+    if (!newDetail.trim() || !task) return;
+
+    try {
+      const { data, error } = await supabase
+        .from('task_details')
+        .insert({
+          task_id: task.id,
+          content: newDetail.trim(),
+          order_index: details.length
+        })
+        .select()
+        .single();
+
+      if (error) throw error;
+
+      setDetails([...details, data]);
       setNewDetail('');
+      showToast('Detail added successfully', 'success');
+    } catch (error) {
+      console.error('Error adding detail:', error);
+      showToast('Failed to add detail', 'error');
     }
   }
 
-  function handleRemoveDetail(index: number) {
-    setDetails(details.filter((_, i) => i !== index));
+  async function handleRemoveDetail(detailId: string) {
+    try {
+      const { error } = await supabase
+        .from('task_details')
+        .delete()
+        .eq('id', detailId);
+
+      if (error) throw error;
+
+      setDetails(details.filter(d => d.id !== detailId));
+      showToast('Detail removed successfully', 'success');
+    } catch (error) {
+      console.error('Error removing detail:', error);
+      showToast('Failed to remove detail', 'error');
+    }
+  }
+
+  async function handleDeleteTask() {
+    if (!task) return;
+
+    const confirmDelete = window.confirm(
+      'Are you sure you want to delete this task? This action cannot be undone.'
+    );
+
+    if (!confirmDelete) return;
+
+    setDeleting(true);
+    try {
+      const { error } = await supabase
+        .from('tasks')
+        .delete()
+        .eq('id', task.id);
+
+      if (error) throw error;
+
+      showToast('Task deleted successfully', 'success');
+      navigate('/dashboard');
+    } catch (error) {
+      console.error('Error deleting task:', error);
+      showToast('Failed to delete task', 'error');
+      setDeleting(false);
+    }
   }
 
   const formatCreatedAt = (dateString: string) => {
@@ -265,20 +331,26 @@ export default function TaskDetailPage() {
               </div>
             </div>
 
-            {details.length > 0 && (
+            {details.length > 0 ? (
               <ul className="space-y-2">
-                {details.map((detail, index) => (
-                  <li key={index} className="flex items-center gap-2 bg-gray-50 px-4 py-2 rounded-lg">
-                    <span className="flex-1 text-gray-700">{detail}</span>
+                {details.map((detail) => (
+                  <li key={detail.id} className="flex items-center gap-3 bg-gray-50 px-4 py-3 rounded-lg">
+                    <span className="w-6 h-6 rounded-full bg-green-100 text-green-700 flex items-center justify-center text-xs font-medium flex-shrink-0">
+                      ✓
+                    </span>
+                    <span className="flex-1 text-gray-700">{detail.content}</span>
                     <button
-                      onClick={() => handleRemoveDetail(index)}
+                      onClick={() => handleRemoveDetail(detail.id)}
                       className="text-gray-400 hover:text-red-600 transition-colors"
+                      title="Remove detail"
                     >
                       <X className="w-4 h-4" />
                     </button>
                   </li>
                 ))}
               </ul>
+            ) : (
+              <p className="text-sm text-gray-500 italic">No additional details added yet. Use the form above to add sub-tasks or notes.</p>
             )}
           </div>
 
@@ -336,6 +408,26 @@ export default function TaskDetailPage() {
               <span>Saving changes...</span>
             </div>
           )}
+
+          <div className="border-t border-gray-200 pt-6 mt-6">
+            <button
+              onClick={handleDeleteTask}
+              disabled={deleting}
+              className="w-full sm:w-auto px-6 py-3 bg-red-600 hover:bg-red-700 text-white font-medium rounded-lg transition-colors flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              {deleting ? (
+                <>
+                  <Loader2 className="w-5 h-5 animate-spin" />
+                  Deleting...
+                </>
+              ) : (
+                <>
+                  <Trash2 className="w-5 h-5" />
+                  Delete Task
+                </>
+              )}
+            </button>
+          </div>
         </div>
       </main>
     </div>
