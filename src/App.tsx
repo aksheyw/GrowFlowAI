@@ -7,6 +7,7 @@ import LoginPage from './pages/LoginPage';
 import DashboardPage from './pages/DashboardPage';
 import AddNotePage from './pages/AddNotePage';
 import TestNotificationPage from './pages/TestNotificationPage';
+import TaskDetailPage from './pages/TaskDetailPage';
 
 function App() {
   return (
@@ -37,6 +38,14 @@ function App() {
               element={
                 <ProtectedRoute>
                   <TestNotificationPage />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/task/:taskId"
+              element={
+                <ProtectedRoute>
+                  <TaskDetailPage />
                 </ProtectedRoute>
               }
             />
