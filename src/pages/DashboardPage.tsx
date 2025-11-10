@@ -486,11 +486,11 @@ export default function DashboardPage() {
           )}
         </div>
 
-        <div className="mb-4" ref={dropdownRef}>
+        <div className="mb-4 lg:hidden" ref={dropdownRef}>
           <div className="flex items-center gap-2">
             <button
               onClick={() => setShowFilterDropdown(!showFilterDropdown)}
-              className="flex-1 lg:flex-none lg:min-w-[180px] px-4 py-2.5 bg-white border border-gray-200 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors flex items-center justify-between gap-2"
+              className="flex-1 px-4 py-2.5 bg-white border border-gray-200 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors flex items-center justify-between gap-2"
             >
               <span className="truncate">
                 {filter === 'all' && 'All Notes'}
@@ -502,7 +502,7 @@ export default function DashboardPage() {
               <ChevronDown className={`w-4 h-4 flex-shrink-0 transition-transform ${showFilterDropdown ? 'rotate-180' : ''}`} />
             </button>
 
-            <div className="flex bg-gray-100 rounded-lg p-1 lg:hidden">
+            <div className="flex bg-gray-100 rounded-lg p-1">
               <button
                 onClick={() => setViewType('card')}
                 className={`p-2 rounded transition-colors ${
@@ -525,7 +525,7 @@ export default function DashboardPage() {
           </div>
 
           {showFilterDropdown && (
-            <div className="w-full lg:w-auto lg:max-w-xs bg-white border border-gray-200 rounded-lg shadow-lg overflow-hidden mt-2 animate-slideDown">
+            <div className="w-full bg-white border border-gray-200 rounded-lg shadow-lg overflow-hidden mt-2 animate-slideDown">
               <button
                 onClick={() => {
                   setFilter('all');
@@ -583,6 +583,51 @@ export default function DashboardPage() {
               </button>
             </div>
           )}
+        </div>
+
+        <div className="hidden lg:flex items-center gap-3 mb-4">
+          <div className="flex items-center gap-2 bg-white border border-gray-200 rounded-lg p-1">
+            <button
+              onClick={() => setFilter('all')}
+              className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
+                filter === 'all' ? 'bg-green-700 text-white' : 'text-gray-700 hover:bg-gray-100'
+              }`}
+            >
+              All Notes
+            </button>
+            <button
+              onClick={() => setFilter('my-tasks')}
+              className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
+                filter === 'my-tasks' ? 'bg-green-700 text-white' : 'text-gray-700 hover:bg-gray-100'
+              }`}
+            >
+              My Notes
+            </button>
+            <button
+              onClick={() => setFilter('not-started')}
+              className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
+                filter === 'not-started' ? 'bg-green-700 text-white' : 'text-gray-700 hover:bg-gray-100'
+              }`}
+            >
+              Not Started
+            </button>
+            <button
+              onClick={() => setFilter('in-progress')}
+              className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
+                filter === 'in-progress' ? 'bg-green-700 text-white' : 'text-gray-700 hover:bg-gray-100'
+              }`}
+            >
+              In Progress
+            </button>
+            <button
+              onClick={() => setFilter('done')}
+              className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
+                filter === 'done' ? 'bg-green-700 text-white' : 'text-gray-700 hover:bg-gray-100'
+              }`}
+            >
+              Done
+            </button>
+          </div>
         </div>
 
         <button
