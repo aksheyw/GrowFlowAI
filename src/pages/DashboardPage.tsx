@@ -663,82 +663,120 @@ export default function DashboardPage() {
             ))}
           </div>
         ) : (
-          <div className="bg-white rounded-xl shadow-sm border border-gray-200 divide-y divide-gray-200">
+          <div className="bg-white rounded-xl shadow-sm border border-gray-200 divide-y divide-gray-200 overflow-hidden">
             {filteredTasks.map(task => (
               <div
                 key={task.id}
-                onClick={() => navigate(`/task/${task.id}`)}
-                className="p-4 hover:bg-gray-50 transition-colors cursor-pointer"
+                className="p-4 hover:bg-gray-50 transition-colors"
               >
-                <div className="flex items-center gap-4">
-                  <div className="text-3xl flex-shrink-0">
+                <div className="flex items-start gap-3 sm:gap-4">
+                  <button
+                    onClick={() => navigate(`/task/${task.id}`)}
+                    className="text-3xl flex-shrink-0 cursor-pointer hover:scale-110 transition-transform"
+                  >
                     {task.status === 'Not Started' && '🌱'}
                     {task.status === 'In Progress' && '🌿'}
                     {task.status === 'Done' && '🌳'}
-                  </div>
+                  </button>
 
                   <div className="flex-1 min-w-0">
-                    <div className="flex items-start justify-between gap-4 mb-2">
-                      <p className="font-medium text-gray-900 line-clamp-2">{task.description}</p>
-                      <div className="flex items-center gap-2 flex-shrink-0">
-                        <span className={`px-2 py-1 rounded-full text-xs font-medium ${
-                          task.priority === 'High' ? 'bg-red-100 text-red-700' :
-                          task.priority === 'Medium' ? 'bg-yellow-100 text-yellow-700' :
-                          'bg-green-100 text-green-700'
-                        }`}>
-                          {task.priority}
-                        </span>
-                        <button
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            const confirmDelete = window.confirm(
-                              'Are you sure you want to delete this task? This action cannot be undone.'
-                            );
-                            if (confirmDelete) {
-                              handleDeleteTask(task.id);
-                            }
-                          }}
-                          className="p-1.5 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
-                          title="Delete task"
-                        >
-                          <Plus className="w-4 h-4 rotate-45" />
-                        </button>
+                    <div
+                      onClick={() => navigate(`/task/${task.id}`)}
+                      className="cursor-pointer mb-3"
+                    >
+                      <div className="flex items-start justify-between gap-3 mb-2">
+                        <p className="font-medium text-gray-900 line-clamp-2 flex-1">{task.description}</p>
+                        <div className="flex items-center gap-2 flex-shrink-0">
+                          <span className={`px-2 py-1 rounded-full text-xs font-medium whitespace-nowrap ${
+                            task.priority === 'High' ? 'bg-red-100 text-red-700' :
+                            task.priority === 'Medium' ? 'bg-yellow-100 text-yellow-700' :
+                            'bg-green-100 text-green-700'
+                          }`}>
+                            {task.priority}
+                          </span>
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              const confirmDelete = window.confirm(
+                                'Are you sure you want to delete this task? This action cannot be undone.'
+                              );
+                              if (confirmDelete) {
+                                handleDeleteTask(task.id);
+                              }
+                            }}
+                            className="p-1.5 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+                            title="Delete task"
+                          >
+                            <Plus className="w-4 h-4 rotate-45" />
+                          </button>
+                        </div>
+                      </div>
+
+                      <div className="flex flex-wrap items-center gap-x-4 gap-y-2 text-sm text-gray-600">
+                        {task.assignee && (
+                          <div className="flex items-center gap-2">
+                            <div className="w-6 h-6 rounded-full bg-green-700 text-white flex items-center justify-center text-xs font-medium">
+                              {task.assignee.full_name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2)}
+                            </div>
+                            <span className="truncate max-w-[120px]">{task.assignee.full_name}</span>
+                          </div>
+                        )}
+
+                        {task.deadline && (
+                          <div className="flex items-center gap-1 whitespace-nowrap">
+                            <span>Due: {new Date(task.deadline).toLocaleDateString()}</span>
+                          </div>
+                        )}
+
+                        <div className="flex items-center gap-1 whitespace-nowrap">
+                          <span>Created: {new Date(task.created_at).toLocaleDateString()}</span>
+                        </div>
                       </div>
                     </div>
 
-                    <div className="flex items-center gap-4 text-sm text-gray-600">
-                      {task.assignee && (
-                        <div className="flex items-center gap-2">
-                          <div className="w-6 h-6 rounded-full bg-green-700 text-white flex items-center justify-center text-xs font-medium">
-                            {task.assignee.full_name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2)}
-                          </div>
-                          <span>{task.assignee.full_name}</span>
-                        </div>
-                      )}
-
-                      {task.deadline && (
-                        <div className="flex items-center gap-1">
-                          <span>Due: {new Date(task.deadline).toLocaleDateString()}</span>
-                        </div>
-                      )}
-
-                      <div className="flex items-center gap-1">
-                        <span>Created: {new Date(task.created_at).toLocaleDateString()}</span>
+                    <div className="flex items-center gap-2">
+                      <span className="text-xs text-gray-500 flex-shrink-0">Status:</span>
+                      <div className="flex gap-2 flex-wrap">
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleStatusChange(task.id, 'Not Started');
+                          }}
+                          className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-colors ${
+                            task.status === 'Not Started'
+                              ? 'bg-gray-200 text-gray-900 ring-2 ring-gray-400'
+                              : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                          }`}
+                        >
+                          🌱 Not Started
+                        </button>
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleStatusChange(task.id, 'In Progress');
+                          }}
+                          className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-colors ${
+                            task.status === 'In Progress'
+                              ? 'bg-blue-100 text-blue-900 ring-2 ring-blue-400'
+                              : 'bg-gray-100 text-gray-700 hover:bg-blue-50'
+                          }`}
+                        >
+                          🌿 In Progress
+                        </button>
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleStatusChange(task.id, 'Done');
+                          }}
+                          className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-colors ${
+                            task.status === 'Done'
+                              ? 'bg-green-100 text-green-900 ring-2 ring-green-400'
+                              : 'bg-gray-100 text-gray-700 hover:bg-green-50'
+                          }`}
+                        >
+                          🌳 Done
+                        </button>
                       </div>
-
-                      <select
-                        value={task.status}
-                        onClick={(e) => e.stopPropagation()}
-                        onChange={(e) => {
-                          e.stopPropagation();
-                          handleStatusChange(task.id, e.target.value as Task['status']);
-                        }}
-                        className="ml-auto px-3 py-1 border border-gray-300 rounded-lg text-sm bg-white hover:bg-gray-50 focus:ring-2 focus:ring-green-500 focus:border-transparent outline-none"
-                      >
-                        <option value="Not Started">Not Started</option>
-                        <option value="In Progress">In Progress</option>
-                        <option value="Done">Done</option>
-                      </select>
                     </div>
                   </div>
                 </div>
