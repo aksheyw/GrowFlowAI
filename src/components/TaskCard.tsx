@@ -64,12 +64,12 @@ export default function TaskCard({ task, onStatusChange, onDelete }: TaskCardPro
   return (
     <div
       onClick={() => navigate(`/task/${task.id}`)}
-      className="bg-white rounded-xl shadow-sm border border-gray-200 p-5 hover:shadow-md transition-shadow cursor-pointer"
+      className="bg-white rounded-xl shadow-sm border border-gray-200 p-5 hover:shadow-md transition-all duration-200 cursor-pointer flex flex-col h-full"
     >
-      <div className="flex items-start justify-between mb-3">
-        <div className="text-4xl">{PLANT_STAGES[task.status]}</div>
+      <div className="flex items-start justify-between mb-4">
+        <div className="text-4xl leading-none">{PLANT_STAGES[task.status]}</div>
         <div className="flex items-center gap-2">
-          <span className={`px-2 py-1 rounded-full text-xs font-medium ${PRIORITY_COLORS[task.priority]}`}>
+          <span className={`px-2.5 py-1 rounded-full text-xs font-semibold ${PRIORITY_COLORS[task.priority]}`}>
             {task.priority}
           </span>
           <button
@@ -82,32 +82,38 @@ export default function TaskCard({ task, onStatusChange, onDelete }: TaskCardPro
         </div>
       </div>
 
-      <p className="text-gray-900 font-medium mb-4 line-clamp-3">
-        {task.description}
-      </p>
+      <div className="flex-1 mb-4">
+        <p className="text-gray-900 font-medium text-[15px] leading-snug line-clamp-3 min-h-[63px]">
+          {task.description}
+        </p>
+      </div>
 
-      <div className="space-y-3">
-        {task.assignee && (
-          <div className="flex items-center gap-2">
-            <div className="w-6 h-6 rounded-full bg-green-700 text-white flex items-center justify-center text-xs font-medium">
-              {getInitials(task.assignee.full_name)}
-            </div>
-            <span className="text-sm text-gray-600">{task.assignee.full_name}</span>
-          </div>
-        )}
-
-        <div className="flex items-center gap-2 text-sm text-gray-600">
-          <Calendar className="w-4 h-4" />
-          <span>{formatDate(task.deadline)}</span>
+      <div className="space-y-2.5 mt-auto">
+        <div className="flex items-center gap-2 min-h-[24px]">
+          {task.assignee ? (
+            <>
+              <div className="w-6 h-6 rounded-full bg-green-700 text-white flex items-center justify-center text-xs font-medium flex-shrink-0">
+                {getInitials(task.assignee.full_name)}
+              </div>
+              <span className="text-sm text-gray-600 truncate">{task.assignee.full_name}</span>
+            </>
+          ) : (
+            <span className="text-sm text-gray-400 italic">No assignee</span>
+          )}
         </div>
 
-        <div className="flex items-center gap-2 text-xs text-gray-500">
-          <Clock className="w-3.5 h-3.5" />
-          <span>Created: {formatCreatedAt(task.created_at)}</span>
+        <div className="flex items-center gap-2 text-sm text-gray-600 min-h-[20px]">
+          <Calendar className="w-4 h-4 flex-shrink-0" />
+          <span className="truncate">{formatDate(task.deadline)}</span>
         </div>
 
-        <div>
-          <label className="block text-xs font-medium text-gray-700 mb-1">Status</label>
+        <div className="flex items-center gap-2 text-xs text-gray-500 min-h-[18px]">
+          <Clock className="w-3.5 h-3.5 flex-shrink-0" />
+          <span className="truncate">Created: {formatCreatedAt(task.created_at)}</span>
+        </div>
+
+        <div className="pt-1">
+          <label className="block text-xs font-semibold text-gray-700 mb-1.5">Status</label>
           <select
             value={task.status}
             onClick={(e) => e.stopPropagation()}
@@ -115,7 +121,7 @@ export default function TaskCard({ task, onStatusChange, onDelete }: TaskCardPro
               e.stopPropagation();
               onStatusChange(task.id, e.target.value as Task['status']);
             }}
-            className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-green-500 focus:border-transparent outline-none transition-all"
+            className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm bg-white hover:border-gray-400 focus:ring-2 focus:ring-green-500 focus:border-transparent outline-none transition-all"
           >
             <option value="Not Started">Not Started</option>
             <option value="In Progress">In Progress</option>
