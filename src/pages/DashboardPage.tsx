@@ -190,74 +190,19 @@ export default function DashboardPage() {
       </header>
 
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <div className="flex flex-col gap-6 mb-8">
-          <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-6">
-            <div>
-              <h2 className="text-2xl font-bold text-gray-900">My Notes</h2>
-              <p className="text-gray-600 mt-1">Personal workspace • Team collaboration • All in one</p>
-            </div>
-
-            <button
-              onClick={() => navigate('/add-note')}
-              className="bg-green-700 hover:bg-green-800 text-white px-6 py-3 rounded-lg flex items-center gap-2 transition-all shadow-md hover:shadow-lg font-medium"
-            >
-              <Plus className="w-5 h-5" />
-              Add Note
-            </button>
+        <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-6 mb-6">
+          <div>
+            <h2 className="text-2xl font-bold text-gray-900">My Notes</h2>
+            <p className="text-gray-600 mt-1">Personal workspace • Team collaboration • All in one</p>
           </div>
 
-          <div className="flex flex-wrap gap-2">
-            <button
-              onClick={() => setFilter('all')}
-              className={`px-4 py-2 rounded-lg font-medium transition-colors ${
-                filter === 'all'
-                  ? 'bg-green-700 text-white shadow-sm'
-                  : 'bg-white text-gray-700 hover:bg-gray-100 border border-gray-200'
-              }`}
-            >
-              All Notes
-            </button>
-            <button
-              onClick={() => setFilter('my-tasks')}
-              className={`px-4 py-2 rounded-lg font-medium transition-colors ${
-                filter === 'my-tasks'
-                  ? 'bg-green-700 text-white shadow-sm'
-                  : 'bg-white text-gray-700 hover:bg-gray-100 border border-gray-200'
-              }`}
-            >
-              My Notes
-            </button>
-            <button
-              onClick={() => setFilter('not-started')}
-              className={`px-4 py-2 rounded-lg font-medium transition-colors ${
-                filter === 'not-started'
-                  ? 'bg-green-700 text-white shadow-sm'
-                  : 'bg-white text-gray-700 hover:bg-gray-100 border border-gray-200'
-              }`}
-            >
-              Not Started
-            </button>
-            <button
-              onClick={() => setFilter('in-progress')}
-              className={`px-4 py-2 rounded-lg font-medium transition-colors ${
-                filter === 'in-progress'
-                  ? 'bg-green-700 text-white shadow-sm'
-                  : 'bg-white text-gray-700 hover:bg-gray-100 border border-gray-200'
-              }`}
-            >
-              In Progress
-            </button>
-            <button
-              onClick={() => setFilter('done')}
-              className={`px-4 py-2 rounded-lg font-medium transition-colors ${
-                filter === 'done'
-                  ? 'bg-green-700 text-white shadow-sm'
-                  : 'bg-white text-gray-700 hover:bg-gray-100 border border-gray-200'
-              }`}
-            >
-              Done
-            </button>
-          </div>
+          <button
+            onClick={() => navigate('/add-note')}
+            className="bg-green-700 hover:bg-green-800 text-white px-6 py-3 rounded-lg flex items-center gap-2 transition-all shadow-md hover:shadow-lg font-medium"
+          >
+            <Plus className="w-5 h-5" />
+            Add Note
+          </button>
         </div>
 
         <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-4 mb-6">
@@ -373,6 +318,58 @@ export default function DashboardPage() {
           )}
         </div>
 
+        <div className="flex flex-wrap gap-2 mb-6">
+          <button
+            onClick={() => setFilter('all')}
+            className={`px-4 py-2 rounded-lg font-medium transition-colors ${
+              filter === 'all'
+                ? 'bg-green-700 text-white shadow-sm'
+                : 'bg-white text-gray-700 hover:bg-gray-100 border border-gray-200'
+            }`}
+          >
+            All Notes
+          </button>
+          <button
+            onClick={() => setFilter('my-tasks')}
+            className={`px-4 py-2 rounded-lg font-medium transition-colors ${
+              filter === 'my-tasks'
+                ? 'bg-green-700 text-white shadow-sm'
+                : 'bg-white text-gray-700 hover:bg-gray-100 border border-gray-200'
+            }`}
+          >
+            My Notes
+          </button>
+          <button
+            onClick={() => setFilter('not-started')}
+            className={`px-4 py-2 rounded-lg font-medium transition-colors ${
+              filter === 'not-started'
+                ? 'bg-green-700 text-white shadow-sm'
+                : 'bg-white text-gray-700 hover:bg-gray-100 border border-gray-200'
+            }`}
+          >
+            Not Started
+          </button>
+          <button
+            onClick={() => setFilter('in-progress')}
+            className={`px-4 py-2 rounded-lg font-medium transition-colors ${
+              filter === 'in-progress'
+                ? 'bg-green-700 text-white shadow-sm'
+                : 'bg-white text-gray-700 hover:bg-gray-100 border border-gray-200'
+            }`}
+          >
+            In Progress
+          </button>
+          <button
+            onClick={() => setFilter('done')}
+            className={`px-4 py-2 rounded-lg font-medium transition-colors ${
+              filter === 'done'
+                ? 'bg-green-700 text-white shadow-sm'
+                : 'bg-white text-gray-700 hover:bg-gray-100 border border-gray-200'
+            }`}
+          >
+            Done
+          </button>
+        </div>
 
         {filteredTasks.length === 0 ? (
           <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-12 text-center">
