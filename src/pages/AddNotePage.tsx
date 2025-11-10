@@ -119,8 +119,17 @@ export default function AddNotePage() {
         throw new Error(`Webhook failed: ${response.status} ${response.statusText}`);
       }
 
-      const result = await response.json();
-      console.log('Webhook response:', result);
+      const responseText = await response.text();
+      console.log('Webhook raw response:', responseText);
+
+      let result;
+      try {
+        result = JSON.parse(responseText);
+        console.log('Webhook parsed response:', result);
+      } catch (parseError) {
+        console.warn('Webhook returned non-JSON response:', responseText);
+        result = { success: true, raw: responseText };
+      }
 
       setSuccess(true);
       setContent('');
