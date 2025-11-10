@@ -338,25 +338,23 @@ export default function DashboardPage() {
           )}
         </div>
 
-        <div className="flex flex-col gap-3 mb-4">
+        <div className="mb-4" ref={dropdownRef}>
           <div className="flex items-center gap-3">
-            <div className="relative flex-1" ref={dropdownRef}>
-              <button
-                onClick={() => setShowFilterDropdown(!showFilterDropdown)}
-                className="w-full sm:w-auto min-w-[180px] px-4 py-2 bg-white border border-gray-200 rounded-lg font-medium text-gray-700 hover:bg-gray-50 transition-colors flex items-center justify-between gap-2"
-              >
-                <span>
-                  {filter === 'all' && 'All Notes'}
-                  {filter === 'my-tasks' && 'My Notes'}
-                  {filter === 'not-started' && 'Not Started'}
-                  {filter === 'in-progress' && 'In Progress'}
-                  {filter === 'done' && 'Done'}
-                </span>
-                <ChevronDown className={`w-4 h-4 transition-transform ${showFilterDropdown ? 'rotate-180' : ''}`} />
-              </button>
-            </div>
+            <button
+              onClick={() => setShowFilterDropdown(!showFilterDropdown)}
+              className="w-full sm:w-auto min-w-[180px] px-4 py-2 bg-white border border-gray-200 rounded-lg font-medium text-gray-700 hover:bg-gray-50 transition-colors flex items-center justify-between gap-2"
+            >
+              <span>
+                {filter === 'all' && 'All Notes'}
+                {filter === 'my-tasks' && 'My Notes'}
+                {filter === 'not-started' && 'Not Started'}
+                {filter === 'in-progress' && 'In Progress'}
+                {filter === 'done' && 'Done'}
+              </span>
+              <ChevronDown className={`w-4 h-4 transition-transform ${showFilterDropdown ? 'rotate-180' : ''}`} />
+            </button>
 
-            <div className="flex items-center gap-2 flex-shrink-0">
+            <div className="flex items-center gap-2 flex-shrink-0 lg:hidden">
               <div className="flex bg-gray-100 rounded-lg p-1">
                 <button
                   onClick={() => setViewType('card')}
@@ -389,7 +387,7 @@ export default function DashboardPage() {
           </div>
 
           {showFilterDropdown && (
-            <div className="w-full sm:w-auto sm:max-w-xs bg-white border border-gray-200 rounded-lg shadow-lg overflow-hidden">
+            <div className="w-full sm:w-auto sm:max-w-xs bg-white border border-gray-200 rounded-lg shadow-lg overflow-hidden mt-2">
               <button
                 onClick={() => {
                   setFilter('all');
