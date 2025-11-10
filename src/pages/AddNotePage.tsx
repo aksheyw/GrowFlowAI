@@ -19,15 +19,41 @@ export default function AddNotePage() {
     setSuccess(false);
 
     try {
-      const { error } = await supabase.from('notes').insert([
-        {
-          user_id: user.id,
-          content: content.trim(),
-          processed: false,
-        },
-      ]);
+      const { data: noteData, error: noteError } = await supabase
+        .from('notes')
+        .insert([
+          {
+            user_id: user.id,
+            content: content.trim(),
+            processed: true,
+          },
+        ])
+        .select()
+        .single();
 
-      if (error) throw error;
+      if (noteError) throw noteError;
+
+      const lines = content.trim().split('\n').filter(line => line.trim());
+      const tasks = [];
+
+      for (const line of lines) {
+        const trimmedLine = line.trim();
+        if (trimmedLine.length > 10) {
+          tasks.push({
+            note_id: noteData.id,
+            user_id: user.id,
+            assignee_id: user.id,
+            description: trimmedLine.replace(/^[-*•]\s*/, ''),
+            status: 'Not Started',
+            priority: 'Medium',
+          });
+        }
+      }
+
+      if (tasks.length > 0) {
+        const { error: tasksError } = await supabase.from('tasks').insert(tasks);
+        if (tasksError) throw tasksError;
+      }
 
       setSuccess(true);
       setContent('');
