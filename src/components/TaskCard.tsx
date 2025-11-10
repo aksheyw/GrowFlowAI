@@ -1,5 +1,5 @@
 import { Task } from '../lib/supabase';
-import { Calendar } from 'lucide-react';
+import { Calendar, Clock } from 'lucide-react';
 
 interface TaskCardProps {
   task: Task;
@@ -34,6 +34,19 @@ export default function TaskCard({ task, onStatusChange }: TaskCardProps) {
     return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
   };
 
+  const formatCreatedAt = (dateString: string) => {
+    const date = new Date(dateString);
+    return date.toLocaleString('en-IN', {
+      timeZone: 'Asia/Kolkata',
+      day: '2-digit',
+      month: 'short',
+      year: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit',
+      hour12: true
+    });
+  };
+
   return (
     <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-5 hover:shadow-md transition-shadow">
       <div className="flex items-start justify-between mb-3">
@@ -60,6 +73,11 @@ export default function TaskCard({ task, onStatusChange }: TaskCardProps) {
         <div className="flex items-center gap-2 text-sm text-gray-600">
           <Calendar className="w-4 h-4" />
           <span>{formatDate(task.deadline)}</span>
+        </div>
+
+        <div className="flex items-center gap-2 text-xs text-gray-500">
+          <Clock className="w-3.5 h-3.5" />
+          <span>Created: {formatCreatedAt(task.created_at)}</span>
         </div>
 
         <div>
