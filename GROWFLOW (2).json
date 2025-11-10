@@ -1,0 +1,413 @@
+{
+  "name": "GROWFLOW",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "1d398de3-892a-4d5a-a941-62feab1e0250",
+        "responseMode": "streaming",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.1,
+      "position": [
+        0,
+        -128
+      ],
+      "id": "5204c1f6-21a1-479e-bfd8-b843bfb1340d",
+      "name": "Webhook",
+      "webhookId": "1d398de3-892a-4d5a-a941-62feab1e0250"
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "mode": "list",
+          "value": "gpt-4.1-mini"
+        },
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1.2,
+      "position": [
+        296,
+        96
+      ],
+      "id": "64ceb0e4-8e03-4c0a-bb28-3f706e6e38a3",
+      "name": "OpenAI Chat Model",
+      "credentials": {
+        "openAiApi": {
+          "id": "qpa3PfbbU7vSEtbI",
+          "name": "OpenAi account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "// 1. Parse the AI response from the previous step\nconst aiResponse = JSON.parse($input.first().json.output);\n\n// 2. Get the original data from the *Webhook*\n// This is the crucial part\nconst user_id = $(\"Webhook\").first().json.user_id;\nconst raw_text = $(\"Webhook\").first().json.note_text;\n\n// 3. Combine them and return everything\nreturn {\n  json: {\n    ...aiResponse, // This adds summary, tasks, etc.\n    user_id: user_id, // This adds the user_id\n    raw_text: raw_text  // This adds the raw_text\n  }\n};"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        576,
+        -176
+      ],
+      "id": "adbc2c1d-3cc4-49e8-bdd6-33146fcc5d0d",
+      "name": "Code in JavaScript"
+    },
+    {
+      "parameters": {
+        "tableId": "tasks",
+        "fieldsUi": {
+          "fieldValues": [
+            {
+              "fieldId": "task_description",
+              "fieldValue": "={{ $json.description }}"
+            },
+            {
+              "fieldId": "assignee_name",
+              "fieldValue": "={{ $json.assignee }}"
+            },
+            {
+              "fieldId": "priority",
+              "fieldValue": "={{ $json.priority }}"
+            },
+            {
+              "fieldId": "deadline",
+              "fieldValue": "={{ $json.deadline }}"
+            },
+            {
+              "fieldId": "note_id",
+              "fieldValue": "={{ $(\"INSERT NOTE\").first().json.id }}"
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.supabase",
+      "typeVersion": 1,
+      "position": [
+        1024,
+        -176
+      ],
+      "id": "29ce2c3e-7c90-454e-8a41-fe8eee148729",
+      "name": "INSERT TASK",
+      "credentials": {
+        "supabaseApi": {
+          "id": "GBS4jytHnsjhRKEe",
+          "name": "Supabase account 2"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "tableId": "notifications",
+        "fieldsUi": {
+          "fieldValues": [
+            {
+              "fieldId": "task_id",
+              "fieldValue": "={{ $json.id }}"
+            },
+            {
+              "fieldId": "message",
+              "fieldValue": "=You've been assigned: {{ $json.task_description }}"
+            },
+            {
+              "fieldId": "type",
+              "fieldValue": "task_assigned"
+            },
+            {
+              "fieldId": "user_id",
+              "fieldValue": "={{ (await $n8n.nodes(\"Supabase account 2\").execute(\"SELECT id from users WHERE name = '\" + $json.assignee_name + \"' LIMIT 1\"))[0].id }}"
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.supabase",
+      "typeVersion": 1,
+      "position": [
+        1472,
+        -176
+      ],
+      "id": "dd3afcdf-6af8-47b4-878c-9383cf650da5",
+      "name": "CREATE NOTIFICATION",
+      "credentials": {
+        "supabaseApi": {
+          "id": "GBS4jytHnsjhRKEe",
+          "name": "Supabase account 2"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "={{ $json.body.note_text }}",
+        "options": {
+          "systemMessage": "You are an AI assistant that extracts structured information from meeting notes.\n\nExtract the following:\n1. Meeting title (infer from content)\n2. Meeting date (if mentioned, else use today's date)\n3. Participants (list of names)\n4. Summary (2-3 sentences)\n5. Action items with:\n   - Task description\n   - Assignee (person's name)\n   - Deadline (if mentioned, else 7 days from now)\n   - Priority (low/medium/high based on keywords)\n\nReturn ONLY valid JSON with this structure:\n{\n  \"meeting_title\": \"string\",\n  \"meeting_date\": \"YYYY-MM-DD\",\n  \"participants\": [\"Name1\", \"Name2\"],\n  \"summary\": \"string\",\n  \"tasks\": [\n    {\n      \"description\": \"string\",\n      \"assignee\": \"string\",\n      \"deadline\": \"YYYY-MM-DD\",\n      \"priority\": \"medium\"\n    }\n  ]\n}\n"
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3,
+      "position": [
+        224,
+        -128
+      ],
+      "id": "4085ac4a-e832-4ed4-8d2e-1b5e667c5bcf",
+      "name": "OPEN AI"
+    },
+    {
+      "parameters": {
+        "tableId": "notes",
+        "fieldsUi": {
+          "fieldValues": [
+            {
+              "fieldId": "raw_text",
+              "fieldValue": "={{ $('Webhook').item.json.body.note_text }}"
+            },
+            {
+              "fieldId": "user_id",
+              "fieldValue": "={{ $('Webhook').item.json.body.user_id }}"
+            },
+            {
+              "fieldId": "meeting_title",
+              "fieldValue": "={{ JSON.parse($(\"OPEN AI\").first().json.output).meeting_title }}"
+            },
+            {
+              "fieldId": "meeting_date",
+              "fieldValue": "={{ JSON.parse($(\"OPEN AI\").first().json.output).meeting_date }}"
+            },
+            {
+              "fieldId": "participants",
+              "fieldValue": "={{ JSON.parse($(\"OPEN AI\").first().json.output).participants }}"
+            },
+            {
+              "fieldId": "summary",
+              "fieldValue": "={{ JSON.parse($(\"OPEN AI\").first().json.output).summary }}"
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.supabase",
+      "typeVersion": 1,
+      "position": [
+        800,
+        -176
+      ],
+      "id": "488f5e06-f9d1-4f2f-869f-1632e8206432",
+      "name": "INSERT NOTE",
+      "credentials": {
+        "supabaseApi": {
+          "id": "GBS4jytHnsjhRKEe",
+          "name": "Supabase account 2"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "// 1. Parse the AI response from the 'output' string\nconst aiResponse = JSON.parse($input.first().json.output);\n\n// 2. Return ONLY the tasks array\nreturn aiResponse.tasks;"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        576,
+        16
+      ],
+      "id": "b00fe49f-93ae-4df1-93b2-d8ba5598c76f",
+      "name": "Code in JavaScript1"
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "n8n-nodes-base.splitInBatches",
+      "typeVersion": 3,
+      "position": [
+        800,
+        16
+      ],
+      "id": "a1360ea8-3f82-485f-879b-bb4c464e5b53",
+      "name": "Loop Over Items"
+    },
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.noOp",
+      "name": "Replace Me",
+      "typeVersion": 1,
+      "position": [
+        1024,
+        16
+      ],
+      "id": "5bedae89-a8f7-4604-ae4d-2d3f6c821f25"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "5f8b0c86-4b1f-49ae-b91e-ac0453616b3a",
+              "leftValue": "={{ $json.assignee_name }}",
+              "rightValue": "",
+              "operator": {
+                "type": "string",
+                "operation": "notEmpty",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        1248,
+        -176
+      ],
+      "id": "bdf36725-3449-4bbf-8765-78cbbe381b43",
+      "name": "If"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Webhook": {
+      "main": [
+        [
+          {
+            "node": "OPEN AI",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenAI Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "OPEN AI",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code in JavaScript": {
+      "main": [
+        [
+          {
+            "node": "INSERT NOTE",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "INSERT TASK": {
+      "main": [
+        [
+          {
+            "node": "If",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OPEN AI": {
+      "main": [
+        [
+          {
+            "node": "Code in JavaScript",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Code in JavaScript1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "INSERT NOTE": {
+      "main": [
+        []
+      ]
+    },
+    "Code in JavaScript1": {
+      "main": [
+        [
+          {
+            "node": "Loop Over Items",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Loop Over Items": {
+      "main": [
+        [
+          {
+            "node": "INSERT TASK",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Replace Me",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Replace Me": {
+      "main": [
+        [
+          {
+            "node": "Loop Over Items",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If": {
+      "main": [
+        [
+          {
+            "node": "CREATE NOTIFICATION",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "ddf63cea-4c41-4892-8752-eccde8a4807b",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "69417dc312c6f1e16d819cdcf19622edef03dd1661d3883af9d1956b78c5677f"
+  },
+  "id": "RVVMV9d3fTiVDgrS",
+  "tags": [
+    {
+      "updatedAt": "2025-11-10T16:25:04.074Z",
+      "createdAt": "2025-11-10T16:25:04.074Z",
+      "id": "4WQi1HPUJ1G9GZoA",
+      "name": "HACKATHON19"
+    }
+  ]
+}
