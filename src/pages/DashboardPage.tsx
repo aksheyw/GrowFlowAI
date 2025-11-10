@@ -161,6 +161,26 @@ export default function DashboardPage() {
             </div>
 
             <div className="flex items-center gap-2 sm:gap-4 flex-shrink-0">
+              <div className="lg:hidden flex bg-gray-100 rounded-lg p-1">
+                <button
+                  onClick={() => setViewType('card')}
+                  className={`p-1.5 rounded transition-colors ${
+                    viewType === 'card' ? 'bg-white shadow-sm' : 'hover:bg-gray-200'
+                  }`}
+                  title="Card view"
+                >
+                  <LayoutGrid className="w-4 h-4 text-gray-700" />
+                </button>
+                <button
+                  onClick={() => setViewType('list')}
+                  className={`p-1.5 rounded transition-colors ${
+                    viewType === 'list' ? 'bg-white shadow-sm' : 'hover:bg-gray-200'
+                  }`}
+                  title="List view"
+                >
+                  <List className="w-4 h-4 text-gray-700" />
+                </button>
+              </div>
               <button
                 onClick={() => setShowMobileSearch(!showMobileSearch)}
                 className="lg:hidden p-2 text-gray-600 hover:bg-gray-100 rounded-lg transition-colors"
@@ -330,7 +350,8 @@ export default function DashboardPage() {
           )}
         </div>
 
-        <div className="flex flex-wrap gap-2 mb-4 sm:mb-6">
+        <div className="overflow-x-auto scrollbar-hide mb-4 sm:mb-6">
+          <div className="flex gap-2 min-w-max">
           <button
             onClick={() => setFilter('all')}
             className={`px-4 py-2 rounded-lg font-medium transition-colors ${
@@ -381,6 +402,7 @@ export default function DashboardPage() {
           >
             Done
           </button>
+          </div>
         </div>
 
         <button
