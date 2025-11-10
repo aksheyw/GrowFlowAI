@@ -663,25 +663,25 @@ export default function DashboardPage() {
             ))}
           </div>
         ) : (
-          <div className="space-y-4">
+          <div className="space-y-2">
             {filteredTasks.map(task => (
               <div
                 key={task.id}
                 onClick={() => navigate(`/task/${task.id}`)}
-                className="bg-white rounded-xl shadow-sm border border-gray-200 p-5 hover:shadow-md transition-shadow cursor-pointer"
+                className="bg-white rounded-lg shadow-sm border border-gray-200 p-3 hover:shadow-md transition-shadow cursor-pointer"
               >
-                <div className="flex items-start gap-4">
-                  <div className="text-4xl flex-shrink-0">
+                <div className="flex items-start gap-3">
+                  <div className="text-2xl flex-shrink-0">
                     {task.status === 'Not Started' && '🌱'}
                     {task.status === 'In Progress' && '🌿'}
                     {task.status === 'Done' && '🌳'}
                   </div>
 
                   <div className="flex-1 min-w-0">
-                    <div className="flex items-start justify-between gap-3 mb-3">
-                      <p className="text-gray-900 font-medium line-clamp-2 flex-1">{task.description}</p>
-                      <div className="flex items-center gap-2 flex-shrink-0">
-                        <span className={`px-2 py-1 rounded-full text-xs font-medium whitespace-nowrap ${
+                    <div className="flex items-start justify-between gap-2 mb-2">
+                      <p className="text-gray-900 font-medium text-sm line-clamp-1 flex-1">{task.description}</p>
+                      <div className="flex items-center gap-1.5 flex-shrink-0">
+                        <span className={`px-1.5 py-0.5 rounded text-xs font-medium whitespace-nowrap ${
                           task.priority === 'High' ? 'bg-red-100 text-red-700' :
                           task.priority === 'Medium' ? 'bg-yellow-100 text-yellow-700' :
                           'bg-blue-100 text-blue-700'
@@ -698,63 +698,52 @@ export default function DashboardPage() {
                               handleDeleteTask(task.id);
                             }
                           }}
-                          className="p-1.5 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+                          className="p-1 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded transition-colors"
                           title="Delete task"
                         >
-                          <Trash2 className="w-4 h-4" />
+                          <Trash2 className="w-3.5 h-3.5" />
                         </button>
                       </div>
                     </div>
 
-                    <div className="space-y-3">
+                    <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-gray-600 mb-2">
                       {task.assignee && (
-                        <div className="flex items-center gap-2">
-                          <div className="w-6 h-6 rounded-full bg-green-700 text-white flex items-center justify-center text-xs font-medium">
+                        <div className="flex items-center gap-1.5">
+                          <div className="w-5 h-5 rounded-full bg-green-700 text-white flex items-center justify-center text-xs font-medium">
                             {task.assignee.full_name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2)}
                           </div>
-                          <span className="text-sm text-gray-600">{task.assignee.full_name}</span>
+                          <span>{task.assignee.full_name}</span>
                         </div>
                       )}
 
-                      <div className="flex items-center gap-2 text-sm text-gray-600">
-                        <Calendar className="w-4 h-4" />
+                      <div className="flex items-center gap-1">
+                        <Calendar className="w-3 h-3" />
                         <span>
                           {task.deadline
-                            ? new Date(task.deadline).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
+                            ? new Date(task.deadline).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
                             : 'No deadline'
                           }
                         </span>
                       </div>
 
-                      <div className="flex items-center gap-2 text-xs text-gray-500">
-                        <Clock className="w-3.5 h-3.5" />
-                        <span>Created: {new Date(task.created_at).toLocaleString('en-IN', {
-                          timeZone: 'Asia/Kolkata',
-                          day: '2-digit',
-                          month: 'short',
-                          year: 'numeric',
-                          hour: '2-digit',
-                          minute: '2-digit',
-                          hour12: true
-                        })}</span>
+                      <div className="flex items-center gap-1">
+                        <Clock className="w-3 h-3" />
+                        <span>{new Date(task.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}</span>
                       </div>
 
-                      <div>
-                        <label className="block text-xs font-medium text-gray-700 mb-1">Status</label>
-                        <select
-                          value={task.status}
-                          onClick={(e) => e.stopPropagation()}
-                          onChange={(e) => {
-                            e.stopPropagation();
-                            handleStatusChange(task.id, e.target.value as Task['status']);
-                          }}
-                          className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-green-500 focus:border-transparent outline-none transition-all"
-                        >
-                          <option value="Not Started">Not Started</option>
-                          <option value="In Progress">In Progress</option>
-                          <option value="Done">Done</option>
-                        </select>
-                      </div>
+                      <select
+                        value={task.status}
+                        onClick={(e) => e.stopPropagation()}
+                        onChange={(e) => {
+                          e.stopPropagation();
+                          handleStatusChange(task.id, e.target.value as Task['status']);
+                        }}
+                        className="ml-auto px-2 py-1 border border-gray-300 rounded text-xs focus:ring-1 focus:ring-green-500 focus:border-transparent outline-none transition-all"
+                      >
+                        <option value="Not Started">🌱 Not Started</option>
+                        <option value="In Progress">🌿 In Progress</option>
+                        <option value="Done">🌳 Done</option>
+                      </select>
                     </div>
                   </div>
                 </div>
