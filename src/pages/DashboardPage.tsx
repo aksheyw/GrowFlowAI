@@ -338,113 +338,115 @@ export default function DashboardPage() {
           )}
         </div>
 
-        <div className="flex items-center gap-3 mb-4">
-          <div className="relative flex-1" ref={dropdownRef}>
-            <button
-              onClick={() => setShowFilterDropdown(!showFilterDropdown)}
-              className="w-full sm:w-auto min-w-[180px] px-4 py-2 bg-white border border-gray-200 rounded-lg font-medium text-gray-700 hover:bg-gray-50 transition-colors flex items-center justify-between gap-2"
-            >
-              <span>
-                {filter === 'all' && 'All Notes'}
-                {filter === 'my-tasks' && 'My Notes'}
-                {filter === 'not-started' && 'Not Started'}
-                {filter === 'in-progress' && 'In Progress'}
-                {filter === 'done' && 'Done'}
-              </span>
-              <ChevronDown className={`w-4 h-4 transition-transform ${showFilterDropdown ? 'rotate-180' : ''}`} />
-            </button>
-
-            {showFilterDropdown && (
-              <div className="absolute top-full left-0 mt-1 w-full sm:w-auto min-w-[180px] bg-white border border-gray-200 rounded-lg shadow-lg z-10 overflow-hidden">
-                <button
-                  onClick={() => {
-                    setFilter('all');
-                    setShowFilterDropdown(false);
-                  }}
-                  className={`w-full px-4 py-2.5 text-left hover:bg-gray-50 transition-colors ${
-                    filter === 'all' ? 'bg-green-50 text-green-700 font-medium' : 'text-gray-700'
-                  }`}
-                >
-                  All Notes
-                </button>
-                <button
-                  onClick={() => {
-                    setFilter('my-tasks');
-                    setShowFilterDropdown(false);
-                  }}
-                  className={`w-full px-4 py-2.5 text-left hover:bg-gray-50 transition-colors ${
-                    filter === 'my-tasks' ? 'bg-green-50 text-green-700 font-medium' : 'text-gray-700'
-                  }`}
-                >
-                  My Notes
-                </button>
-                <button
-                  onClick={() => {
-                    setFilter('not-started');
-                    setShowFilterDropdown(false);
-                  }}
-                  className={`w-full px-4 py-2.5 text-left hover:bg-gray-50 transition-colors ${
-                    filter === 'not-started' ? 'bg-green-50 text-green-700 font-medium' : 'text-gray-700'
-                  }`}
-                >
-                  Not Started
-                </button>
-                <button
-                  onClick={() => {
-                    setFilter('in-progress');
-                    setShowFilterDropdown(false);
-                  }}
-                  className={`w-full px-4 py-2.5 text-left hover:bg-gray-50 transition-colors ${
-                    filter === 'in-progress' ? 'bg-green-50 text-green-700 font-medium' : 'text-gray-700'
-                  }`}
-                >
-                  In Progress
-                </button>
-                <button
-                  onClick={() => {
-                    setFilter('done');
-                    setShowFilterDropdown(false);
-                  }}
-                  className={`w-full px-4 py-2.5 text-left hover:bg-gray-50 transition-colors ${
-                    filter === 'done' ? 'bg-green-50 text-green-700 font-medium' : 'text-gray-700'
-                  }`}
-                >
-                  Done
-                </button>
-              </div>
-            )}
-          </div>
-
-          <div className="flex items-center gap-2 flex-shrink-0">
-            <div className="flex bg-gray-100 rounded-lg p-1">
+        <div className="flex flex-col gap-3 mb-4">
+          <div className="flex items-center gap-3">
+            <div className="relative flex-1" ref={dropdownRef}>
               <button
-                onClick={() => setViewType('card')}
-                className={`p-2 rounded transition-colors ${
-                  viewType === 'card' ? 'bg-white shadow-sm' : 'hover:bg-gray-200'
-                }`}
-                title="Card view"
+                onClick={() => setShowFilterDropdown(!showFilterDropdown)}
+                className="w-full sm:w-auto min-w-[180px] px-4 py-2 bg-white border border-gray-200 rounded-lg font-medium text-gray-700 hover:bg-gray-50 transition-colors flex items-center justify-between gap-2"
               >
-                <LayoutGrid className="w-4 h-4 text-gray-700" />
-              </button>
-              <button
-                onClick={() => setViewType('list')}
-                className={`p-2 rounded transition-colors ${
-                  viewType === 'list' ? 'bg-white shadow-sm' : 'hover:bg-gray-200'
-                }`}
-                title="List view"
-              >
-                <List className="w-4 h-4 text-gray-700" />
+                <span>
+                  {filter === 'all' && 'All Notes'}
+                  {filter === 'my-tasks' && 'My Notes'}
+                  {filter === 'not-started' && 'Not Started'}
+                  {filter === 'in-progress' && 'In Progress'}
+                  {filter === 'done' && 'Done'}
+                </span>
+                <ChevronDown className={`w-4 h-4 transition-transform ${showFilterDropdown ? 'rotate-180' : ''}`} />
               </button>
             </div>
 
-            <button
-              onClick={() => setShowMobileSearch(!showMobileSearch)}
-              className="p-2 text-gray-600 hover:bg-gray-100 rounded-lg transition-colors border border-gray-200 bg-white"
-              title="Search & Filters"
-            >
-              <Filter className="w-5 h-5" />
-            </button>
+            <div className="flex items-center gap-2 flex-shrink-0">
+              <div className="flex bg-gray-100 rounded-lg p-1">
+                <button
+                  onClick={() => setViewType('card')}
+                  className={`p-2 rounded transition-colors ${
+                    viewType === 'card' ? 'bg-white shadow-sm' : 'hover:bg-gray-200'
+                  }`}
+                  title="Card view"
+                >
+                  <LayoutGrid className="w-4 h-4 text-gray-700" />
+                </button>
+                <button
+                  onClick={() => setViewType('list')}
+                  className={`p-2 rounded transition-colors ${
+                    viewType === 'list' ? 'bg-white shadow-sm' : 'hover:bg-gray-200'
+                  }`}
+                  title="List view"
+                >
+                  <List className="w-4 h-4 text-gray-700" />
+                </button>
+              </div>
+
+              <button
+                onClick={() => setShowMobileSearch(!showMobileSearch)}
+                className="p-2 text-gray-600 hover:bg-gray-100 rounded-lg transition-colors border border-gray-200 bg-white"
+                title="Search & Filters"
+              >
+                <Filter className="w-5 h-5" />
+              </button>
+            </div>
           </div>
+
+          {showFilterDropdown && (
+            <div className="w-full sm:w-auto sm:max-w-xs bg-white border border-gray-200 rounded-lg shadow-lg overflow-hidden">
+              <button
+                onClick={() => {
+                  setFilter('all');
+                  setShowFilterDropdown(false);
+                }}
+                className={`w-full px-4 py-2.5 text-left hover:bg-gray-50 transition-colors ${
+                  filter === 'all' ? 'bg-green-50 text-green-700 font-medium' : 'text-gray-700'
+                }`}
+              >
+                All Notes
+              </button>
+              <button
+                onClick={() => {
+                  setFilter('my-tasks');
+                  setShowFilterDropdown(false);
+                }}
+                className={`w-full px-4 py-2.5 text-left hover:bg-gray-50 transition-colors ${
+                  filter === 'my-tasks' ? 'bg-green-50 text-green-700 font-medium' : 'text-gray-700'
+                }`}
+              >
+                My Notes
+              </button>
+              <button
+                onClick={() => {
+                  setFilter('not-started');
+                  setShowFilterDropdown(false);
+                }}
+                className={`w-full px-4 py-2.5 text-left hover:bg-gray-50 transition-colors ${
+                  filter === 'not-started' ? 'bg-green-50 text-green-700 font-medium' : 'text-gray-700'
+                }`}
+              >
+                Not Started
+              </button>
+              <button
+                onClick={() => {
+                  setFilter('in-progress');
+                  setShowFilterDropdown(false);
+                }}
+                className={`w-full px-4 py-2.5 text-left hover:bg-gray-50 transition-colors ${
+                  filter === 'in-progress' ? 'bg-green-50 text-green-700 font-medium' : 'text-gray-700'
+                }`}
+              >
+                In Progress
+              </button>
+              <button
+                onClick={() => {
+                  setFilter('done');
+                  setShowFilterDropdown(false);
+                }}
+                className={`w-full px-4 py-2.5 text-left hover:bg-gray-50 transition-colors ${
+                  filter === 'done' ? 'bg-green-50 text-green-700 font-medium' : 'text-gray-700'
+                }`}
+              >
+                Done
+              </button>
+            </div>
+          )}
         </div>
 
         <button
