@@ -74,7 +74,8 @@ export default function AddNotePage() {
     try {
       initialTaskCountRef.current = await getTaskCount();
 
-      const response = await fetch(n8nWebhookURL, {
+      // First call n8n to process the notes with AI
+      const n8nResponse = await fetch(n8nWebhookURL, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'
@@ -86,28 +87,50 @@ export default function AddNotePage() {
         })
       });
 
-      if (response.ok) {
-        setProcessingStatus('AI is analyzing and creating tasks...');
+      if (!n8nResponse.ok) {
+        throw new Error('Failed to process notes with AI');
+      }
 
-        const newTaskCount = await pollForNewTasks(initialTaskCountRef.current);
+      // n8n should return the structured tasks
+      const n8nData = await n8nResponse.json();
 
-        if (newTaskCount > 0) {
-          setTasksCreated(newTaskCount);
-          setSuccess(true);
-          setContent('');
-          setProcessingStatus(`Successfully created ${newTaskCount} task${newTaskCount > 1 ? 's' : ''}!`);
+      setProcessingStatus('AI processed your notes. Creating tasks in database...');
 
-          setTimeout(() => {
-            navigate('/dashboard');
-          }, 2000);
-        } else {
-          setProcessingStatus('Processing complete, but no tasks were created. The AI may not have found actionable items in your notes.');
-          setTimeout(() => {
-            navigate('/dashboard');
-          }, 3000);
-        }
+      // Now send the tasks to our Edge Function to insert into database
+      const edgeFunctionUrl = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/process-ai-notes`;
+
+      const edgeResponse = await fetch(edgeFunctionUrl, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY}`
+        },
+        body: JSON.stringify({
+          user_id: user.id,
+          tasks: n8nData.tasks || []
+        })
+      });
+
+      if (!edgeResponse.ok) {
+        throw new Error('Failed to create tasks in database');
+      }
+
+      const edgeData = await edgeResponse.json();
+
+      if (edgeData.created > 0) {
+        setTasksCreated(edgeData.created);
+        setSuccess(true);
+        setContent('');
+        setProcessingStatus(`Successfully created ${edgeData.created} task${edgeData.created > 1 ? 's' : ''}!`);
+
+        setTimeout(() => {
+          navigate('/dashboard');
+        }, 2000);
       } else {
-        throw new Error('Webhook call failed');
+        setProcessingStatus('Processing complete, but no tasks were created. The AI may not have found actionable items in your notes.');
+        setTimeout(() => {
+          navigate('/dashboard');
+        }, 3000);
       }
     } catch (error) {
       console.error('Error processing note:', error);

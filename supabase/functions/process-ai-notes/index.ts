@@ -21,7 +21,6 @@ interface RequestBody {
 }
 
 Deno.serve(async (req: Request) => {
-  // Handle CORS preflight
   if (req.method === "OPTIONS") {
     return new Response(null, {
       status: 200,
@@ -30,13 +29,11 @@ Deno.serve(async (req: Request) => {
   }
 
   try {
-    // Create Supabase client with service role for bypassing RLS
     const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
     const supabaseServiceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
     
     const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
-    // Parse request body
     const body: RequestBody = await req.json();
     const { user_id, tasks } = body;
 
@@ -50,13 +47,11 @@ Deno.serve(async (req: Request) => {
       );
     }
 
-    // Process each task
     const createdTasks = [];
     const errors = [];
 
     for (const task of tasks) {
       try {
-        // Find assignee by name if provided
         let assignee_id = null;
         if (task.assignee_name) {
           const { data: profiles } = await supabase
@@ -71,17 +66,15 @@ Deno.serve(async (req: Request) => {
           }
         }
 
-        // Parse deadline if provided
         let deadline = null;
         if (task.deadline) {
           try {
             deadline = new Date(task.deadline).toISOString().split('T')[0];
           } catch {
-            // Invalid date, skip
+            // Invalid date
           }
         }
 
-        // Insert task
         const { data: newTask, error: insertError } = await supabase
           .from("tasks")
           .insert({
