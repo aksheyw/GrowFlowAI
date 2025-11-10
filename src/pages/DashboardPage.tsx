@@ -1,8 +1,8 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { supabase, Task } from '../lib/supabase';
-import { LogOut, Plus, Search, LayoutGrid, List, SlidersHorizontal, Filter, ChevronDown } from 'lucide-react';
+import { LogOut, Plus, Search, LayoutGrid, List, SlidersHorizontal, Filter } from 'lucide-react';
 import TaskCard from '../components/TaskCard';
 import NotificationBell from '../components/NotificationBell';
 
@@ -24,26 +24,10 @@ export default function DashboardPage() {
   const [filterByName, setFilterByName] = useState('');
   const [filterByDeadline, setFilterByDeadline] = useState('');
   const [filterByCreatedDate, setFilterByCreatedDate] = useState('');
-  const [showMoveDropdown, setShowMoveDropdown] = useState(false);
-  const [selectedTasks, setSelectedTasks] = useState<string[]>([]);
-  const dropdownRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     loadTasks();
   }, []);
-
-  useEffect(() => {
-    function handleClickOutside(event: MouseEvent) {
-      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
-        setShowMoveDropdown(false);
-      }
-    }
-
-    if (showMoveDropdown) {
-      document.addEventListener('mousedown', handleClickOutside);
-      return () => document.removeEventListener('mousedown', handleClickOutside);
-    }
-  }, [showMoveDropdown]);
 
   async function loadTasks() {
     try {
@@ -99,33 +83,6 @@ export default function DashboardPage() {
   async function handleLogout() {
     await signOut();
     navigate('/login');
-  }
-
-  async function handleBulkMove(targetStatus: Task['status']) {
-    try {
-      // Move all tasks from "All Notes" that are not "Done" to the target status
-      const tasksToMove = filter === 'all'
-        ? filteredTasks.filter(task => task.status !== 'Done')
-        : filteredTasks;
-
-      if (tasksToMove.length === 0) return;
-
-      // Update all tasks
-      for (const task of tasksToMove) {
-        const { error } = await supabase
-          .from('tasks')
-          .update({ status: targetStatus, updated_at: new Date().toISOString() })
-          .eq('id', task.id);
-
-        if (error) throw error;
-      }
-
-      // Reload tasks to get fresh data
-      await loadTasks();
-      setShowMoveDropdown(false);
-    } catch (error) {
-      console.error('Error moving tasks:', error);
-    }
   }
 
   const filteredTasks = tasks.filter(task => {
@@ -309,11 +266,8 @@ export default function DashboardPage() {
             </div>
           </div>
 
-        </div>
-
-        {showFilters && (
-          <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-4 mb-4">
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          {showFilters && (
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-4 pt-4 border-t border-gray-200">
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
                   Filter by Name
@@ -351,147 +305,110 @@ export default function DashboardPage() {
                 />
               </div>
 
-            {(filterByName || filterByDeadline || filterByCreatedDate) && (
-              <div className="md:col-span-3">
-                <button
-                  onClick={() => {
-                    setFilterByName('');
-                    setFilterByDeadline('');
-                    setFilterByCreatedDate('');
-                  }}
-                  className="text-sm text-green-700 hover:text-green-800 font-medium"
-                >
-                  Clear all filters
-                </button>
-              </div>
-            )}
-            </div>
-          </div>
-        )}
-
-        <div className="mb-4">
-          <div className="flex items-center gap-3 mb-2">
-            <div className="overflow-x-auto scrollbar-hide flex-1">
-              <div className="flex gap-2 min-w-max">
-                <button
-                  onClick={() => setFilter('all')}
-                  className={`px-4 py-2 rounded-lg font-medium transition-colors ${
-                    filter === 'all'
-                      ? 'bg-green-700 text-white shadow-sm'
-                      : 'bg-white text-gray-700 hover:bg-gray-100 border border-gray-200'
-                  }`}
-                >
-                  All Notes
-                </button>
-                <button
-                  onClick={() => setFilter('my-tasks')}
-                  className={`px-4 py-2 rounded-lg font-medium transition-colors ${
-                    filter === 'my-tasks'
-                      ? 'bg-green-700 text-white shadow-sm'
-                      : 'bg-white text-gray-700 hover:bg-gray-100 border border-gray-200'
-                  }`}
-                >
-                  My Notes
-                </button>
-                <button
-                  onClick={() => setFilter('not-started')}
-                  className={`px-4 py-2 rounded-lg font-medium transition-colors ${
-                    filter === 'not-started'
-                      ? 'bg-green-700 text-white shadow-sm'
-                      : 'bg-white text-gray-700 hover:bg-gray-100 border border-gray-200'
-                  }`}
-                >
-                  Not Started
-                </button>
-                <button
-                  onClick={() => setFilter('in-progress')}
-                  className={`px-4 py-2 rounded-lg font-medium transition-colors ${
-                    filter === 'in-progress'
-                      ? 'bg-green-700 text-white shadow-sm'
-                      : 'bg-white text-gray-700 hover:bg-gray-100 border border-gray-200'
-                  }`}
-                >
-                  In Progress
-                </button>
-                <button
-                  onClick={() => setFilter('done')}
-                  className={`px-4 py-2 rounded-lg font-medium transition-colors ${
-                    filter === 'done'
-                      ? 'bg-green-700 text-white shadow-sm'
-                      : 'bg-white text-gray-700 hover:bg-gray-100 border border-gray-200'
-                  }`}
-                >
-                  Done
-                </button>
-              </div>
-            </div>
-
-            <div className="flex items-center gap-2 flex-shrink-0">
-              <div className="flex bg-gray-100 rounded-lg p-1">
-                <button
-                  onClick={() => setViewType('card')}
-                  className={`p-2 rounded transition-colors ${
-                    viewType === 'card' ? 'bg-white shadow-sm' : 'hover:bg-gray-200'
-                  }`}
-                  title="Card view"
-                >
-                  <LayoutGrid className="w-4 h-4 text-gray-700" />
-                </button>
-                <button
-                  onClick={() => setViewType('list')}
-                  className={`p-2 rounded transition-colors ${
-                    viewType === 'list' ? 'bg-white shadow-sm' : 'hover:bg-gray-200'
-                  }`}
-                  title="List view"
-                >
-                  <List className="w-4 h-4 text-gray-700" />
-                </button>
-              </div>
-
-              <button
-                onClick={() => setShowMobileSearch(!showMobileSearch)}
-                className="p-2 text-gray-600 hover:bg-gray-100 rounded-lg transition-colors border border-gray-200 bg-white"
-                title="Search & Filters"
-              >
-                <Filter className="w-5 h-5" />
-              </button>
-            </div>
-          </div>
-
-          {filter === 'all' && filteredTasks.filter(task => task.status !== 'Done').length > 0 && (
-            <div className="relative" ref={dropdownRef}>
-              <button
-                onClick={() => setShowMoveDropdown(!showMoveDropdown)}
-                className="px-4 py-2 bg-white hover:bg-gray-50 border border-gray-200 rounded-lg font-medium text-gray-700 transition-colors flex items-center gap-2"
-              >
-                Move All to Done
-                <ChevronDown className={`w-4 h-4 transition-transform ${showMoveDropdown ? 'rotate-180' : ''}`} />
-              </button>
-
-              {showMoveDropdown && (
-                <div className="absolute top-full left-0 mt-2 w-48 bg-white border border-gray-200 rounded-lg shadow-lg z-10">
+              {(filterByName || filterByDeadline || filterByCreatedDate) && (
+                <div className="md:col-span-3">
                   <button
-                    onClick={() => handleBulkMove('Done')}
-                    className="w-full px-4 py-2 text-left hover:bg-gray-50 transition-colors text-gray-700 font-medium rounded-t-lg"
+                    onClick={() => {
+                      setFilterByName('');
+                      setFilterByDeadline('');
+                      setFilterByCreatedDate('');
+                    }}
+                    className="text-sm text-green-700 hover:text-green-800 font-medium"
                   >
-                    Move to Done
-                  </button>
-                  <button
-                    onClick={() => handleBulkMove('In Progress')}
-                    className="w-full px-4 py-2 text-left hover:bg-gray-50 transition-colors text-gray-700 font-medium"
-                  >
-                    Move to In Progress
-                  </button>
-                  <button
-                    onClick={() => handleBulkMove('Not Started')}
-                    className="w-full px-4 py-2 text-left hover:bg-gray-50 transition-colors text-gray-700 font-medium rounded-b-lg"
-                  >
-                    Move to Not Started
+                    Clear all filters
                   </button>
                 </div>
               )}
             </div>
           )}
+        </div>
+
+        <div className="flex items-center gap-3 mb-4">
+          <div className="overflow-x-auto scrollbar-hide flex-1">
+            <div className="flex gap-2 min-w-max">
+          <button
+            onClick={() => setFilter('all')}
+            className={`px-4 py-2 rounded-lg font-medium transition-colors ${
+              filter === 'all'
+                ? 'bg-green-700 text-white shadow-sm'
+                : 'bg-white text-gray-700 hover:bg-gray-100 border border-gray-200'
+            }`}
+          >
+            All Notes
+          </button>
+          <button
+            onClick={() => setFilter('my-tasks')}
+            className={`px-4 py-2 rounded-lg font-medium transition-colors ${
+              filter === 'my-tasks'
+                ? 'bg-green-700 text-white shadow-sm'
+                : 'bg-white text-gray-700 hover:bg-gray-100 border border-gray-200'
+            }`}
+          >
+            My Notes
+          </button>
+          <button
+            onClick={() => setFilter('not-started')}
+            className={`px-4 py-2 rounded-lg font-medium transition-colors ${
+              filter === 'not-started'
+                ? 'bg-green-700 text-white shadow-sm'
+                : 'bg-white text-gray-700 hover:bg-gray-100 border border-gray-200'
+            }`}
+          >
+            Not Started
+          </button>
+          <button
+            onClick={() => setFilter('in-progress')}
+            className={`px-4 py-2 rounded-lg font-medium transition-colors ${
+              filter === 'in-progress'
+                ? 'bg-green-700 text-white shadow-sm'
+                : 'bg-white text-gray-700 hover:bg-gray-100 border border-gray-200'
+            }`}
+          >
+            In Progress
+          </button>
+          <button
+            onClick={() => setFilter('done')}
+            className={`px-4 py-2 rounded-lg font-medium transition-colors ${
+              filter === 'done'
+                ? 'bg-green-700 text-white shadow-sm'
+                : 'bg-white text-gray-700 hover:bg-gray-100 border border-gray-200'
+            }`}
+          >
+            Done
+          </button>
+            </div>
+          </div>
+
+          <div className="flex items-center gap-2 flex-shrink-0">
+            <div className="flex bg-gray-100 rounded-lg p-1">
+              <button
+                onClick={() => setViewType('card')}
+                className={`p-2 rounded transition-colors ${
+                  viewType === 'card' ? 'bg-white shadow-sm' : 'hover:bg-gray-200'
+                }`}
+                title="Card view"
+              >
+                <LayoutGrid className="w-4 h-4 text-gray-700" />
+              </button>
+              <button
+                onClick={() => setViewType('list')}
+                className={`p-2 rounded transition-colors ${
+                  viewType === 'list' ? 'bg-white shadow-sm' : 'hover:bg-gray-200'
+                }`}
+                title="List view"
+              >
+                <List className="w-4 h-4 text-gray-700" />
+              </button>
+            </div>
+
+            <button
+              onClick={() => setShowMobileSearch(!showMobileSearch)}
+              className="p-2 text-gray-600 hover:bg-gray-100 rounded-lg transition-colors border border-gray-200 bg-white"
+              title="Search & Filters"
+            >
+              <Filter className="w-5 h-5" />
+            </button>
+          </div>
         </div>
 
         <button
