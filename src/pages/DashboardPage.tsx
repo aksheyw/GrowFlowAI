@@ -25,7 +25,10 @@ export default function DashboardPage() {
   const [filterByDeadline, setFilterByDeadline] = useState('');
   const [filterByCreatedDate, setFilterByCreatedDate] = useState('');
   const [showFilterDropdown, setShowFilterDropdown] = useState(false);
+  const [showSortDropdown, setShowSortDropdown] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
+  const sortDropdownRef = useRef<HTMLDivElement>(null);
+  const searchRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     loadTasks();
@@ -36,13 +39,20 @@ export default function DashboardPage() {
       if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
         setShowFilterDropdown(false);
       }
+      if (sortDropdownRef.current && !sortDropdownRef.current.contains(event.target as Node)) {
+        setShowSortDropdown(false);
+      }
     }
 
-    if (showFilterDropdown) {
-      document.addEventListener('mousedown', handleClickOutside);
-      return () => document.removeEventListener('mousedown', handleClickOutside);
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
+
+  useEffect(() => {
+    if (showMobileSearch && searchRef.current) {
+      searchRef.current.focus();
     }
-  }, [showFilterDropdown]);
+  }, [showMobileSearch]);
 
   async function loadTasks() {
     try {
@@ -225,7 +235,7 @@ export default function DashboardPage() {
           </button>
         </div>
 
-        <div className={`bg-white rounded-xl shadow-sm border border-gray-200 p-4 mb-4 lg:mb-6 ${showMobileSearch ? 'block' : 'hidden lg:block'}`}>
+        <div className="hidden lg:block bg-white rounded-xl shadow-sm border border-gray-200 p-4 mb-4 lg:mb-6">
           <div className="flex flex-col lg:flex-row gap-4">
             <div className="flex-1 relative">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
@@ -338,62 +348,190 @@ export default function DashboardPage() {
           )}
         </div>
 
+        <div className="mb-4 lg:hidden">
+          <div className="flex items-center gap-2 mb-3">
+            {!showMobileSearch ? (
+              <>
+                <button
+                  onClick={() => setShowMobileSearch(true)}
+                  className="p-2.5 bg-white border border-gray-200 rounded-lg text-gray-700 hover:bg-gray-50 transition-colors"
+                  title="Search"
+                >
+                  <Search className="w-5 h-5" />
+                </button>
+
+                <button
+                  onClick={() => setShowFilters(!showFilters)}
+                  className={`p-2.5 rounded-lg transition-colors ${
+                    showFilters ? 'bg-green-700 text-white' : 'bg-white text-gray-700 border border-gray-200 hover:bg-gray-50'
+                  }`}
+                  title="Filters"
+                >
+                  <SlidersHorizontal className="w-5 h-5" />
+                </button>
+
+                <div className="relative flex-1" ref={sortDropdownRef}>
+                  <button
+                    onClick={() => setShowSortDropdown(!showSortDropdown)}
+                    className="w-full px-3 py-2.5 bg-white border border-gray-200 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors flex items-center justify-between gap-2"
+                  >
+                    <span className="truncate">{sortBy === 'newest' ? 'Newest First' : 'Oldest First'}</span>
+                    <ChevronDown className={`w-4 h-4 flex-shrink-0 transition-transform ${showSortDropdown ? 'rotate-180' : ''}`} />
+                  </button>
+
+                  {showSortDropdown && (
+                    <div className="absolute top-full left-0 right-0 mt-1 bg-white border border-gray-200 rounded-lg shadow-lg overflow-hidden z-10">
+                      <button
+                        onClick={() => {
+                          setSortBy('newest');
+                          setShowSortDropdown(false);
+                        }}
+                        className={`w-full px-3 py-2.5 text-left text-sm hover:bg-gray-50 transition-colors ${
+                          sortBy === 'newest' ? 'bg-green-50 text-green-700 font-medium' : 'text-gray-700'
+                        }`}
+                      >
+                        Newest First
+                      </button>
+                      <button
+                        onClick={() => {
+                          setSortBy('oldest');
+                          setShowSortDropdown(false);
+                        }}
+                        className={`w-full px-3 py-2.5 text-left text-sm hover:bg-gray-50 transition-colors ${
+                          sortBy === 'oldest' ? 'bg-green-50 text-green-700 font-medium' : 'text-gray-700'
+                        }`}
+                      >
+                        Oldest First
+                      </button>
+                    </div>
+                  )}
+                </div>
+              </>
+            ) : (
+              <div className="flex-1 relative">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
+                <input
+                  ref={searchRef}
+                  type="text"
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  placeholder="Search notes..."
+                  className="w-full pl-10 pr-10 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent outline-none"
+                />
+                <button
+                  onClick={() => {
+                    setShowMobileSearch(false);
+                    setSearchQuery('');
+                  }}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                >
+                  <Plus className="w-5 h-5 rotate-45" />
+                </button>
+              </div>
+            )}
+          </div>
+
+          {showFilters && (
+            <div className="bg-white rounded-lg border border-gray-200 p-4 mb-3 space-y-3 animate-slideDown">
+              <div>
+                <label className="block text-xs font-medium text-gray-700 mb-1.5">
+                  Filter by Name
+                </label>
+                <input
+                  type="text"
+                  value={filterByName}
+                  onChange={(e) => setFilterByName(e.target.value)}
+                  placeholder="Assignee name..."
+                  className="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent outline-none"
+                />
+              </div>
+
+              <div>
+                <label className="block text-xs font-medium text-gray-700 mb-1.5">
+                  Filter by Deadline
+                </label>
+                <input
+                  type="date"
+                  value={filterByDeadline}
+                  onChange={(e) => setFilterByDeadline(e.target.value)}
+                  className="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent outline-none"
+                />
+              </div>
+
+              <div>
+                <label className="block text-xs font-medium text-gray-700 mb-1.5">
+                  Filter by Created Date
+                </label>
+                <input
+                  type="date"
+                  value={filterByCreatedDate}
+                  onChange={(e) => setFilterByCreatedDate(e.target.value)}
+                  className="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent outline-none"
+                />
+              </div>
+
+              {(filterByName || filterByDeadline || filterByCreatedDate) && (
+                <button
+                  onClick={() => {
+                    setFilterByName('');
+                    setFilterByDeadline('');
+                    setFilterByCreatedDate('');
+                  }}
+                  className="text-sm text-green-700 hover:text-green-800 font-medium"
+                >
+                  Clear all filters
+                </button>
+              )}
+            </div>
+          )}
+        </div>
+
         <div className="mb-4" ref={dropdownRef}>
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2">
             <button
               onClick={() => setShowFilterDropdown(!showFilterDropdown)}
-              className="w-full sm:w-auto min-w-[180px] px-4 py-2 bg-white border border-gray-200 rounded-lg font-medium text-gray-700 hover:bg-gray-50 transition-colors flex items-center justify-between gap-2"
+              className="flex-1 lg:flex-none lg:min-w-[180px] px-4 py-2.5 bg-white border border-gray-200 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors flex items-center justify-between gap-2"
             >
-              <span>
+              <span className="truncate">
                 {filter === 'all' && 'All Notes'}
                 {filter === 'my-tasks' && 'My Notes'}
                 {filter === 'not-started' && 'Not Started'}
                 {filter === 'in-progress' && 'In Progress'}
                 {filter === 'done' && 'Done'}
               </span>
-              <ChevronDown className={`w-4 h-4 transition-transform ${showFilterDropdown ? 'rotate-180' : ''}`} />
+              <ChevronDown className={`w-4 h-4 flex-shrink-0 transition-transform ${showFilterDropdown ? 'rotate-180' : ''}`} />
             </button>
 
-            <div className="flex items-center gap-2 flex-shrink-0 lg:hidden">
-              <div className="flex bg-gray-100 rounded-lg p-1">
-                <button
-                  onClick={() => setViewType('card')}
-                  className={`p-2 rounded transition-colors ${
-                    viewType === 'card' ? 'bg-white shadow-sm' : 'hover:bg-gray-200'
-                  }`}
-                  title="Card view"
-                >
-                  <LayoutGrid className="w-4 h-4 text-gray-700" />
-                </button>
-                <button
-                  onClick={() => setViewType('list')}
-                  className={`p-2 rounded transition-colors ${
-                    viewType === 'list' ? 'bg-white shadow-sm' : 'hover:bg-gray-200'
-                  }`}
-                  title="List view"
-                >
-                  <List className="w-4 h-4 text-gray-700" />
-                </button>
-              </div>
-
+            <div className="flex bg-gray-100 rounded-lg p-1 lg:hidden">
               <button
-                onClick={() => setShowMobileSearch(!showMobileSearch)}
-                className="p-2 text-gray-600 hover:bg-gray-100 rounded-lg transition-colors border border-gray-200 bg-white"
-                title="Search & Filters"
+                onClick={() => setViewType('card')}
+                className={`p-2 rounded transition-colors ${
+                  viewType === 'card' ? 'bg-white shadow-sm' : 'hover:bg-gray-200'
+                }`}
+                title="Card view"
               >
-                <Filter className="w-5 h-5" />
+                <LayoutGrid className="w-4 h-4 text-gray-700" />
+              </button>
+              <button
+                onClick={() => setViewType('list')}
+                className={`p-2 rounded transition-colors ${
+                  viewType === 'list' ? 'bg-white shadow-sm' : 'hover:bg-gray-200'
+                }`}
+                title="List view"
+              >
+                <List className="w-4 h-4 text-gray-700" />
               </button>
             </div>
           </div>
 
           {showFilterDropdown && (
-            <div className="w-full sm:w-auto sm:max-w-xs bg-white border border-gray-200 rounded-lg shadow-lg overflow-hidden mt-2">
+            <div className="w-full lg:w-auto lg:max-w-xs bg-white border border-gray-200 rounded-lg shadow-lg overflow-hidden mt-2 animate-slideDown">
               <button
                 onClick={() => {
                   setFilter('all');
                   setShowFilterDropdown(false);
                 }}
-                className={`w-full px-4 py-2.5 text-left hover:bg-gray-50 transition-colors ${
+                className={`w-full px-4 py-2.5 text-sm text-left hover:bg-gray-50 transition-colors ${
                   filter === 'all' ? 'bg-green-50 text-green-700 font-medium' : 'text-gray-700'
                 }`}
               >
@@ -404,7 +542,7 @@ export default function DashboardPage() {
                   setFilter('my-tasks');
                   setShowFilterDropdown(false);
                 }}
-                className={`w-full px-4 py-2.5 text-left hover:bg-gray-50 transition-colors ${
+                className={`w-full px-4 py-2.5 text-sm text-left hover:bg-gray-50 transition-colors ${
                   filter === 'my-tasks' ? 'bg-green-50 text-green-700 font-medium' : 'text-gray-700'
                 }`}
               >
@@ -415,7 +553,7 @@ export default function DashboardPage() {
                   setFilter('not-started');
                   setShowFilterDropdown(false);
                 }}
-                className={`w-full px-4 py-2.5 text-left hover:bg-gray-50 transition-colors ${
+                className={`w-full px-4 py-2.5 text-sm text-left hover:bg-gray-50 transition-colors ${
                   filter === 'not-started' ? 'bg-green-50 text-green-700 font-medium' : 'text-gray-700'
                 }`}
               >
@@ -426,7 +564,7 @@ export default function DashboardPage() {
                   setFilter('in-progress');
                   setShowFilterDropdown(false);
                 }}
-                className={`w-full px-4 py-2.5 text-left hover:bg-gray-50 transition-colors ${
+                className={`w-full px-4 py-2.5 text-sm text-left hover:bg-gray-50 transition-colors ${
                   filter === 'in-progress' ? 'bg-green-50 text-green-700 font-medium' : 'text-gray-700'
                 }`}
               >
@@ -437,7 +575,7 @@ export default function DashboardPage() {
                   setFilter('done');
                   setShowFilterDropdown(false);
                 }}
-                className={`w-full px-4 py-2.5 text-left hover:bg-gray-50 transition-colors ${
+                className={`w-full px-4 py-2.5 text-sm text-left hover:bg-gray-50 transition-colors ${
                   filter === 'done' ? 'bg-green-50 text-green-700 font-medium' : 'text-gray-700'
                 }`}
               >
