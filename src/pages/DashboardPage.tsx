@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { supabase, Task } from '../lib/supabase';
-import { LogOut, Plus, Search, LayoutGrid, List, SlidersHorizontal } from 'lucide-react';
+import { LogOut, Plus, Search, LayoutGrid, List, SlidersHorizontal, Filter } from 'lucide-react';
 import TaskCard from '../components/TaskCard';
 import NotificationBell from '../components/NotificationBell';
 
@@ -20,6 +20,7 @@ export default function DashboardPage() {
   const [sortBy, setSortBy] = useState<SortType>('newest');
   const [viewType, setViewType] = useState<ViewType>('card');
   const [showFilters, setShowFilters] = useState(false);
+  const [showMobileSearch, setShowMobileSearch] = useState(false);
   const [filterByName, setFilterByName] = useState('');
   const [filterByDeadline, setFilterByDeadline] = useState('');
   const [filterByCreatedDate, setFilterByCreatedDate] = useState('');
@@ -147,15 +148,26 @@ export default function DashboardPage() {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <header className="bg-white border-b border-gray-200 sticky top-0 z-10">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center h-16">
-            <div className="flex items-center gap-3">
-              <div className="text-2xl">🌱</div>
-              <h1 className="text-xl font-bold text-gray-900">GrowFlow</h1>
+      <header className="bg-white border-b border-gray-200 sticky top-0 z-20">
+        <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8">
+          <div className="flex justify-between items-center h-14 sm:h-16">
+            <div className="flex items-center gap-2 sm:gap-3 flex-1 min-w-0">
+              <div className="text-xl sm:text-2xl flex-shrink-0">🌱</div>
+              <div className="flex flex-col sm:flex-row sm:items-center sm:gap-3 min-w-0">
+                <h1 className="text-base sm:text-xl font-bold text-gray-900 truncate">GrowFlow</h1>
+                <span className="hidden lg:block text-xs text-gray-400">•</span>
+                <h2 className="text-xs sm:text-sm font-semibold text-gray-600 lg:text-gray-900 truncate">My Notes</h2>
+              </div>
             </div>
 
-            <div className="flex items-center gap-4">
+            <div className="flex items-center gap-2 sm:gap-4 flex-shrink-0">
+              <button
+                onClick={() => setShowMobileSearch(!showMobileSearch)}
+                className="lg:hidden p-2 text-gray-600 hover:bg-gray-100 rounded-lg transition-colors"
+                title="Search & Filters"
+              >
+                <Filter className="w-5 h-5" />
+              </button>
               <NotificationBell />
 
               <div className="flex items-center gap-3">
@@ -189,8 +201,8 @@ export default function DashboardPage() {
         </div>
       </header>
 
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-6 mb-6">
+      <main className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 py-3 sm:py-6 lg:py-8 pb-24">
+        <div className="hidden lg:flex flex-col lg:flex-row justify-between items-start lg:items-center gap-6 mb-6">
           <div>
             <h2 className="text-2xl font-bold text-gray-900">My Notes</h2>
             <p className="text-gray-600 mt-1">Personal workspace • Team collaboration • All in one</p>
@@ -205,7 +217,7 @@ export default function DashboardPage() {
           </button>
         </div>
 
-        <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-4 mb-6">
+        <div className={`bg-white rounded-xl shadow-sm border border-gray-200 p-4 mb-4 lg:mb-6 ${showMobileSearch ? 'block' : 'hidden lg:block'}`}>
           <div className="flex flex-col lg:flex-row gap-4">
             <div className="flex-1 relative">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
@@ -318,7 +330,7 @@ export default function DashboardPage() {
           )}
         </div>
 
-        <div className="flex flex-wrap gap-2 mb-6">
+        <div className="flex flex-wrap gap-2 mb-4 sm:mb-6">
           <button
             onClick={() => setFilter('all')}
             className={`px-4 py-2 rounded-lg font-medium transition-colors ${
@@ -370,6 +382,14 @@ export default function DashboardPage() {
             Done
           </button>
         </div>
+
+        <button
+          onClick={() => navigate('/add-note')}
+          className="lg:hidden fixed bottom-6 right-6 w-14 h-14 bg-green-700 hover:bg-green-800 text-white rounded-full shadow-lg hover:shadow-xl flex items-center justify-center transition-all z-10"
+          aria-label="Add Note"
+        >
+          <Plus className="w-6 h-6" />
+        </button>
 
         {filteredTasks.length === 0 ? (
           <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-12 text-center">
