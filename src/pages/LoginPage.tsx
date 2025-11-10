@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { useAuth } from '../contexts/AuthContext';
+import { useToast } from '../contexts/ToastContext';
 import { Sprout } from 'lucide-react';
 
 export default function LoginPage() {
@@ -10,6 +11,7 @@ export default function LoginPage() {
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   const { signIn, signUp } = useAuth();
+  const { addToast } = useToast();
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -23,7 +25,15 @@ export default function LoginPage() {
           return;
         }
         const { error } = await signUp(email, password, fullName);
-        if (error) setError(error.message);
+        if (error) {
+          setError(error.message);
+        } else {
+          addToast('Account created successfully! Please sign in to continue.', 'success');
+          setIsSignUp(false);
+          setEmail('');
+          setPassword('');
+          setFullName('');
+        }
       } else {
         const { error } = await signIn(email, password);
         if (error) setError(error.message);
