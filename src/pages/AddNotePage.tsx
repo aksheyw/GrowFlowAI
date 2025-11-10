@@ -81,67 +81,54 @@ export default function AddNotePage() {
     setSuccess(false);
     setError('');
     setTasksCreated(0);
-    setProcessingStatus('Parsing your notes and creating tasks...');
+    setProcessingStatus('Saving your note...');
 
     try {
-      console.log('Parsing notes:', content);
+      const { data: noteData, error: noteError } = await supabase
+        .from('notes')
+        .insert({
+          user_id: user.id,
+          content: content.trim(),
+          processed: false
+        })
+        .select()
+        .single();
 
-      const tasks = parseNotesToTasks(content);
-      console.log('Parsed tasks:', tasks);
-
-      if (tasks.length === 0) {
-        setError('No tasks found in your notes. Please add some actionable items.');
-        setLoading(false);
-        return;
+      if (noteError || !noteData) {
+        throw new Error(`Failed to save note: ${noteError?.message || 'Unknown error'}`);
       }
 
-      setProcessingStatus(`Creating ${tasks.length} task${tasks.length > 1 ? 's' : ''}...`);
+      console.log('Note saved:', noteData);
+      setProcessingStatus('Sending to AI for processing...');
 
-      let created = 0;
-      const errors: string[] = [];
+      const webhookUrl = 'https://aksheyw1.app.n8n.cloud/webhook/1d398de3-892a-4d5a-a941-62feab1e0250';
 
-      for (const task of tasks) {
-        try {
-          const { error: insertError } = await supabase
-            .from('tasks')
-            .insert({
-              user_id: user.id,
-              assignee_id: user.id,
-              description: task.description,
-              priority: task.priority || 'Medium',
-              status: 'Not Started',
-              deadline: task.deadline || null
-            });
+      const response = await fetch(webhookUrl, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          user_id: user.id,
+          note_text: content.trim(),
+          note_id: noteData.id
+        })
+      });
 
-          if (insertError) {
-            console.error('Failed to create task:', insertError);
-            errors.push(`${task.description}: ${insertError.message}`);
-          } else {
-            created++;
-          }
-        } catch (taskError) {
-          console.error('Error creating task:', taskError);
-          errors.push(`${task.description}: Unknown error`);
-        }
+      if (!response.ok) {
+        throw new Error(`Webhook failed: ${response.status} ${response.statusText}`);
       }
 
-      if (created > 0) {
-        setTasksCreated(created);
-        setSuccess(true);
-        setContent('');
-        setProcessingStatus(`Successfully created ${created} task${created > 1 ? 's' : ''}!`);
+      const result = await response.json();
+      console.log('Webhook response:', result);
 
-        if (errors.length > 0) {
-          console.warn('Some tasks failed to create:', errors);
-        }
+      setSuccess(true);
+      setContent('');
+      setProcessingStatus('Successfully processed! AI will create tasks shortly.');
 
-        setTimeout(() => {
-          navigate('/dashboard');
-        }, 2000);
-      } else {
-        setError(`Failed to create tasks: ${errors.join(', ')}`);
-        setProcessingStatus('');
-      }
+      setTimeout(() => {
+        navigate('/dashboard');
+      }, 2000);
     } catch (err) {
       console.error('Error processing note:', err);
       const errorMessage = err instanceof Error ? err.message : 'Unknown error occurred';
