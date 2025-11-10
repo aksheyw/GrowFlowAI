@@ -1,56 +1,117 @@
-import { useState } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
-// You don't need supabase here anymore for this page's logic!
-// import { supabase } from '../lib/supabase'; 
-import { ArrowLeft, Loader2 } from 'lucide-react';
+import { supabase } from '../lib/supabase';
+import { ArrowLeft, Loader2, CheckCircle2 } from 'lucide-react';
 
 export default function AddNotePage() {
   const navigate = useNavigate();
   const { user } = useAuth();
   const [content, setContent] = useState('');
   const [loading, setLoading] = useState(false);
+  const [processingStatus, setProcessingStatus] = useState('');
+  const [tasksCreated, setTasksCreated] = useState(0);
   const [success, setSuccess] = useState(false);
+  const initialTaskCountRef = useRef<number>(0);
+  const pollingIntervalRef = useRef<NodeJS.Timeout>();
 
-  // THIS IS THE NEW, CORRECT SUBMIT FUNCTION
+  useEffect(() => {
+    return () => {
+      if (pollingIntervalRef.current) {
+        clearInterval(pollingIntervalRef.current);
+      }
+    };
+  }, []);
+
+  async function getTaskCount() {
+    try {
+      const { count, error } = await supabase
+        .from('tasks')
+        .select('*', { count: 'exact', head: true })
+        .eq('assignee_id', user?.id);
+
+      if (error) throw error;
+      return count || 0;
+    } catch (error) {
+      console.error('Error getting task count:', error);
+      return 0;
+    }
+  }
+
+  async function pollForNewTasks(startCount: number, maxAttempts = 30) {
+    let attempts = 0;
+
+    return new Promise<number>((resolve) => {
+      pollingIntervalRef.current = setInterval(async () => {
+        attempts++;
+        const currentCount = await getTaskCount();
+        const newTasks = currentCount - startCount;
+
+        if (newTasks > 0) {
+          clearInterval(pollingIntervalRef.current);
+          resolve(newTasks);
+        } else if (attempts >= maxAttempts) {
+          clearInterval(pollingIntervalRef.current);
+          resolve(0);
+        } else {
+          setProcessingStatus(`AI is processing your notes... (${attempts}s)`);
+        }
+      }, 1000);
+    });
+  }
+
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     if (!user || !content.trim()) return;
 
     setLoading(true);
     setSuccess(false);
+    setTasksCreated(0);
+    setProcessingStatus('Sending notes to AI...');
 
-    // 1. This is your live n8n Production URL
     const n8nWebhookURL = "https://aksheyw1.app.n8n.cloud/webhook/1d398de3-892a-4d5a-a941-62feab1e0250";
 
     try {
+      initialTaskCountRef.current = await getTaskCount();
+
       const response = await fetch(n8nWebhookURL, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'
         },
-        // 2. Send the exact JSON your n8n webhook is waiting for
         body: JSON.stringify({
-          user_id: user.id, // The logged-in user's ID
-          note_text: content.trim(), // The notes from the text box
-          note_id: crypto.randomUUID() // A unique ID for this entry
+          user_id: user.id,
+          note_text: content.trim(),
+          note_id: crypto.randomUUID()
         })
       });
 
       if (response.ok) {
-        // 3. Success! The n8n workflow is running.
-        setSuccess(true);
-        setContent('');
-        setTimeout(() => {
-          navigate('/dashboard');
-        }, 1500);
+        setProcessingStatus('AI is analyzing and creating tasks...');
+
+        const newTaskCount = await pollForNewTasks(initialTaskCountRef.current);
+
+        if (newTaskCount > 0) {
+          setTasksCreated(newTaskCount);
+          setSuccess(true);
+          setContent('');
+          setProcessingStatus(`Successfully created ${newTaskCount} task${newTaskCount > 1 ? 's' : ''}!`);
+
+          setTimeout(() => {
+            navigate('/dashboard');
+          }, 2000);
+        } else {
+          setProcessingStatus('Processing complete, but no tasks were created. The AI may not have found actionable items in your notes.');
+          setTimeout(() => {
+            navigate('/dashboard');
+          }, 3000);
+        }
       } else {
-        // Handle HTTP errors
         throw new Error('Webhook call failed');
       }
     } catch (error) {
-      // Handle network errors
       console.error('Error processing note:', error);
+      setProcessingStatus('');
       alert('Failed to process note. Please try again.');
     } finally {
       setLoading(false);
@@ -104,10 +165,25 @@ Example:
               />
             </div>
 
-            {success && (
-              <div className="mb-6 bg-green-50 border border-green-200 text-green-700 px-4 py-3 rounded-lg flex items-center gap-2">
-                <span className="text-xl">✓</span>
-                <span>Note saved successfully! Redirecting to dashboard...</span>
+            {processingStatus && (
+              <div className={`mb-6 px-4 py-3 rounded-lg flex items-center gap-3 ${
+                success
+                  ? 'bg-green-50 border border-green-200 text-green-700'
+                  : 'bg-blue-50 border border-blue-200 text-blue-700'
+              }`}>
+                {loading ? (
+                  <Loader2 className="w-5 h-5 animate-spin flex-shrink-0" />
+                ) : success ? (
+                  <CheckCircle2 className="w-5 h-5 flex-shrink-0" />
+                ) : null}
+                <div className="flex-1">
+                  <p className="font-medium">{processingStatus}</p>
+                  {tasksCreated > 0 && (
+                    <p className="text-sm mt-1">
+                      {tasksCreated} new task{tasksCreated > 1 ? 's' : ''} will appear in your dashboard
+                    </p>
+                  )}
+                </div>
               </div>
             )}
 
