@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { supabase, Task } from '../lib/supabase';
-import { LogOut, Plus, Search, LayoutGrid, List, SlidersHorizontal, Filter, ChevronDown } from 'lucide-react';
+import { LogOut, Plus, Search, LayoutGrid, List, SlidersHorizontal, Filter } from 'lucide-react';
 import TaskCard from '../components/TaskCard';
 import NotificationBell from '../components/NotificationBell';
 
@@ -326,76 +326,61 @@ export default function DashboardPage() {
         <div className="flex items-center gap-3 mb-4">
           <div className="overflow-x-auto scrollbar-hide flex-1">
             <div className="flex gap-2 min-w-max">
-          <select
-            value={filter === 'all' || filter === 'my-tasks' ? filter : 'all'}
-            onChange={(e) => setFilter(e.target.value as FilterType)}
-            className="px-4 py-2 rounded-lg font-medium transition-colors bg-green-700 text-white shadow-sm border-none outline-none cursor-pointer appearance-none pr-10 relative"
-            style={{ backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='20' height='20' viewBox='0 0 24 24' fill='none' stroke='white' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E")`, backgroundRepeat: 'no-repeat', backgroundPosition: 'right 0.5rem center', backgroundSize: '1.25rem' }}
+          <button
+            onClick={() => setFilter('all')}
+            className={`px-4 py-2 rounded-lg font-medium transition-colors ${
+              filter === 'all'
+                ? 'bg-green-700 text-white shadow-sm'
+                : 'bg-white text-gray-700 hover:bg-gray-100 border border-gray-200'
+            }`}
           >
-            <option value="all">All Notes</option>
-            <option value="my-tasks">My Notes</option>
-          </select>
-          {(filter === 'not-started' || filter === 'in-progress' || filter === 'done') && (
-            <>
-              <button
-                onClick={() => setFilter('not-started')}
-                className={`px-4 py-2 rounded-lg font-medium transition-colors ${
-                  filter === 'not-started'
-                    ? 'bg-green-700 text-white shadow-sm'
-                    : 'bg-white text-gray-700 hover:bg-gray-100 border border-gray-200'
-                }`}
-              >
-                Not Started
-              </button>
-              <button
-                onClick={() => setFilter('in-progress')}
-                className={`px-4 py-2 rounded-lg font-medium transition-colors ${
-                  filter === 'in-progress'
-                    ? 'bg-green-700 text-white shadow-sm'
-                    : 'bg-white text-gray-700 hover:bg-gray-100 border border-gray-200'
-                }`}
-              >
-                In Progress
-              </button>
-              <button
-                onClick={() => setFilter('done')}
-                className={`px-4 py-2 rounded-lg font-medium transition-colors ${
-                  filter === 'done'
-                    ? 'bg-green-700 text-white shadow-sm'
-                    : 'bg-white text-gray-700 hover:bg-gray-100 border border-gray-200'
-                }`}
-              >
-                Done
-              </button>
-            </>
-          )}
-          {(filter === 'all' || filter === 'my-tasks') && (
-            <>
-              <button
-                onClick={() => setFilter('not-started')}
-                className="px-4 py-2 rounded-lg font-medium transition-colors bg-white text-gray-700 hover:bg-gray-100 border border-gray-200"
-              >
-                Not Started
-              </button>
-              <button
-                onClick={() => setFilter('in-progress')}
-                className="px-4 py-2 rounded-lg font-medium transition-colors bg-white text-gray-700 hover:bg-gray-100 border border-gray-200"
-              >
-                In Progress
-              </button>
-              <button
-                onClick={() => setFilter('done')}
-                className="px-4 py-2 rounded-lg font-medium transition-colors bg-white text-gray-700 hover:bg-gray-100 border border-gray-200"
-              >
-                Done
-              </button>
-            </>
-          )}
+            All Notes
+          </button>
+          <button
+            onClick={() => setFilter('my-tasks')}
+            className={`px-4 py-2 rounded-lg font-medium transition-colors ${
+              filter === 'my-tasks'
+                ? 'bg-green-700 text-white shadow-sm'
+                : 'bg-white text-gray-700 hover:bg-gray-100 border border-gray-200'
+            }`}
+          >
+            My Notes
+          </button>
+          <button
+            onClick={() => setFilter('not-started')}
+            className={`px-4 py-2 rounded-lg font-medium transition-colors ${
+              filter === 'not-started'
+                ? 'bg-green-700 text-white shadow-sm'
+                : 'bg-white text-gray-700 hover:bg-gray-100 border border-gray-200'
+            }`}
+          >
+            Not Started
+          </button>
+          <button
+            onClick={() => setFilter('in-progress')}
+            className={`px-4 py-2 rounded-lg font-medium transition-colors ${
+              filter === 'in-progress'
+                ? 'bg-green-700 text-white shadow-sm'
+                : 'bg-white text-gray-700 hover:bg-gray-100 border border-gray-200'
+            }`}
+          >
+            In Progress
+          </button>
+          <button
+            onClick={() => setFilter('done')}
+            className={`px-4 py-2 rounded-lg font-medium transition-colors ${
+              filter === 'done'
+                ? 'bg-green-700 text-white shadow-sm'
+                : 'bg-white text-gray-700 hover:bg-gray-100 border border-gray-200'
+            }`}
+          >
+            Done
+          </button>
             </div>
           </div>
 
           <div className="flex items-center gap-2 flex-shrink-0">
-            <div className="hidden sm:flex bg-gray-100 rounded-lg p-1">
+            <div className="flex bg-gray-100 rounded-lg p-1">
               <button
                 onClick={() => setViewType('card')}
                 className={`p-2 rounded transition-colors ${
