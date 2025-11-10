@@ -192,8 +192,8 @@ export default function DashboardPage() {
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
           <div>
-            <h2 className="text-2xl font-bold text-gray-900">Your Tasks</h2>
-            <p className="text-gray-600 mt-1">Track your progress and grow together</p>
+            <h2 className="text-2xl font-bold text-gray-900">My Notes</h2>
+            <p className="text-gray-600 mt-1">Personal workspace • Team collaboration • All in one</p>
             <button
               onClick={() => navigate('/test-notifications')}
               className="text-xs mt-2 text-gray-500 hover:text-gray-700 underline"
@@ -240,8 +240,8 @@ export default function DashboardPage() {
                 onChange={(e) => setSortBy(e.target.value as SortType)}
                 className="px-4 py-2 border border-gray-300 rounded-lg bg-white text-gray-700 font-medium focus:ring-2 focus:ring-green-500 focus:border-transparent outline-none"
               >
-                <option value="newest">Newest First (LIFO)</option>
-                <option value="oldest">Oldest First (FIFO)</option>
+                <option value="newest">Newest First</option>
+                <option value="oldest">Oldest First</option>
               </select>
 
               <div className="flex bg-gray-100 rounded-lg p-1">
