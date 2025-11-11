@@ -137,7 +137,12 @@ export default function AddNotePage() {
                     id="meetingTitle"
                     type="text"
                     value={meetingTitle}
-                    onChange={(e) => setMeetingTitle(e.target.value)}
+                    onChange={(e) => {
+                      setMeetingTitle(e.target.value);
+                      if (!content) {
+                        setContent(e.target.value);
+                      }
+                    }}
                     placeholder="e.g., Weekly Team Sync"
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all text-sm"
                   />
