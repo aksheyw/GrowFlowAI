@@ -38,6 +38,7 @@ function isN8nRequest(body: RequestBody): body is N8nRequestBody {
 
 async function parseNotesWithOpenAI(noteText: string, openAiKey: string): Promise<TaskData[]> {
   try {
+    const today = new Date().toISOString().split('T')[0];
     const response = await fetch('https://api.openai.com/v1/chat/completions', {
       method: 'POST',
       headers: {
@@ -49,12 +50,16 @@ async function parseNotesWithOpenAI(noteText: string, openAiKey: string): Promis
         messages: [
           {
             role: 'system',
-            content: `You are a task extraction assistant. Extract actionable tasks from meeting notes and return them as a JSON array. Each task should have:
+            content: `You are a task extraction assistant. Extract actionable tasks from meeting notes and return them as a JSON array.
+
+Today's date is: ${today}
+
+Each task should have:
 - description (string, required): The task description
 - assignee_name (string, optional): Person's name if mentioned
 - priority ("Low" | "Medium" | "High", optional): Task priority, default Medium
 - status ("Not Started" | "In Progress" | "Done", optional): Default "Not Started"
-- deadline (string, optional): Date in YYYY-MM-DD format if mentioned
+- deadline (string, optional): Date in YYYY-MM-DD format if mentioned. Convert relative dates like "next Friday", "tomorrow", "in 2 weeks" to absolute dates based on today's date.
 
 Return ONLY a valid JSON array of tasks, nothing else. If no tasks found, return empty array [].`
           },
