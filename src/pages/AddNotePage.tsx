@@ -125,11 +125,11 @@ export default function AddNotePage() {
 
           <form onSubmit={handleSubmit}>
             <div className="mb-6 p-4 bg-blue-50 border border-blue-200 rounded-lg">
-              <h3 className="text-sm font-semibold text-blue-900 mb-3">Meeting Information (Optional)</h3>
+              <h3 className="text-sm font-semibold text-blue-900 mb-3">Note Information</h3>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
                   <label htmlFor="meetingTitle" className="block text-sm font-medium text-gray-700 mb-1">
-                    Meeting Title
+                    Note Title
                   </label>
                   <input
                     id="meetingTitle"
@@ -143,7 +143,7 @@ export default function AddNotePage() {
 
                 <div>
                   <label htmlFor="meetingDate" className="block text-sm font-medium text-gray-700 mb-1">
-                    Meeting Date
+                    Note Date
                   </label>
                   <input
                     id="meetingDate"
