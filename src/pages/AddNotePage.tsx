@@ -266,10 +266,10 @@ Example:
                 {loading ? (
                   <>
                     <Loader2 className="w-5 h-5 animate-spin" />
-                    Processing...
+                    Saving...
                   </>
                 ) : (
-                  'Process with AI'
+                  'Save Note'
                 )}
               </button>
 
