@@ -45,7 +45,7 @@ function parseNotesBasic(noteText: string, defaultPriority: "Low" | "Medium" | "
   for (const line of lines) {
     const trimmed = line.trim();
 
-    if (trimmed.length < 5) continue;
+    if (trimmed.length === 0) continue;
 
     let description = trimmed.replace(/^[-*•]\s*/, '');
     let assignee_name: string | undefined;
@@ -113,7 +113,7 @@ function parseNotesBasic(noteText: string, defaultPriority: "Low" | "Medium" | "
       .replace(/\s+/g, ' ')
       .trim();
 
-    if (description.length > 3) {
+    if (description.length > 0) {
       tasks.push({
         description,
         assignee_name,
