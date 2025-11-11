@@ -63,7 +63,8 @@ export default function DashboardPage() {
           schema: 'public',
           table: 'tasks'
         },
-        () => {
+        (payload) => {
+          console.log('Task change detected:', payload);
           loadTasks();
         }
       )
@@ -71,6 +72,26 @@ export default function DashboardPage() {
 
     return () => {
       supabase.removeChannel(tasksChannel);
+    };
+  }, []);
+
+  useEffect(() => {
+    const handleVisibilityChange = () => {
+      if (!document.hidden) {
+        console.log('Page became visible, reloading tasks');
+        loadTasks();
+      }
+    };
+
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+    window.addEventListener('focus', () => {
+      console.log('Window focused, reloading tasks');
+      loadTasks();
+    });
+
+    return () => {
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
+      window.removeEventListener('focus', loadTasks);
     };
   }, []);
 
@@ -112,6 +133,7 @@ export default function DashboardPage() {
 
   async function loadTasks() {
     try {
+      console.log('Loading tasks...');
       const { data, error } = await supabase
         .from('tasks')
         .select(`
@@ -122,6 +144,7 @@ export default function DashboardPage() {
         .order('created_at', { ascending: false });
 
       if (error) throw error;
+      console.log('Tasks loaded:', data?.length || 0, 'tasks');
       setTasks(data || []);
     } catch (error) {
       console.error('Error loading tasks:', error);
