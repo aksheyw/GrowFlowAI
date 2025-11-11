@@ -1,10 +1,11 @@
 import { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
-import { supabase, Task } from '../lib/supabase';
+import { supabase, Task, Note } from '../lib/supabase';
 import { LogOut, Plus, Search, LayoutGrid, List, SlidersHorizontal, ChevronDown, Clock, Trash2, Calendar } from 'lucide-react';
 import TaskCard from '../components/TaskCard';
 import NotificationBell from '../components/NotificationBell';
+import MeetingDetailDrawer from '../components/MeetingDetailDrawer';
 
 type FilterType = 'all' | 'my-tasks' | 'not-started' | 'in-progress' | 'done';
 type SortType = 'newest' | 'oldest';
@@ -47,6 +48,8 @@ export default function DashboardPage() {
   const dropdownRef = useRef<HTMLDivElement>(null);
   const sortDropdownRef = useRef<HTMLDivElement>(null);
   const searchRef = useRef<HTMLInputElement>(null);
+  const [selectedMeetingNote, setSelectedMeetingNote] = useState<Note | null>(null);
+  const [isMeetingDrawerOpen, setIsMeetingDrawerOpen] = useState(false);
 
   useEffect(() => {
     loadTasks();
@@ -165,6 +168,30 @@ export default function DashboardPage() {
   async function handleLogout() {
     await signOut();
     navigate('/login');
+  }
+
+  async function handleMeetingClick(noteId: string) {
+    try {
+      const { data, error } = await supabase
+        .from('notes')
+        .select('*')
+        .eq('id', noteId)
+        .maybeSingle();
+
+      if (error) throw error;
+
+      if (data) {
+        setSelectedMeetingNote(data);
+        setIsMeetingDrawerOpen(true);
+      }
+    } catch (error) {
+      console.error('Error loading meeting details:', error);
+    }
+  }
+
+  function handleCloseMeetingDrawer() {
+    setIsMeetingDrawerOpen(false);
+    setTimeout(() => setSelectedMeetingNote(null), 300);
   }
 
   const filteredTasks = tasks.filter(task => {
@@ -716,6 +743,7 @@ export default function DashboardPage() {
                 task={task}
                 onStatusChange={handleStatusChange}
                 onDelete={handleDeleteTask}
+                onMeetingClick={handleMeetingClick}
               />
             ))}
           </div>
@@ -809,6 +837,12 @@ export default function DashboardPage() {
           </div>
         )}
       </main>
+
+      <MeetingDetailDrawer
+        note={selectedMeetingNote}
+        isOpen={isMeetingDrawerOpen}
+        onClose={handleCloseMeetingDrawer}
+      />
     </div>
   );
 }

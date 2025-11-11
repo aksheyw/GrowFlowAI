@@ -6,6 +6,7 @@ interface TaskCardProps {
   task: Task;
   onStatusChange: (taskId: string, newStatus: Task['status']) => void;
   onDelete: (taskId: string) => void;
+  onMeetingClick?: (noteId: string) => void;
 }
 
 const PLANT_STAGES = {
@@ -20,7 +21,7 @@ const PRIORITY_COLORS = {
   High: 'bg-red-100 text-red-700'
 };
 
-export default function TaskCard({ task, onStatusChange, onDelete }: TaskCardProps) {
+export default function TaskCard({ task, onStatusChange, onDelete, onMeetingClick }: TaskCardProps) {
   const navigate = useNavigate();
 
   const handleDelete = (e: React.MouseEvent) => {
@@ -113,16 +114,25 @@ export default function TaskCard({ task, onStatusChange, onDelete }: TaskCardPro
         </div>
 
         {task.note?.meeting_title && (
-          <div className="flex items-center gap-2 text-xs text-blue-600 bg-blue-50 px-2 py-1.5 rounded-lg min-h-[26px] border border-blue-100">
-            <FileText className="w-3.5 h-3.5 flex-shrink-0" />
-            <span className="truncate font-medium">
+          <div className="flex items-center gap-2 text-xs text-gray-700 min-h-[20px]">
+            <span>📅</span>
+            <span className="text-gray-600">From:</span>
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                if (onMeetingClick && task.note?.id) {
+                  onMeetingClick(task.note.id);
+                }
+              }}
+              className="font-medium text-blue-600 hover:text-blue-800 hover:underline transition-colors"
+            >
               {task.note.meeting_title}
-              {task.note.meeting_date && (
-                <span className="text-blue-500 ml-1">
-                  ({new Date(task.note.meeting_date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })})
-                </span>
-              )}
-            </span>
+            </button>
+            {task.note.meeting_date && (
+              <span className="text-gray-500">
+                - {new Date(task.note.meeting_date).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
+              </span>
+            )}
           </div>
         )}
 
