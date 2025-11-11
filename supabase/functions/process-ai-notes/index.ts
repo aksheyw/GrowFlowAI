@@ -236,6 +236,26 @@ Deno.serve(async (req: Request) => {
         } else {
           createdTasks.push(newTask);
           console.log(`Created task: ${task.description}`);
+
+          // Create notification if task has a valid assignee
+          if (newTask.assignee_id && newTask.assignee_id !== null) {
+            const { error: notificationError } = await supabase
+              .from("notifications")
+              .insert({
+                recipient_id: newTask.assignee_id,
+                actor_id: body.user_id,
+                type: 'assigned',
+                task_id: newTask.id,
+                message: `You've been assigned: ${newTask.description}`,
+                read: false,
+              });
+
+            if (notificationError) {
+              console.error('Notification insertion error:', notificationError);
+            } else {
+              console.log(`Notification created for assignee: ${newTask.assignee_id}`);
+            }
+          }
         }
       } catch (taskError) {
         console.error('Task processing error:', taskError);
