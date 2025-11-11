@@ -135,7 +135,7 @@ Deno.serve(async (req: Request) => {
     } else if (isN8nRequest(body)) {
       // Process raw notes with AI
       console.log('Processing notes with AI');
-      
+
       if (!openAiKey) {
         // If no OpenAI key, create a simple task from the notes
         console.log('No OpenAI key found, creating simple task from notes');
@@ -148,18 +148,17 @@ Deno.serve(async (req: Request) => {
         // Use OpenAI to parse notes
         tasks = await parseNotesWithOpenAI(body.note_text, openAiKey);
       }
-      
-      // Save the raw note to database
-      const { error: noteError } = await supabase
-        .from('notes')
-        .insert({
-          user_id: body.user_id,
-          content: body.note_text,
-          processed: true,
-        });
-        
-      if (noteError) {
-        console.error('Error saving note:', noteError);
+
+      // Update the existing note as processed (if note_id provided)
+      if (body.note_id) {
+        const { error: noteError } = await supabase
+          .from('notes')
+          .update({ processed: true })
+          .eq('id', body.note_id);
+
+        if (noteError) {
+          console.error('Error updating note:', noteError);
+        }
       }
     } else {
       return new Response(

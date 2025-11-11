@@ -101,11 +101,12 @@ export default function AddNotePage() {
       console.log('Note saved:', noteData);
       setProcessingStatus('Sending to AI for processing...');
 
-      const webhookUrl = 'https://aksheyw1.app.n8n.cloud/webhook/1d398de3-892a-4d5a-a941-62feab1e0250';
+      const edgeFunctionUrl = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/process-ai-notes`;
 
-      const response = await fetch(webhookUrl, {
+      const response = await fetch(edgeFunctionUrl, {
         method: 'POST',
         headers: {
+          'Authorization': `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY}`,
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
@@ -116,24 +117,20 @@ export default function AddNotePage() {
       });
 
       if (!response.ok) {
-        throw new Error(`Webhook failed: ${response.status} ${response.statusText}`);
+        const errorText = await response.text();
+        console.error('Edge function error:', errorText);
+        throw new Error(`Processing failed: ${response.status}`);
       }
 
-      const responseText = await response.text();
-      console.log('Webhook raw response:', responseText);
+      const result = await response.json();
+      console.log('Processing result:', result);
 
-      let result;
-      try {
-        result = JSON.parse(responseText);
-        console.log('Webhook parsed response:', result);
-      } catch (parseError) {
-        console.warn('Webhook returned non-JSON response:', responseText);
-        result = { success: true, raw: responseText };
-      }
+      const tasksCreatedCount = result.created || 0;
+      setTasksCreated(tasksCreatedCount);
 
       setSuccess(true);
       setContent('');
-      setProcessingStatus('Successfully processed! AI will create tasks shortly.');
+      setProcessingStatus(`Successfully created ${tasksCreatedCount} task${tasksCreatedCount !== 1 ? 's' : ''}!`);
 
       setTimeout(() => {
         navigate('/dashboard');
