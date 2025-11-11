@@ -84,23 +84,14 @@ Deno.serve(async (req: Request) => {
 
     console.log(`Task ${body.task_id} updated to status: ${body.new_status}`);
 
-    // If the task is marked as "Done", create a notification for the note creator
-    if (body.new_status === "Done" && updatedTask.note_id) {
-      // Get the note to find the original creator
-      const { data: note, error: noteError } = await supabase
-        .from("notes")
-        .select("user_id")
-        .eq("id", updatedTask.note_id)
-        .maybeSingle();
-
-      if (noteError) {
-        console.error("Note lookup error:", noteError);
-      } else if (note && note.user_id) {
-        // Create notification for the note creator
+    // If the task is marked as "Done", create a notification for the task creator
+    if (body.new_status === "Done" && updatedTask.user_id) {
+      // Only notify if the person completing the task is NOT the creator
+      if (user.id !== updatedTask.user_id) {
         const { error: notificationError } = await supabase
           .from("notifications")
           .insert({
-            recipient_id: note.user_id,
+            recipient_id: updatedTask.user_id,
             actor_id: user.id,
             type: "completed",
             task_id: updatedTask.id,
@@ -111,8 +102,10 @@ Deno.serve(async (req: Request) => {
         if (notificationError) {
           console.error("Notification insertion error:", notificationError);
         } else {
-          console.log(`Notification created for note creator: ${note.user_id}`);
+          console.log(`Notification created for task creator: ${updatedTask.user_id}`);
         }
+      } else {
+        console.log("Task creator completed their own task - no notification sent");
       }
     }
 
