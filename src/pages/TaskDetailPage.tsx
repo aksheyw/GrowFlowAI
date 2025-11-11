@@ -1,15 +1,13 @@
 import { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-import { useAuth } from '../contexts/AuthContext';
 import { supabase, Task, Profile, TaskDetail } from '../lib/supabase';
-import { ArrowLeft, Calendar, Clock, User, Loader2, Plus, X, Trash2 } from 'lucide-react';
+import { ArrowLeft, Clock, User, Loader2, Plus, X, Trash2 } from 'lucide-react';
 import { useToast } from '../contexts/ToastContext';
 
 export default function TaskDetailPage() {
   const { taskId } = useParams<{ taskId: string }>();
   const navigate = useNavigate();
-  const { user } = useAuth();
-  const { showToast } = useToast();
+  const { addToast } = useToast();
   const [task, setTask] = useState<Task | null>(null);
   const [profiles, setProfiles] = useState<Profile[]>([]);
   const [loading, setLoading] = useState(true);
@@ -58,7 +56,7 @@ export default function TaskDetailPage() {
       setDescriptionValue(taskResult.data?.description || '');
     } catch (error) {
       console.error('Error loading task:', error);
-      showToast('Failed to load task details', 'error');
+      addToast('Failed to load task details', 'error');
       navigate('/dashboard');
     } finally {
       setLoading(false);
@@ -78,10 +76,10 @@ export default function TaskDetailPage() {
       if (error) throw error;
 
       setTask({ ...task, ...updates });
-      showToast('Task updated successfully', 'success');
+      addToast('Task updated successfully', 'success');
     } catch (error) {
       console.error('Error updating task:', error);
-      showToast('Failed to update task', 'error');
+      addToast('Failed to update task', 'error');
     } finally {
       setSaving(false);
     }
@@ -105,10 +103,10 @@ export default function TaskDetailPage() {
 
       setDetails([...details, data]);
       setNewDetail('');
-      showToast('Detail added successfully', 'success');
+      addToast('Detail added successfully', 'success');
     } catch (error) {
       console.error('Error adding detail:', error);
-      showToast('Failed to add detail', 'error');
+      addToast('Failed to add detail', 'error');
     }
   }
 
@@ -122,10 +120,10 @@ export default function TaskDetailPage() {
       if (error) throw error;
 
       setDetails(details.filter(d => d.id !== detailId));
-      showToast('Detail removed successfully', 'success');
+      addToast('Detail removed successfully', 'success');
     } catch (error) {
       console.error('Error removing detail:', error);
-      showToast('Failed to remove detail', 'error');
+      addToast('Failed to remove detail', 'error');
     }
   }
 
@@ -147,11 +145,11 @@ export default function TaskDetailPage() {
 
       if (error) throw error;
 
-      showToast('Task deleted successfully', 'success');
+      addToast('Task deleted successfully', 'success');
       navigate('/dashboard');
     } catch (error) {
       console.error('Error deleting task:', error);
-      showToast('Failed to delete task', 'error');
+      addToast('Failed to delete task', 'error');
       setDeleting(false);
     }
   }
@@ -370,12 +368,12 @@ export default function TaskDetailPage() {
                 <div>
                   <p className="text-sm font-medium text-gray-700">Created by</p>
                   <div className="flex items-center gap-2 mt-1">
-                    {(task as any).creator ? (
+                    {(task as Task & { creator?: Profile }).creator ? (
                       <>
                         <div className="w-6 h-6 rounded-full bg-green-700 text-white flex items-center justify-center text-xs font-medium">
-                          {getInitials((task as any).creator.full_name)}
+                          {getInitials((task as Task & { creator?: Profile }).creator!.full_name)}
                         </div>
-                        <span className="text-gray-900">{(task as any).creator.full_name}</span>
+                        <span className="text-gray-900">{(task as Task & { creator?: Profile }).creator!.full_name}</span>
                       </>
                     ) : (
                       <span className="text-gray-500">Unknown</span>

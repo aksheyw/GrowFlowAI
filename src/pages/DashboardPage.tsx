@@ -2,7 +2,7 @@ import { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { supabase, Task } from '../lib/supabase';
-import { LogOut, Plus, Search, LayoutGrid, List, SlidersHorizontal, Filter, ChevronDown, Calendar, Clock, Trash2 } from 'lucide-react';
+import { LogOut, Plus, Search, LayoutGrid, List, SlidersHorizontal, ChevronDown, Clock, Trash2, Calendar } from 'lucide-react';
 import TaskCard from '../components/TaskCard';
 import NotificationBell from '../components/NotificationBell';
 

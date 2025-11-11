@@ -4,12 +4,6 @@ import { useAuth } from '../contexts/AuthContext';
 import { supabase } from '../lib/supabase';
 import { ArrowLeft, Loader2, CheckCircle2, AlertCircle } from 'lucide-react';
 
-interface ParsedTask {
-  description: string;
-  priority?: 'Low' | 'Medium' | 'High';
-  deadline?: string;
-}
-
 export default function AddNotePage() {
   const navigate = useNavigate();
   const { user } = useAuth();
@@ -19,59 +13,6 @@ export default function AddNotePage() {
   const [tasksCreated, setTasksCreated] = useState(0);
   const [success, setSuccess] = useState(false);
   const [error, setError] = useState('');
-
-  function parseNotesToTasks(noteText: string): ParsedTask[] {
-    const lines = noteText.split('\n').filter(line => line.trim());
-    const tasks: ParsedTask[] = [];
-
-    for (const line of lines) {
-      const trimmed = line.trim();
-
-      if (trimmed.length < 5) continue;
-
-      let description = trimmed.replace(/^[-*•]\s*/, '');
-      let priority: 'Low' | 'Medium' | 'High' = 'Medium';
-      let deadline: string | undefined;
-
-      if (/(urgent|asap|critical|high priority)/i.test(description)) {
-        priority = 'High';
-      } else if (/(low priority|when possible|eventually)/i.test(description)) {
-        priority = 'Low';
-      }
-
-      const dateMatch = description.match(/(?:by|before|due|deadline:?)\s*(\d{1,2}[-/]\d{1,2}[-/]\d{2,4})/i);
-      if (dateMatch) {
-        try {
-          const dateParts = dateMatch[1].split(/[-/]/);
-          if (dateParts.length === 3) {
-            let year = parseInt(dateParts[2]);
-            if (year < 100) year += 2000;
-            const month = parseInt(dateParts[0]);
-            const day = parseInt(dateParts[1]);
-            deadline = `${year}-${String(month).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
-          }
-        } catch (e) {
-          console.warn('Failed to parse date:', e);
-        }
-      }
-
-      description = description.replace(/\b(urgent|asap|critical|high priority|low priority|when possible|eventually)\b/gi, '').trim();
-      description = description.replace(/(?:by|before|due|deadline:?)\s*\d{1,2}[-/]\d{1,2}[-/]\d{2,4}/gi, '').trim();
-
-      if (description.length > 0) {
-        tasks.push({ description, priority, deadline });
-      }
-    }
-
-    if (tasks.length === 0 && noteText.trim().length > 0) {
-      tasks.push({
-        description: noteText.trim(),
-        priority: 'Medium'
-      });
-    }
-
-    return tasks;
-  }
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();

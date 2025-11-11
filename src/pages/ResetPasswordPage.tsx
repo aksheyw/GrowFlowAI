@@ -9,7 +9,7 @@ export default function ResetPasswordPage() {
   const [confirmPassword, setConfirmPassword] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
-  const { showToast } = useToast();
+  const { addToast } = useToast();
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -41,7 +41,7 @@ export default function ResetPasswordPage() {
 
       if (error) throw error;
 
-      showToast('Password updated successfully!', 'success');
+      addToast('Password updated successfully!', 'success');
       navigate('/');
     } catch (error) {
       console.error('Error updating password:', error);
