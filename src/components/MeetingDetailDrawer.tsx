@@ -90,7 +90,7 @@ export default function MeetingDetailDrawer({ note, isOpen, onClose, currentTask
             <div>
               <div className="flex items-center gap-2 mb-2">
                 <FileText className="w-5 h-5 text-blue-600" />
-                <h3 className="text-sm font-semibold text-gray-700 uppercase tracking-wide">Meeting Title</h3>
+                <h3 className="text-sm font-semibold text-gray-700 uppercase tracking-wide">Meeting Name</h3>
               </div>
               <p className="text-xl font-bold text-gray-900 pl-7">{note.meeting_title}</p>
             </div>
@@ -101,7 +101,7 @@ export default function MeetingDetailDrawer({ note, isOpen, onClose, currentTask
               <div className="flex items-start gap-3">
                 <Calendar className="w-5 h-5 text-blue-600 mt-1" />
                 <div>
-                  <p className="text-sm font-medium text-gray-600">Date</p>
+                  <p className="text-sm font-medium text-gray-600">Meeting Date</p>
                   <p className="text-gray-900 font-medium">{formatDate(note.meeting_date)}</p>
                 </div>
               </div>

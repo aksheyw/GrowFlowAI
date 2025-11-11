@@ -131,7 +131,7 @@ export default function AddNotePage() {
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
                   <label htmlFor="meetingTitle" className="block text-sm font-medium text-gray-700 mb-1">
-                    Note Title
+                    Meeting Name
                   </label>
                   <input
                     id="meetingTitle"
@@ -145,7 +145,7 @@ export default function AddNotePage() {
 
                 <div>
                   <label htmlFor="meetingDate" className="block text-sm font-medium text-gray-700 mb-1">
-                    Note Date
+                    Meeting Date
                   </label>
                   <input
                     id="meetingDate"
