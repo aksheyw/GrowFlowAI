@@ -83,6 +83,31 @@ export default function TaskCard({ task, onStatusChange, onDelete, onMeetingClic
         </div>
       </div>
 
+      {task.note?.meeting_title && (
+        <div className="mb-3 pb-3 border-b border-gray-100">
+          <div className="flex items-start gap-1.5 text-sm text-gray-600">
+            <span>📅</span>
+            <span>From:</span>
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                if (onMeetingClick && task.note?.id) {
+                  onMeetingClick(task.note.id);
+                }
+              }}
+              className="hover:underline"
+            >
+              {task.note.meeting_title}
+            </button>
+            {task.note.meeting_date && (
+              <span>
+                - {new Date(task.note.meeting_date).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
+              </span>
+            )}
+          </div>
+        </div>
+      )}
+
       <div className="flex-1 mb-4">
         <p className="text-gray-900 font-medium text-[15px] leading-snug line-clamp-3 min-h-[63px]">
           {task.description}
@@ -112,29 +137,6 @@ export default function TaskCard({ task, onStatusChange, onDelete, onMeetingClic
           <Clock className="w-3.5 h-3.5 flex-shrink-0" />
           <span className="truncate">Created: {formatCreatedAt(task.created_at)}</span>
         </div>
-
-        {task.note?.meeting_title && (
-          <div className="flex items-center gap-2 text-xs text-gray-700 min-h-[20px]">
-            <span>📅</span>
-            <span className="text-gray-600">From:</span>
-            <button
-              onClick={(e) => {
-                e.stopPropagation();
-                if (onMeetingClick && task.note?.id) {
-                  onMeetingClick(task.note.id);
-                }
-              }}
-              className="font-medium text-blue-600 hover:text-blue-800 hover:underline transition-colors"
-            >
-              {task.note.meeting_title}
-            </button>
-            {task.note.meeting_date && (
-              <span className="text-gray-500">
-                - {new Date(task.note.meeting_date).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
-              </span>
-            )}
-          </div>
-        )}
 
         <div className="pt-1">
           <label className="block text-xs font-semibold text-gray-700 mb-1.5">Status</label>
