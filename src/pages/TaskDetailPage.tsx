@@ -17,6 +17,7 @@ export default function TaskDetailPage() {
   const [newDetail, setNewDetail] = useState('');
   const [details, setDetails] = useState<TaskDetail[]>([]);
   const [deleting, setDeleting] = useState(false);
+  const [descriptionValue, setDescriptionValue] = useState('');
 
   useEffect(() => {
     if (taskId) {
@@ -54,6 +55,7 @@ export default function TaskDetailPage() {
       setTask(taskResult.data);
       setProfiles(profilesResult.data || []);
       setDetails(detailsResult.data || []);
+      setDescriptionValue(taskResult.data?.description || '');
     } catch (error) {
       console.error('Error loading task:', error);
       showToast('Failed to load task details', 'error');
@@ -230,8 +232,13 @@ export default function TaskDetailPage() {
                   Description
                 </label>
                 <textarea
-                  value={task.description}
-                  onChange={(e) => handleUpdate({ description: e.target.value })}
+                  value={descriptionValue}
+                  onChange={(e) => setDescriptionValue(e.target.value)}
+                  onBlur={() => {
+                    if (descriptionValue !== task.description) {
+                      handleUpdate({ description: descriptionValue });
+                    }
+                  }}
                   rows={3}
                   className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent outline-none transition-all resize-none"
                   disabled={saving}
