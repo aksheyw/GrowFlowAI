@@ -303,16 +303,22 @@ Deno.serve(async (req: Request) => {
           }
         }
 
+        const taskInsert: any = {
+          user_id: body.user_id,
+          assignee_id: assignee_id || body.user_id,
+          description: task.description,
+          priority: task.priority || "Medium",
+          status: task.status || "Not Started",
+          deadline,
+        };
+
+        if (isN8nRequest(body) && body.note_id) {
+          taskInsert.note_id = body.note_id;
+        }
+
         const { data: newTask, error: insertError } = await supabase
           .from("tasks")
-          .insert({
-            user_id: body.user_id,
-            assignee_id: assignee_id || body.user_id,
-            description: task.description,
-            priority: task.priority || "Medium",
-            status: task.status || "Not Started",
-            deadline,
-          })
+          .insert(taskInsert)
           .select()
           .single();
 
