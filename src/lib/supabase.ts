@@ -27,6 +27,7 @@ export type Note = {
   meeting_date: string | null;
   meeting_participants: string[] | null;
   meeting_location: string | null;
+  meeting_summary: string | null;
   created_at: string;
   updated_at: string;
 };

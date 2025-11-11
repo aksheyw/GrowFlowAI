@@ -18,6 +18,7 @@ export default function TaskDetailPage() {
   const [deleting, setDeleting] = useState(false);
   const [descriptionValue, setDescriptionValue] = useState('');
   const [showMeetingDrawer, setShowMeetingDrawer] = useState(false);
+  const [relatedTasks, setRelatedTasks] = useState<Task[]>([]);
 
   useEffect(() => {
     if (taskId) {
@@ -34,7 +35,7 @@ export default function TaskDetailPage() {
             *,
             assignee:assignee_id(id, full_name, email, avatar_url),
             creator:user_id(id, full_name, email, avatar_url),
-            note:note_id(id, content, meeting_title, meeting_date, meeting_participants, meeting_location, created_at)
+            note:note_id(id, content, meeting_title, meeting_date, meeting_participants, meeting_location, meeting_summary, created_at)
           `)
           .eq('id', taskId)
           .maybeSingle(),
@@ -57,6 +58,21 @@ export default function TaskDetailPage() {
       setProfiles(profilesResult.data || []);
       setDetails(detailsResult.data || []);
       setDescriptionValue(taskResult.data?.description || '');
+
+      if (taskResult.data?.note_id) {
+        const { data: tasksData, error: tasksError } = await supabase
+          .from('tasks')
+          .select(`
+            *,
+            assignee:assignee_id(id, full_name, email, avatar_url)
+          `)
+          .eq('note_id', taskResult.data.note_id)
+          .order('created_at');
+
+        if (!tasksError && tasksData) {
+          setRelatedTasks(tasksData);
+        }
+      }
     } catch (error) {
       console.error('Error loading task:', error);
       addToast('Failed to load task details', 'error');
@@ -472,17 +488,15 @@ export default function TaskDetailPage() {
                   </div>
                 )}
 
-                {task.note.content && (
-                  <div className="pt-3 border-t border-blue-200">
-                    <button
-                      onClick={() => setShowMeetingDrawer(true)}
-                      className="text-sm font-medium text-blue-700 hover:text-blue-800 flex items-center gap-1"
-                    >
-                      View full meeting notes
-                      <span className="text-lg">→</span>
-                    </button>
-                  </div>
-                )}
+                <div className="pt-3 border-t border-blue-200">
+                  <button
+                    onClick={() => setShowMeetingDrawer(true)}
+                    className="w-full sm:w-auto px-4 py-2.5 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-lg transition-colors flex items-center justify-center gap-2"
+                  >
+                    <FileText className="w-4 h-4" />
+                    View Full Meeting
+                  </button>
+                </div>
               </div>
             </div>
           )}
@@ -520,6 +534,8 @@ export default function TaskDetailPage() {
         note={task?.note || null}
         isOpen={showMeetingDrawer}
         onClose={() => setShowMeetingDrawer(false)}
+        currentTaskId={taskId}
+        relatedTasks={relatedTasks}
       />
     </div>
   );
