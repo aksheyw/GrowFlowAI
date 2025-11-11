@@ -24,6 +24,7 @@ interface N8nRequestBody {
   user_id: string;
   note_text: string;
   note_id?: string;
+  default_priority?: "Low" | "Medium" | "High";
 }
 
 type RequestBody = DirectRequestBody | N8nRequestBody;
@@ -36,7 +37,7 @@ function isN8nRequest(body: RequestBody): body is N8nRequestBody {
   return 'note_text' in body && typeof body.note_text === 'string';
 }
 
-function parseNotesBasic(noteText: string): TaskData[] {
+function parseNotesBasic(noteText: string, defaultPriority: "Low" | "Medium" | "High" = 'Medium'): TaskData[] {
   console.log('Using basic note parser (no AI)');
   const tasks: TaskData[] = [];
   const lines = noteText.split('\n').filter(line => line.trim());
@@ -48,7 +49,7 @@ function parseNotesBasic(noteText: string): TaskData[] {
 
     let description = trimmed.replace(/^[-*•]\s*/, '');
     let assignee_name: string | undefined;
-    let priority: "Low" | "Medium" | "High" = 'Medium';
+    let priority: "Low" | "Medium" | "High" = defaultPriority;
     let deadline: string | undefined;
 
     const assigneeMatch = description.match(/^\*{0,2}([A-Z][a-z]+(?:\s+[A-Z][a-z]+)*)\*{0,2}:\s*(.+)$/);
@@ -126,7 +127,7 @@ function parseNotesBasic(noteText: string): TaskData[] {
   if (tasks.length === 0 && noteText.trim().length > 0) {
     tasks.push({
       description: noteText.trim(),
-      priority: 'Medium',
+      priority: defaultPriority,
       status: 'Not Started',
     });
   }
@@ -134,7 +135,7 @@ function parseNotesBasic(noteText: string): TaskData[] {
   return tasks;
 }
 
-async function parseNotesWithOpenAI(noteText: string, openAiKey: string): Promise<TaskData[]> {
+async function parseNotesWithOpenAI(noteText: string, openAiKey: string, defaultPriority: "Low" | "Medium" | "High" = 'Medium'): Promise<TaskData[]> {
   try {
     const today = new Date().toISOString().split('T')[0];
     const response = await fetch('https://api.openai.com/v1/chat/completions', {
@@ -148,7 +149,7 @@ async function parseNotesWithOpenAI(noteText: string, openAiKey: string): Promis
         messages: [
           {
             role: 'system',
-            content: `You are a task extraction assistant. Extract actionable tasks from meeting notes and return them as a JSON array.\n\nToday's date is: ${today}\n\nEach task should have:\n- description (string, required): The task description\n- assignee_name (string, optional): Person's name if mentioned\n- priority (\"Low\" | \"Medium\" | \"High\", optional): Task priority, default Medium\n- status (\"Not Started\" | \"In Progress\" | \"Done\", optional): Default \"Not Started\"\n- deadline (string, optional): Date in YYYY-MM-DD format if mentioned. Convert relative dates like \"next Friday\", \"tomorrow\", \"in 2 weeks\" to absolute dates based on today's date.\n\nReturn ONLY a valid JSON array of tasks, nothing else. If no tasks found, return empty array [].`
+            content: `You are a task extraction assistant. Extract actionable tasks from meeting notes and return them as a JSON array.\n\nToday's date is: ${today}\n\nEach task should have:\n- description (string, required): The task description\n- assignee_name (string, optional): Person's name if mentioned\n- priority (\"Low\" | \"Medium\" | \"High\", optional): Task priority, default ${defaultPriority}. Only override this if the note explicitly mentions a different priority.\n- status (\"Not Started\" | \"In Progress\" | \"Done\", optional): Default \"Not Started\"\n- deadline (string, optional): Date in YYYY-MM-DD format if mentioned. Convert relative dates like \"next Friday\", \"tomorrow\", \"in 2 weeks\" to absolute dates based on today's date.\n\nReturn ONLY a valid JSON array of tasks, nothing else. If no tasks found, return empty array [].`
           },
           {
             role: 'user',
@@ -216,22 +217,23 @@ Deno.serve(async (req: Request) => {
     }
 
     let tasks: TaskData[] = [];
-    
+
     if (isDirectRequest(body)) {
       console.log('Processing direct task insertion');
       tasks = body.tasks;
     } else if (isN8nRequest(body)) {
       console.log('Processing notes with AI');
+      const defaultPriority = body.default_priority || 'Medium';
 
       if (!openAiKey) {
         console.log('No OpenAI key found, using basic parser');
-        tasks = parseNotesBasic(body.note_text);
+        tasks = parseNotesBasic(body.note_text, defaultPriority);
       } else {
         try {
-          tasks = await parseNotesWithOpenAI(body.note_text, openAiKey);
+          tasks = await parseNotesWithOpenAI(body.note_text, openAiKey, defaultPriority);
         } catch (aiError) {
           console.error('OpenAI parsing failed, falling back to basic parser:', aiError);
-          tasks = parseNotesBasic(body.note_text);
+          tasks = parseNotesBasic(body.note_text, defaultPriority);
         }
       }
 

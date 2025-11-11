@@ -17,6 +17,7 @@ export default function AddNotePage() {
   const [meetingDate, setMeetingDate] = useState('');
   const [meetingLocation, setMeetingLocation] = useState('');
   const [meetingParticipants, setMeetingParticipants] = useState('');
+  const [defaultPriority, setDefaultPriority] = useState<'Low' | 'Medium' | 'High'>('Medium');
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -65,7 +66,8 @@ export default function AddNotePage() {
         body: JSON.stringify({
           user_id: user.id,
           note_text: content.trim(),
-          note_id: noteData.id
+          note_id: noteData.id,
+          default_priority: defaultPriority
         })
       });
 
@@ -180,6 +182,22 @@ export default function AddNotePage() {
                     placeholder="John, Sarah, Mike (comma separated)"
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all text-sm"
                   />
+                </div>
+
+                <div>
+                  <label htmlFor="defaultPriority" className="block text-sm font-medium text-gray-700 mb-1">
+                    Default Priority
+                  </label>
+                  <select
+                    id="defaultPriority"
+                    value={defaultPriority}
+                    onChange={(e) => setDefaultPriority(e.target.value as 'Low' | 'Medium' | 'High')}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all text-sm bg-white"
+                  >
+                    <option value="Low">Low</option>
+                    <option value="Medium">Medium</option>
+                    <option value="High">High</option>
+                  </select>
                 </div>
               </div>
             </div>
