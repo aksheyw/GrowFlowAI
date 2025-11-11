@@ -13,6 +13,10 @@ export default function AddNotePage() {
   const [tasksCreated, setTasksCreated] = useState(0);
   const [success, setSuccess] = useState(false);
   const [error, setError] = useState('');
+  const [meetingTitle, setMeetingTitle] = useState('');
+  const [meetingDate, setMeetingDate] = useState('');
+  const [meetingLocation, setMeetingLocation] = useState('');
+  const [meetingParticipants, setMeetingParticipants] = useState('');
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -25,12 +29,20 @@ export default function AddNotePage() {
     setProcessingStatus('Saving your note...');
 
     try {
+      const participantsArray = meetingParticipants
+        ? meetingParticipants.split(',').map(p => p.trim()).filter(p => p.length > 0)
+        : null;
+
       const { data: noteData, error: noteError } = await supabase
         .from('notes')
         .insert({
           user_id: user.id,
           content: content.trim(),
-          processed: false
+          processed: false,
+          meeting_title: meetingTitle.trim() || null,
+          meeting_date: meetingDate || null,
+          meeting_location: meetingLocation.trim() || null,
+          meeting_participants: participantsArray
         })
         .select()
         .single();
@@ -111,11 +123,70 @@ export default function AddNotePage() {
             </p>
           </div>
 
-          {/* This form now correctly calls your new handleSubmit function */}
           <form onSubmit={handleSubmit}>
+            <div className="mb-6 p-4 bg-blue-50 border border-blue-200 rounded-lg">
+              <h3 className="text-sm font-semibold text-blue-900 mb-3">Meeting Information (Optional)</h3>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div>
+                  <label htmlFor="meetingTitle" className="block text-sm font-medium text-gray-700 mb-1">
+                    Meeting Title
+                  </label>
+                  <input
+                    id="meetingTitle"
+                    type="text"
+                    value={meetingTitle}
+                    onChange={(e) => setMeetingTitle(e.target.value)}
+                    placeholder="e.g., Weekly Team Sync"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all text-sm"
+                  />
+                </div>
+
+                <div>
+                  <label htmlFor="meetingDate" className="block text-sm font-medium text-gray-700 mb-1">
+                    Meeting Date
+                  </label>
+                  <input
+                    id="meetingDate"
+                    type="date"
+                    value={meetingDate}
+                    onChange={(e) => setMeetingDate(e.target.value)}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all text-sm"
+                  />
+                </div>
+
+                <div>
+                  <label htmlFor="meetingLocation" className="block text-sm font-medium text-gray-700 mb-1">
+                    Location
+                  </label>
+                  <input
+                    id="meetingLocation"
+                    type="text"
+                    value={meetingLocation}
+                    onChange={(e) => setMeetingLocation(e.target.value)}
+                    placeholder="e.g., Zoom, Office Room 3A"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all text-sm"
+                  />
+                </div>
+
+                <div>
+                  <label htmlFor="meetingParticipants" className="block text-sm font-medium text-gray-700 mb-1">
+                    Participants
+                  </label>
+                  <input
+                    id="meetingParticipants"
+                    type="text"
+                    value={meetingParticipants}
+                    onChange={(e) => setMeetingParticipants(e.target.value)}
+                    placeholder="John, Sarah, Mike (comma separated)"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all text-sm"
+                  />
+                </div>
+              </div>
+            </div>
+
             <div className="mb-6">
               <label htmlFor="notes" className="block text-sm font-medium text-gray-700 mb-2">
-                Meeting Notes
+                Meeting Notes *
               </label>
               <textarea
                 id="notes"

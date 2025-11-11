@@ -1,8 +1,9 @@
 import { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { supabase, Task, Profile, TaskDetail } from '../lib/supabase';
-import { ArrowLeft, Clock, User, Loader2, Plus, X, Trash2 } from 'lucide-react';
+import { ArrowLeft, Clock, User, Loader2, Plus, X, Trash2, FileText, Users, MapPin, Calendar } from 'lucide-react';
 import { useToast } from '../contexts/ToastContext';
+import MeetingDetailDrawer from '../components/MeetingDetailDrawer';
 
 export default function TaskDetailPage() {
   const { taskId } = useParams<{ taskId: string }>();
@@ -16,6 +17,7 @@ export default function TaskDetailPage() {
   const [details, setDetails] = useState<TaskDetail[]>([]);
   const [deleting, setDeleting] = useState(false);
   const [descriptionValue, setDescriptionValue] = useState('');
+  const [showMeetingDrawer, setShowMeetingDrawer] = useState(false);
 
   useEffect(() => {
     if (taskId) {
@@ -31,7 +33,8 @@ export default function TaskDetailPage() {
           .select(`
             *,
             assignee:assignee_id(id, full_name, email, avatar_url),
-            creator:user_id(id, full_name, email, avatar_url)
+            creator:user_id(id, full_name, email, avatar_url),
+            note:note_id(id, content, meeting_title, meeting_date, meeting_participants, meeting_location, created_at)
           `)
           .eq('id', taskId)
           .maybeSingle(),
@@ -407,6 +410,83 @@ export default function TaskDetailPage() {
             </div>
           </div>
 
+          {task.note && task.note.meeting_title && (
+            <div className="border-t border-gray-200 pt-6">
+              <h2 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
+                <FileText className="w-5 h-5 text-blue-600" />
+                Meeting Context
+              </h2>
+
+              <div className="bg-blue-50 rounded-lg border border-blue-200 p-4 space-y-3">
+                <div className="flex items-start gap-3">
+                  <FileText className="w-5 h-5 text-blue-600 mt-0.5" />
+                  <div className="flex-1">
+                    <p className="text-sm font-medium text-gray-700">Meeting Title</p>
+                    <p className="text-gray-900 mt-1 font-semibold">{task.note.meeting_title}</p>
+                  </div>
+                </div>
+
+                {task.note.meeting_date && (
+                  <div className="flex items-start gap-3">
+                    <Calendar className="w-5 h-5 text-blue-600 mt-0.5" />
+                    <div className="flex-1">
+                      <p className="text-sm font-medium text-gray-700">Meeting Date</p>
+                      <p className="text-gray-900 mt-1">
+                        {new Date(task.note.meeting_date).toLocaleDateString('en-US', {
+                          weekday: 'long',
+                          year: 'numeric',
+                          month: 'long',
+                          day: 'numeric'
+                        })}
+                      </p>
+                    </div>
+                  </div>
+                )}
+
+                {task.note.meeting_location && (
+                  <div className="flex items-start gap-3">
+                    <MapPin className="w-5 h-5 text-blue-600 mt-0.5" />
+                    <div className="flex-1">
+                      <p className="text-sm font-medium text-gray-700">Location</p>
+                      <p className="text-gray-900 mt-1">{task.note.meeting_location}</p>
+                    </div>
+                  </div>
+                )}
+
+                {task.note.meeting_participants && task.note.meeting_participants.length > 0 && (
+                  <div className="flex items-start gap-3">
+                    <Users className="w-5 h-5 text-blue-600 mt-0.5" />
+                    <div className="flex-1">
+                      <p className="text-sm font-medium text-gray-700">Participants</p>
+                      <div className="flex flex-wrap gap-2 mt-2">
+                        {task.note.meeting_participants.map((participant, index) => (
+                          <span
+                            key={index}
+                            className="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-700 border border-blue-200"
+                          >
+                            {participant}
+                          </span>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                {task.note.content && (
+                  <div className="pt-3 border-t border-blue-200">
+                    <button
+                      onClick={() => setShowMeetingDrawer(true)}
+                      className="text-sm font-medium text-blue-700 hover:text-blue-800 flex items-center gap-1"
+                    >
+                      View full meeting notes
+                      <span className="text-lg">→</span>
+                    </button>
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
+
           {saving && (
             <div className="mt-6 flex items-center justify-center gap-2 text-green-700">
               <Loader2 className="w-5 h-5 animate-spin" />
@@ -435,6 +515,12 @@ export default function TaskDetailPage() {
           </div>
         </div>
       </main>
+
+      <MeetingDetailDrawer
+        note={task?.note || null}
+        isOpen={showMeetingDrawer}
+        onClose={() => setShowMeetingDrawer(false)}
+      />
     </div>
   );
 }

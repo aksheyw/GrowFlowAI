@@ -1,6 +1,6 @@
 import { useNavigate } from 'react-router-dom';
 import { Task } from '../lib/supabase';
-import { Calendar, Clock, Trash2 } from 'lucide-react';
+import { Calendar, Clock, Trash2, FileText } from 'lucide-react';
 
 interface TaskCardProps {
   task: Task;
@@ -111,6 +111,20 @@ export default function TaskCard({ task, onStatusChange, onDelete }: TaskCardPro
           <Clock className="w-3.5 h-3.5 flex-shrink-0" />
           <span className="truncate">Created: {formatCreatedAt(task.created_at)}</span>
         </div>
+
+        {task.note?.meeting_title && (
+          <div className="flex items-center gap-2 text-xs text-blue-600 bg-blue-50 px-2 py-1.5 rounded-lg min-h-[26px] border border-blue-100">
+            <FileText className="w-3.5 h-3.5 flex-shrink-0" />
+            <span className="truncate font-medium">
+              {task.note.meeting_title}
+              {task.note.meeting_date && (
+                <span className="text-blue-500 ml-1">
+                  ({new Date(task.note.meeting_date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })})
+                </span>
+              )}
+            </span>
+          </div>
+        )}
 
         <div className="pt-1">
           <label className="block text-xs font-semibold text-gray-700 mb-1.5">Status</label>

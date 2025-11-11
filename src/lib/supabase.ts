@@ -23,6 +23,10 @@ export type Note = {
   user_id: string;
   content: string;
   processed: boolean;
+  meeting_title: string | null;
+  meeting_date: string | null;
+  meeting_participants: string[] | null;
+  meeting_location: string | null;
   created_at: string;
   updated_at: string;
 };
@@ -39,6 +43,7 @@ export type Task = {
   created_at: string;
   updated_at: string;
   assignee?: Profile;
+  note?: Note;
 };
 
 export type Notification = {
