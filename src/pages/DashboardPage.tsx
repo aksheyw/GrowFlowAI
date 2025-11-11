@@ -109,18 +109,40 @@ export default function DashboardPage() {
 
   async function handleStatusChange(taskId: string, newStatus: Task['status']) {
     try {
-      const { error } = await supabase
-        .from('tasks')
-        .update({ status: newStatus, updated_at: new Date().toISOString() })
-        .eq('id', taskId);
+      const { data: { session } } = await supabase.auth.getSession();
 
-      if (error) throw error;
+      if (!session) {
+        throw new Error('No active session');
+      }
+
+      const edgeFunctionUrl = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/update-task-status`;
+
+      const response = await fetch(edgeFunctionUrl, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${session.access_token}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          task_id: taskId,
+          new_status: newStatus,
+        }),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Failed to update task status');
+      }
+
+      const result = await response.json();
+      console.log('Task updated:', result);
 
       setTasks(tasks.map(task =>
         task.id === taskId ? { ...task, status: newStatus } : task
       ));
     } catch (error) {
       console.error('Error updating task:', error);
+      alert('Failed to update task status. Please try again.');
     }
   }
 
