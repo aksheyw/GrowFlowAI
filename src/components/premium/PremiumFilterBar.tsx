@@ -1,7 +1,7 @@
 import { motion } from 'framer-motion';
 import { ChevronDown } from 'lucide-react';
 
-export type PremiumFilterType = 'all' | 'my-tasks' | 'in-progress' | 'done';
+export type PremiumFilterType = 'all' | 'Not Started' | 'In Progress' | 'Done';
 
 interface FilterOption {
   id: PremiumFilterType;
