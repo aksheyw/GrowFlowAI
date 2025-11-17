@@ -1,16 +1,29 @@
 import { useState, useEffect } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
 import { LogOut, Plus } from 'lucide-react';
-import confetti from 'canvas-confetti';
 import { useAuth } from '../contexts/AuthContext';
 import { supabase, Task } from '../lib/supabase';
-import { getTimeOfDay, getInitials } from '../utils/premiumHelpers';
-import PremiumTaskCard from '../components/premium/PremiumTaskCard';
-import PremiumFilterBar, { PremiumFilterType } from '../components/premium/PremiumFilterBar';
-import PremiumEmptyState from '../components/premium/PremiumEmptyState';
-import NotificationBell from '../components/NotificationBell';
 import { useToast } from '../contexts/ToastContext';
+import NotificationBell from '../components/NotificationBell';
+
+type FilterType = 'all' | 'not-started' | 'in-progress' | 'done';
+
+function getTimeOfDay() {
+  const hour = new Date().getHours();
+  if (hour < 12) return 'morning';
+  if (hour < 18) return 'afternoon';
+  return 'evening';
+}
+
+function getInitials(name: string | undefined) {
+  if (!name) return '?';
+  return name
+    .split(' ')
+    .map(n => n[0])
+    .join('')
+    .toUpperCase()
+    .slice(0, 2);
+}
 
 export default function DashboardPage() {
   const { profile, signOut } = useAuth();
@@ -18,12 +31,23 @@ export default function DashboardPage() {
   const { showToast } = useToast();
   const [tasks, setTasks] = useState<Task[]>([]);
   const [loading, setLoading] = useState(true);
-  const [activeFilter, setActiveFilter] = useState<PremiumFilterType>('all');
+  const [activeFilter, setActiveFilter] = useState<FilterType>('all');
+  const [isScrolled, setIsScrolled] = useState(false);
 
   useEffect(() => {
     loadTasks();
     const cleanup = subscribeToRealtime();
-    return cleanup;
+
+    const handleScroll = () => {
+      setIsScrolled(window.scrollY > 20);
+    };
+
+    window.addEventListener('scroll', handleScroll);
+
+    return () => {
+      cleanup();
+      window.removeEventListener('scroll', handleScroll);
+    };
   }, []);
 
   async function loadTasks() {
@@ -48,331 +72,199 @@ export default function DashboardPage() {
   }
 
   function subscribeToRealtime() {
-    const subscription = supabase
-      .channel('tasks-changes-premium')
-      .on(
-        'postgres_changes',
-        {
-          event: '*',
-          schema: 'public',
-          table: 'tasks'
-        },
-        (payload) => {
-          if (payload.eventType === 'INSERT') {
-            setTasks(prev => [payload.new as Task, ...prev]);
-            showToast('A fresh seed has been planted 🌱', 'success');
-          }
+    const channel = supabase
+      .channel('tasks-premium')
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'tasks' }, (payload) => {
+        console.log('Task change:', payload);
 
-          if (payload.eventType === 'UPDATE') {
-            const updatedTask = payload.new as Task;
-            const oldTask = payload.old as Task;
-
-            setTasks(prev => prev.map(task =>
-              task.id === updatedTask.id ? updatedTask : task
-            ));
-
-            if (updatedTask.status === 'Done' && oldTask.status !== 'Done') {
-              showToast('Your plant has fully bloomed! 🌺', 'success');
-              celebrateCompletion();
-            }
-          }
-
-          if (payload.eventType === 'DELETE') {
-            setTasks(prev => prev.filter(task => task.id !== payload.old.id));
-          }
+        if (payload.eventType === 'UPDATE' && payload.new && (payload.new as Task).status === 'done') {
+          showToast('Task completed!', 'success');
         }
-      )
+
+        loadTasks();
+      })
       .subscribe();
 
     return () => {
-      subscription.unsubscribe();
+      supabase.removeChannel(channel);
     };
   }
 
-  async function handleStatusChange(taskId: string, newStatus: Task['status']) {
+  async function handleStatusChange(taskId: string, newStatus: string) {
     try {
-      const { data: { session } } = await supabase.auth.getSession();
+      const { error } = await supabase
+        .from('tasks')
+        .update({ status: newStatus })
+        .eq('id', taskId);
 
-      if (!session) {
-        throw new Error('No active session');
-      }
+      if (error) throw error;
 
-      const edgeFunctionUrl = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/update-task-status`;
-
-      const response = await fetch(edgeFunctionUrl, {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${session.access_token}`,
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          task_id: taskId,
-          new_status: newStatus,
-        }),
-      });
-
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.error || 'Failed to update task status');
-      }
-
-      setTasks(tasks.map(task =>
-        task.id === taskId ? { ...task, status: newStatus } : task
-      ));
+      showToast(`Task status updated to ${newStatus}`, 'success');
     } catch (error) {
       console.error('Error updating task:', error);
-      showToast('Could not update task status', 'error');
+      showToast('Failed to update task status', 'error');
     }
   }
 
-  function celebrateCompletion() {
-    confetti({
-      particleCount: 100,
-      spread: 70,
-      origin: { y: 0.6 },
-      colors: ['#2D5016', '#6FA84C', '#A4D96C']
-    });
-  }
-
-  async function handleLogout() {
-    await signOut();
-    navigate('/login');
-  }
-
   const filteredTasks = tasks.filter(task => {
-    if (activeFilter === 'my-tasks' && task.assignee_id !== profile?.id) return false;
-    if (activeFilter === 'in-progress' && task.status !== 'In Progress') return false;
-    if (activeFilter === 'done' && task.status !== 'Done') return false;
-    return true;
+    if (activeFilter === 'all') return true;
+    return task.status === activeFilter;
   });
 
-  const taskStats = {
-    notStarted: tasks.filter(t => t.status === 'Not Started').length,
-    inProgress: tasks.filter(t => t.status === 'In Progress').length,
-    completed: tasks.filter(t => t.status === 'Done').length
+  const taskCounts = {
+    all: tasks.length,
+    'not-started': tasks.filter(t => t.status === 'not-started').length,
+    'in-progress': tasks.filter(t => t.status === 'in-progress').length,
+    done: tasks.filter(t => t.status === 'done').length,
   };
 
-  const filters = [
-    { id: 'all' as PremiumFilterType, label: 'All Tasks', count: tasks.length },
-    { id: 'my-tasks' as PremiumFilterType, label: 'My Tasks', count: tasks.filter(t => t.assignee_id === profile?.id).length },
-    { id: 'in-progress' as PremiumFilterType, label: 'In Progress', icon: '🪴', count: taskStats.inProgress },
-    { id: 'done' as PremiumFilterType, label: 'Completed', icon: '🌺', count: taskStats.completed }
-  ];
-
-  if (loading) {
-    return (
-      <div className="min-h-screen bg-gradient-to-br from-gray-50 to-green-50/30 flex items-center justify-center">
-        <div className="text-center">
-          <motion.div
-            animate={{ rotate: 360 }}
-            transition={{ duration: 1, repeat: Infinity, ease: 'linear' }}
-            className="text-6xl mb-4"
-          >
-            🌱
-          </motion.div>
-          <p className="text-lg text-gray-600">Loading your garden...</p>
-        </div>
-      </div>
-    );
-  }
+  const timeOfDay = getTimeOfDay();
+  const greeting = `Good ${timeOfDay}`;
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-50 to-green-50/30">
-      <header className="
-        sticky top-0 z-50
-        bg-white/80 backdrop-blur-xl
-        border-b border-gray-100
-        shadow-sm
-        transition-all duration-200
-      ">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
-          <div className="flex items-center gap-3 group cursor-pointer" onClick={() => navigate('/dashboard')}>
-            <motion.div
-              whileHover={{ scale: 1.1, rotate: 5 }}
-              whileTap={{ scale: 0.95 }}
-              transition={{ type: 'spring', stiffness: 400, damping: 17 }}
-              className="text-3xl"
-            >
-              🌱
-            </motion.div>
-            <h1 className="text-2xl font-bold bg-gradient-to-r from-[#2D5016] to-[#6FA84C] bg-clip-text text-transparent">
-              GrowFlow
-            </h1>
-          </div>
-
-          <div className="flex items-center gap-3">
-            <NotificationBell />
-
-            <div className="flex items-center gap-2">
-              {profile?.avatar_url ? (
-                <img
-                  src={profile.avatar_url}
-                  alt={profile.full_name}
-                  className="w-10 h-10 rounded-full ring-2 ring-white hover:ring-green-200 transition-all cursor-pointer"
-                />
-              ) : (
-                <div className="
-                  w-10 h-10 rounded-full
-                  bg-gradient-to-br from-[#6FA84C] to-[#2D5016]
-                  flex items-center justify-center
-                  text-white font-medium text-sm
-                  hover:ring-2 hover:ring-green-200
-                  transition-all cursor-pointer
-                ">
-                  {profile ? getInitials(profile.full_name) : 'U'}
-                </div>
-              )}
-              <span className="text-sm font-medium text-gray-700 hidden sm:block">
-                {profile?.full_name}
-              </span>
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50">
+      {/* Premium Header */}
+      <header
+        className={`sticky top-0 z-50 transition-all duration-300 ${
+          isScrolled
+            ? 'bg-white/80 backdrop-blur-xl shadow-lg shadow-black/5'
+            : 'bg-transparent'
+        }`}
+      >
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex items-center justify-between h-20">
+            <div className="flex items-center gap-4">
+              <div className={`w-12 h-12 rounded-2xl bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center text-white font-bold text-lg shadow-lg transition-all duration-300 ${
+                isScrolled ? 'scale-90' : 'scale-100'
+              }`}>
+                {getInitials(profile?.full_name)}
+              </div>
+              <div>
+                <h1 className="text-xl font-semibold text-gray-900">{greeting}</h1>
+                <p className="text-sm text-gray-500">{profile?.full_name}</p>
+              </div>
             </div>
 
-            <button
-              onClick={handleLogout}
-              className="p-2.5 text-gray-600 hover:bg-gray-100 rounded-xl transition-colors"
-              title="Logout"
-            >
-              <LogOut className="w-5 h-5" />
-            </button>
+            <div className="flex items-center gap-3">
+              <NotificationBell />
+              <button
+                onClick={signOut}
+                className="p-2.5 rounded-xl hover:bg-gray-100 text-gray-600 transition-all hover:scale-105 active:scale-95"
+                title="Sign out"
+              >
+                <LogOut className="w-5 h-5" />
+              </button>
+            </div>
           </div>
         </div>
       </header>
 
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 pb-24">
-        <div className="mb-8">
-          <motion.div
-            initial={{ opacity: 0, y: -20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.4 }}
-          >
-            <h2 className="text-3xl sm:text-4xl font-bold text-gray-900 mb-2">
-              Good {getTimeOfDay()}, {profile?.full_name?.split(' ')[0] || 'there'}! 👋
-            </h2>
-            <p className="text-lg text-gray-600">
-              You have {tasks.length} {tasks.length === 1 ? 'plant' : 'plants'} growing in your garden
-            </p>
-          </motion.div>
-
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mt-6">
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.4, delay: 0.1 }}
-              className="
-                bg-white rounded-2xl p-6
-                border border-gray-100
-                shadow-sm hover:shadow-md
-                transition-shadow duration-200
-              "
-            >
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm text-gray-600 mb-1">Not Started</p>
-                  <p className="text-3xl font-bold text-gray-900">{taskStats.notStarted}</p>
-                </div>
-                <div className="text-4xl">🌱</div>
-              </div>
-            </motion.div>
-
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.4, delay: 0.2 }}
-              className="
-                bg-white rounded-2xl p-6
-                border border-gray-100
-                shadow-sm hover:shadow-md
-                transition-shadow duration-200
-              "
-            >
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm text-gray-600 mb-1">In Progress</p>
-                  <p className="text-3xl font-bold text-gray-900">{taskStats.inProgress}</p>
-                </div>
-                <div className="text-4xl">🪴</div>
-              </div>
-            </motion.div>
-
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.4, delay: 0.3 }}
-              className="
-                bg-white rounded-2xl p-6
-                border border-gray-100
-                shadow-sm hover:shadow-md
-                transition-shadow duration-200
-              "
-            >
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm text-gray-600 mb-1">Completed</p>
-                  <p className="text-3xl font-bold text-gray-900">{taskStats.completed}</p>
-                </div>
-                <div className="text-4xl">🌺</div>
-              </div>
-            </motion.div>
+      {/* Main Content */}
+      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        {/* Filter Bar */}
+        <div className="bg-white/80 backdrop-blur-xl rounded-3xl shadow-lg shadow-black/5 p-2 mb-8">
+          <div className="flex gap-2 overflow-x-auto scrollbar-hide">
+            {(['all', 'not-started', 'in-progress', 'done'] as FilterType[]).map((filter) => (
+              <button
+                key={filter}
+                onClick={() => setActiveFilter(filter)}
+                className={`flex-shrink-0 px-6 py-3 rounded-2xl font-medium transition-all duration-200 ${
+                  activeFilter === filter
+                    ? 'bg-gradient-to-r from-blue-500 to-indigo-600 text-white shadow-lg shadow-blue-500/25'
+                    : 'text-gray-600 hover:bg-gray-50'
+                }`}
+              >
+                <span className="capitalize">{filter.replace('-', ' ')}</span>
+                <span className="ml-2 text-sm opacity-75">
+                  {taskCounts[filter]}
+                </span>
+              </button>
+            ))}
           </div>
         </div>
 
-        <PremiumFilterBar
-          filters={filters}
-          activeFilter={activeFilter}
-          onFilterChange={setActiveFilter}
-        />
-
-        {filteredTasks.length === 0 ? (
-          <PremiumEmptyState />
+        {/* Tasks Grid */}
+        {loading ? (
+          <div className="flex items-center justify-center h-64">
+            <div className="w-12 h-12 border-4 border-blue-500/30 border-t-blue-500 rounded-full animate-spin" />
+          </div>
+        ) : filteredTasks.length === 0 ? (
+          <div className="text-center py-16">
+            <div className="inline-flex items-center justify-center w-24 h-24 rounded-3xl bg-gradient-to-br from-blue-500/10 to-indigo-500/10 mb-6">
+              <Plus className="w-12 h-12 text-blue-500" />
+            </div>
+            <h3 className="text-2xl font-semibold text-gray-900 mb-2">No tasks yet</h3>
+            <p className="text-gray-500 mb-8">Start by adding your first task</p>
+            <button
+              onClick={() => navigate('/add-note')}
+              className="px-8 py-4 bg-gradient-to-r from-blue-500 to-indigo-600 text-white rounded-2xl font-medium shadow-lg shadow-blue-500/25 hover:shadow-xl hover:shadow-blue-500/30 transition-all hover:scale-105 active:scale-95"
+            >
+              Add Task
+            </button>
+          </div>
         ) : (
-          <motion.div
-            layout
-            className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6"
-          >
-            <AnimatePresence mode="popLayout">
-              {filteredTasks.map((task) => (
-                <PremiumTaskCard
-                  key={task.id}
-                  task={task}
-                  onStatusChange={handleStatusChange}
-                />
-              ))}
-            </AnimatePresence>
-          </motion.div>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {filteredTasks.map((task) => (
+              <div
+                key={task.id}
+                onClick={() => navigate(`/task/${task.id}`)}
+                className="group bg-white rounded-3xl p-6 shadow-lg shadow-black/5 hover:shadow-xl hover:shadow-black/10 transition-all duration-300 cursor-pointer hover:scale-[1.02] active:scale-[0.98]"
+              >
+                <div className="flex items-start justify-between mb-4">
+                  <h3 className="text-lg font-semibold text-gray-900 group-hover:text-blue-600 transition-colors line-clamp-2">
+                    {task.title}
+                  </h3>
+                  <select
+                    value={task.status}
+                    onClick={(e) => e.stopPropagation()}
+                    onChange={(e) => handleStatusChange(task.id, e.target.value)}
+                    className={`px-3 py-1.5 rounded-xl text-xs font-medium transition-all ${
+                      task.status === 'done'
+                        ? 'bg-green-100 text-green-700'
+                        : task.status === 'in-progress'
+                        ? 'bg-blue-100 text-blue-700'
+                        : 'bg-gray-100 text-gray-700'
+                    }`}
+                  >
+                    <option value="not-started">Not Started</option>
+                    <option value="in-progress">In Progress</option>
+                    <option value="done">Done</option>
+                  </select>
+                </div>
+
+                {task.description && (
+                  <p className="text-gray-600 text-sm mb-4 line-clamp-2">{task.description}</p>
+                )}
+
+                <div className="flex items-center justify-between pt-4 border-t border-gray-100">
+                  <div className="flex items-center gap-2">
+                    {task.assignee?.avatar_url ? (
+                      <img
+                        src={task.assignee.avatar_url}
+                        alt={task.assignee.full_name}
+                        className="w-8 h-8 rounded-full"
+                      />
+                    ) : (
+                      <div className="w-8 h-8 rounded-full bg-gradient-to-br from-blue-400 to-indigo-500 flex items-center justify-center text-white text-xs font-medium">
+                        {getInitials(task.assignee?.full_name)}
+                      </div>
+                    )}
+                    <span className="text-sm text-gray-600">{task.assignee?.full_name}</span>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
         )}
       </main>
 
-      <motion.button
-        whileHover={{ scale: 1.05 }}
-        whileTap={{ scale: 0.95 }}
+      {/* Floating Action Button */}
+      <button
         onClick={() => navigate('/add-note')}
-        className="
-          fixed bottom-8 right-8
-          w-16 h-16 rounded-full
-          bg-gradient-to-br from-[#2D5016] to-[#6FA84C]
-          shadow-2xl shadow-green-900/40
-          flex items-center justify-center
-          text-white
-          group
-          z-40
-          hover:shadow-green-900/50
-          transition-shadow duration-200
-        "
+        className="fixed bottom-8 right-8 w-16 h-16 bg-gradient-to-r from-blue-500 to-indigo-600 text-white rounded-2xl shadow-2xl shadow-blue-500/40 hover:shadow-3xl hover:shadow-blue-500/50 transition-all hover:scale-110 active:scale-95 flex items-center justify-center group"
       >
-        <Plus className="w-7 h-7" />
-
-        <div className="
-          absolute right-full mr-4
-          px-4 py-2 rounded-xl
-          bg-gray-900 text-white text-sm font-medium
-          opacity-0 group-hover:opacity-100
-          transition-opacity duration-200
-          whitespace-nowrap
-          pointer-events-none
-        ">
-          Add Meeting Notes
-        </div>
-      </motion.button>
+        <Plus className="w-7 h-7 group-hover:rotate-90 transition-transform duration-300" />
+      </button>
     </div>
   );
 }
