@@ -63,11 +63,7 @@ export default function NotificationDropdown({
   return (
     <div
       ref={dropdownRef}
-      className="absolute right-0 sm:right-0 mt-2 w-[calc(100vw-1rem)] sm:w-96 bg-white/95 backdrop-blur-frosted rounded-xl shadow-xl border border-gray-200 z-50 overflow-hidden animate-slideDown"
-      style={{
-        left: 'auto',
-        right: '0.5rem',
-      }}
+      className="fixed sm:absolute left-2 right-2 sm:left-auto sm:right-0 mt-2 sm:w-96 bg-white/95 backdrop-blur-frosted rounded-xl shadow-xl border border-gray-200 z-50 overflow-hidden animate-slideDown"
     >
       <div className="p-4 border-b border-gray-200 flex justify-between items-center bg-gray-50/80 backdrop-blur-sm">
         <div>
