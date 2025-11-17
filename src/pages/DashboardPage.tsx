@@ -6,7 +6,7 @@ import { supabase, Task } from '../lib/supabase';
 import { useToast } from '../contexts/ToastContext';
 import NotificationBell from '../components/NotificationBell';
 
-type FilterType = 'all' | 'not-started' | 'in-progress' | 'done';
+type FilterType = 'all' | 'Not Started' | 'In Progress' | 'Done';
 
 function getTimeOfDay() {
   const hour = new Date().getHours();
@@ -77,7 +77,7 @@ export default function DashboardPage() {
       .on('postgres_changes', { event: '*', schema: 'public', table: 'tasks' }, (payload) => {
         console.log('Task change:', payload);
 
-        if (payload.eventType === 'UPDATE' && payload.new && (payload.new as Task).status === 'done') {
+        if (payload.eventType === 'UPDATE' && payload.new && (payload.new as Task).status === 'Done') {
           showToast('Task completed!', 'success');
         }
 
@@ -113,9 +113,9 @@ export default function DashboardPage() {
 
   const taskCounts = {
     all: tasks.length,
-    'not-started': tasks.filter(t => t.status === 'not-started').length,
-    'in-progress': tasks.filter(t => t.status === 'in-progress').length,
-    done: tasks.filter(t => t.status === 'done').length,
+    'Not Started': tasks.filter(t => t.status === 'Not Started').length,
+    'In Progress': tasks.filter(t => t.status === 'In Progress').length,
+    'Done': tasks.filter(t => t.status === 'Done').length,
   };
 
   const timeOfDay = getTimeOfDay();
@@ -164,7 +164,7 @@ export default function DashboardPage() {
         {/* Filter Bar */}
         <div className="bg-white/80 backdrop-blur-xl rounded-3xl shadow-lg shadow-black/5 p-2 mb-8">
           <div className="flex gap-2 overflow-x-auto scrollbar-hide">
-            {(['all', 'not-started', 'in-progress', 'done'] as FilterType[]).map((filter) => (
+            {(['all', 'Not Started', 'In Progress', 'Done'] as FilterType[]).map((filter) => (
               <button
                 key={filter}
                 onClick={() => setActiveFilter(filter)}
@@ -174,7 +174,7 @@ export default function DashboardPage() {
                     : 'text-gray-600 hover:bg-gray-50'
                 }`}
               >
-                <span className="capitalize">{filter.replace('-', ' ')}</span>
+                <span>{filter}</span>
                 <span className="ml-2 text-sm opacity-75">
                   {taskCounts[filter]}
                 </span>
@@ -212,29 +212,26 @@ export default function DashboardPage() {
               >
                 <div className="flex items-start justify-between mb-4">
                   <h3 className="text-lg font-semibold text-gray-900 group-hover:text-blue-600 transition-colors line-clamp-2">
-                    {task.title}
+                    {task.description}
                   </h3>
                   <select
                     value={task.status}
                     onClick={(e) => e.stopPropagation()}
                     onChange={(e) => handleStatusChange(task.id, e.target.value)}
                     className={`px-3 py-1.5 rounded-xl text-xs font-medium transition-all ${
-                      task.status === 'done'
+                      task.status === 'Done'
                         ? 'bg-green-100 text-green-700'
-                        : task.status === 'in-progress'
+                        : task.status === 'In Progress'
                         ? 'bg-blue-100 text-blue-700'
                         : 'bg-gray-100 text-gray-700'
                     }`}
                   >
-                    <option value="not-started">Not Started</option>
-                    <option value="in-progress">In Progress</option>
-                    <option value="done">Done</option>
+                    <option value="Not Started">Not Started</option>
+                    <option value="In Progress">In Progress</option>
+                    <option value="Done">Done</option>
                   </select>
                 </div>
 
-                {task.description && (
-                  <p className="text-gray-600 text-sm mb-4 line-clamp-2">{task.description}</p>
-                )}
 
                 <div className="flex items-center justify-between pt-4 border-t border-gray-100">
                   <div className="flex items-center gap-2">
