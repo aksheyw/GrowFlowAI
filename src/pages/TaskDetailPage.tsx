@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { supabase, Task, Profile, TaskDetail } from '../lib/supabase';
 import { ArrowLeft, Clock, User, Loader2, Plus, X, Trash2, FileText, Users, MapPin, Calendar } from 'lucide-react';
+import PlantIcon from '../components/PlantIcon';
 import { useToast } from '../contexts/ToastContext';
 import MeetingDetailDrawer from '../components/MeetingDetailDrawer';
 
@@ -224,28 +225,32 @@ export default function TaskDetailPage() {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <header className="bg-white border-b border-gray-200 sticky top-0 z-10">
+      <header className="bg-white/80 backdrop-blur-frosted border-b border-gray-200 sticky top-0 z-10 smooth-transition">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex items-center h-16">
+          <div className="flex items-center justify-between h-16">
             <button
               onClick={() => navigate('/dashboard')}
-              className="flex items-center gap-2 text-gray-600 hover:text-gray-900 transition-colors"
+              className="flex items-center gap-2 text-gray-600 hover:text-gray-900 smooth-transition button-press"
             >
               <ArrowLeft className="w-5 h-5" />
-              <span className="font-medium">Back to Dashboard</span>
+              <span className="font-medium">Dashboard</span>
             </button>
+            <div className="flex items-center gap-2">
+              <PlantIcon className="w-6 h-6" />
+              <span className="font-semibold text-gray-900 hidden sm:block">GrowFlow</span>
+            </div>
           </div>
         </div>
       </header>
 
       <main className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 sm:p-8">
+        <div className="bg-white rounded-2xl shadow-sm border border-gray-200 p-6 sm:p-8 smooth-transition">
           <div className="mb-6">
-            <h1 className="text-2xl font-bold text-gray-900 mb-4">Task Details</h1>
+            <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 mb-4 tracking-tight">Task Details</h1>
 
             <div className="space-y-4">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+                <label className="block text-sm font-semibold text-gray-900 mb-2">
                   Description
                 </label>
                 <textarea
@@ -257,54 +262,54 @@ export default function TaskDetailPage() {
                     }
                   }}
                   rows={3}
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent outline-none transition-all resize-none"
+                  className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-green-500 focus:border-transparent outline-none smooth-transition resize-none bg-white"
                   disabled={saving}
                 />
               </div>
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                  <label className="block text-sm font-semibold text-gray-900 mb-2">
                     Status
                   </label>
                   <select
                     value={task.status}
                     onChange={(e) => handleUpdate({ status: e.target.value as Task['status'] })}
-                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent outline-none transition-all"
+                    className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-green-500 focus:border-transparent outline-none smooth-transition bg-white cursor-pointer"
                     disabled={saving}
                   >
-                    <option value="Not Started">Not Started</option>
-                    <option value="In Progress">In Progress</option>
-                    <option value="Done">Done</option>
+                    <option value="Not Started">🌱 Not Started</option>
+                    <option value="In Progress">🌿 In Progress</option>
+                    <option value="Done">🌳 Done</option>
                   </select>
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                  <label className="block text-sm font-semibold text-gray-900 mb-2">
                     Priority
                   </label>
                   <select
                     value={task.priority}
                     onChange={(e) => handleUpdate({ priority: e.target.value as Task['priority'] })}
-                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent outline-none transition-all"
+                    className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-green-500 focus:border-transparent outline-none smooth-transition bg-white cursor-pointer"
                     disabled={saving}
                   >
-                    <option value="Low">Low</option>
-                    <option value="Medium">Medium</option>
-                    <option value="High">High</option>
+                    <option value="Low">Low Priority</option>
+                    <option value="Medium">Medium Priority</option>
+                    <option value="High">High Priority</option>
                   </select>
                 </div>
               </div>
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                  <label className="block text-sm font-semibold text-gray-900 mb-2">
                     Assign To
                   </label>
                   <select
                     value={task.assignee_id || ''}
                     onChange={(e) => handleUpdate({ assignee_id: e.target.value || null })}
-                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent outline-none transition-all"
+                    className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-green-500 focus:border-transparent outline-none smooth-transition bg-white cursor-pointer"
                     disabled={saving}
                   >
                     <option value="">Unassigned</option>
@@ -317,14 +322,14 @@ export default function TaskDetailPage() {
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                  <label className="block text-sm font-semibold text-gray-900 mb-2">
                     Deadline
                   </label>
                   <input
                     type="date"
                     value={task.deadline || ''}
                     onChange={(e) => handleUpdate({ deadline: e.target.value || null })}
-                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent outline-none transition-all"
+                    className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-green-500 focus:border-transparent outline-none smooth-transition bg-white"
                     disabled={saving}
                   />
                 </div>
@@ -343,11 +348,11 @@ export default function TaskDetailPage() {
                   onChange={(e) => setNewDetail(e.target.value)}
                   onKeyPress={(e) => e.key === 'Enter' && handleAddDetail()}
                   placeholder="Add a detail or sub-task..."
-                  className="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent outline-none transition-all"
+                  className="flex-1 px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-green-500 focus:border-transparent outline-none smooth-transition bg-white"
                 />
                 <button
                   onClick={handleAddDetail}
-                  className="px-4 py-2 bg-green-700 hover:bg-green-800 text-white rounded-lg transition-colors flex items-center gap-2"
+                  className="px-4 py-3 bg-green-700 hover:bg-green-800 active:bg-green-900 text-white rounded-xl smooth-transition button-press flex items-center gap-2 font-medium"
                 >
                   <Plus className="w-4 h-4" />
                   Add
@@ -512,7 +517,7 @@ export default function TaskDetailPage() {
             <button
               onClick={handleDeleteTask}
               disabled={deleting}
-              className="w-full sm:w-auto px-6 py-3 bg-red-600 hover:bg-red-700 text-white font-medium rounded-lg transition-colors flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+              className="w-full sm:w-auto px-6 py-3 bg-red-600 hover:bg-red-700 active:bg-red-800 text-white font-semibold rounded-xl smooth-transition button-press flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed shadow-lg hover:shadow-xl"
             >
               {deleting ? (
                 <>

@@ -2,7 +2,8 @@ import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { supabase } from '../lib/supabase';
-import { ArrowLeft, Loader2, CheckCircle2, AlertCircle } from 'lucide-react';
+import { ArrowLeft, CheckCircle2, AlertCircle } from 'lucide-react';
+import PlantIcon from '../components/PlantIcon';
 
 export default function AddNotePage() {
   const navigate = useNavigate();
@@ -102,35 +103,44 @@ export default function AddNotePage() {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <header className="bg-white border-b border-gray-200">
+      <header className="bg-white/80 backdrop-blur-frosted border-b border-gray-200 sticky top-0 z-10 smooth-transition">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex items-center h-16">
+          <div className="flex items-center justify-between h-16">
             <button
               onClick={() => navigate('/dashboard')}
-              className="flex items-center gap-2 text-gray-600 hover:text-gray-900 transition-colors"
+              className="flex items-center gap-2 text-gray-600 hover:text-gray-900 smooth-transition button-press"
             >
               <ArrowLeft className="w-5 h-5" />
-              <span className="font-medium">Back to Dashboard</span>
+              <span className="font-medium">Dashboard</span>
             </button>
+            <div className="flex items-center gap-2">
+              <PlantIcon className="w-6 h-6" />
+              <span className="font-semibold text-gray-900 hidden sm:block">GrowFlow</span>
+            </div>
           </div>
         </div>
       </header>
 
-      <main className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 sm:p-8">
+      <main className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8">
+        <div className="bg-white rounded-2xl shadow-sm border border-gray-200 p-6 sm:p-8 smooth-transition">
           <div className="mb-6">
-            <h1 className="text-2xl font-bold text-gray-900 mb-2">Add Note</h1>
-            <p className="text-gray-600">
+            <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 mb-2 tracking-tight">Add Note</h1>
+            <p className="text-gray-600 leading-relaxed">
               Paste your notes below and we'll process them into actionable tasks
             </p>
           </div>
 
-          <form onSubmit={handleSubmit}>
-            <div className="mb-6 p-4 bg-blue-50 border border-blue-200 rounded-lg">
-              <h3 className="text-sm font-semibold text-blue-900 mb-3">Note Information</h3>
+          <form onSubmit={handleSubmit} className="space-y-6">
+            <div className="p-5 bg-gradient-to-br from-blue-50 to-blue-50/50 border border-blue-200/60 rounded-xl smooth-transition">
+              <h3 className="text-sm font-semibold text-blue-900 mb-4 flex items-center gap-2">
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+                Meeting Information
+              </h3>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
-                  <label htmlFor="meetingTitle" className="block text-sm font-medium text-gray-700 mb-1">
+                  <label htmlFor="meetingTitle" className="block text-sm font-semibold text-gray-900 mb-2">
                     Meeting Name
                   </label>
                   <input
@@ -139,12 +149,12 @@ export default function AddNotePage() {
                     value={meetingTitle}
                     onChange={(e) => setMeetingTitle(e.target.value)}
                     placeholder="e.g., Weekly Team Sync"
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all text-sm"
+                    className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-green-500 focus:border-transparent outline-none smooth-transition text-sm bg-white"
                   />
                 </div>
 
                 <div>
-                  <label htmlFor="meetingDate" className="block text-sm font-medium text-gray-700 mb-1">
+                  <label htmlFor="meetingDate" className="block text-sm font-semibold text-gray-900 mb-2">
                     Meeting Date
                   </label>
                   <input
@@ -152,12 +162,12 @@ export default function AddNotePage() {
                     type="date"
                     value={meetingDate}
                     onChange={(e) => setMeetingDate(e.target.value)}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all text-sm"
+                    className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-green-500 focus:border-transparent outline-none smooth-transition text-sm bg-white"
                   />
                 </div>
 
                 <div>
-                  <label htmlFor="meetingLocation" className="block text-sm font-medium text-gray-700 mb-1">
+                  <label htmlFor="meetingLocation" className="block text-sm font-semibold text-gray-900 mb-2">
                     Location
                   </label>
                   <input
@@ -166,12 +176,12 @@ export default function AddNotePage() {
                     value={meetingLocation}
                     onChange={(e) => setMeetingLocation(e.target.value)}
                     placeholder="e.g., Zoom, Office Room 3A"
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all text-sm"
+                    className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-green-500 focus:border-transparent outline-none smooth-transition text-sm bg-white"
                   />
                 </div>
 
                 <div>
-                  <label htmlFor="meetingParticipants" className="block text-sm font-medium text-gray-700 mb-1">
+                  <label htmlFor="meetingParticipants" className="block text-sm font-semibold text-gray-900 mb-2">
                     Participants
                   </label>
                   <input
@@ -179,39 +189,39 @@ export default function AddNotePage() {
                     type="text"
                     value={meetingParticipants}
                     onChange={(e) => setMeetingParticipants(e.target.value)}
-                    placeholder="John, Sarah, Mike (comma separated)"
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all text-sm"
+                    placeholder="John, Sarah, Mike"
+                    className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-green-500 focus:border-transparent outline-none smooth-transition text-sm bg-white"
                   />
                 </div>
 
-                <div>
-                  <label htmlFor="defaultPriority" className="block text-sm font-medium text-gray-700 mb-1">
+                <div className="sm:col-span-2">
+                  <label htmlFor="defaultPriority" className="block text-sm font-semibold text-gray-900 mb-2">
                     Default Priority
                   </label>
                   <select
                     id="defaultPriority"
                     value={defaultPriority}
                     onChange={(e) => setDefaultPriority(e.target.value as 'Low' | 'Medium' | 'High')}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all text-sm bg-white"
+                    className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-green-500 focus:border-transparent outline-none smooth-transition text-sm bg-white cursor-pointer"
                   >
-                    <option value="Low">Low</option>
-                    <option value="Medium">Medium</option>
-                    <option value="High">High</option>
+                    <option value="Low">Low Priority</option>
+                    <option value="Medium">Medium Priority</option>
+                    <option value="High">High Priority</option>
                   </select>
                 </div>
               </div>
             </div>
 
-            <div className="mb-6">
-              <label htmlFor="notes" className="block text-sm font-medium text-gray-700 mb-2">
-                Meeting Notes *
+            <div>
+              <label htmlFor="notes" className="block text-sm font-semibold text-gray-900 mb-2">
+                Meeting Notes <span className="text-red-500">*</span>
               </label>
               <textarea
                 id="notes"
                 value={content}
                 onChange={(e) => setContent(e.target.value)}
-                rows={12}
-                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent outline-none transition-all resize-none"
+                rows={14}
+                className="w-full px-4 py-4 border border-gray-300 rounded-xl focus:ring-2 focus:ring-green-500 focus:border-transparent outline-none smooth-transition resize-none font-mono text-sm leading-relaxed bg-white"
                 placeholder="Paste your meeting notes here...
 
 Example:
@@ -220,33 +230,42 @@ Example:
 - Team needs to prepare presentation for client meeting on Dec 15"
                 required
               />
+              <p className="mt-2 text-xs text-gray-500 flex items-center gap-1">
+                <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+                Include assignee names and deadlines for better task creation
+              </p>
             </div>
 
             {error && (
-              <div className="mb-6 px-4 py-3 rounded-lg flex items-center gap-3 bg-red-50 border border-red-200 text-red-700">
-                <AlertCircle className="w-5 h-5 flex-shrink-0" />
+              <div className="px-4 py-4 rounded-xl flex items-start gap-3 bg-red-50/80 backdrop-blur-sm border border-red-200 text-red-700 animate-slideDown">
+                <AlertCircle className="w-5 h-5 flex-shrink-0 mt-0.5" />
                 <div className="flex-1">
-                  <p className="font-medium">{error}</p>
-                  <p className="text-sm mt-1">Check the browser console for detailed error logs.</p>
+                  <p className="font-semibold text-sm">{error}</p>
+                  <p className="text-xs mt-1 text-red-600">Check the browser console for detailed error logs.</p>
                 </div>
               </div>
             )}
 
             {processingStatus && !error && (
-              <div className={`mb-6 px-4 py-3 rounded-lg flex items-center gap-3 ${
+              <div className={`px-4 py-4 rounded-xl flex items-start gap-3 animate-slideDown ${
                 success
-                  ? 'bg-green-50 border border-green-200 text-green-700'
-                  : 'bg-blue-50 border border-blue-200 text-blue-700'
+                  ? 'bg-green-50/80 backdrop-blur-sm border border-green-200 text-green-700'
+                  : 'bg-blue-50/80 backdrop-blur-sm border border-blue-200 text-blue-700'
               }`}>
                 {loading ? (
-                  <Loader2 className="w-5 h-5 animate-spin flex-shrink-0" />
+                  <svg className="w-5 h-5 animate-spin flex-shrink-0 mt-0.5" viewBox="0 0 24 24">
+                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" />
+                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
+                  </svg>
                 ) : success ? (
-                  <CheckCircle2 className="w-5 h-5 flex-shrink-0" />
+                  <CheckCircle2 className="w-5 h-5 flex-shrink-0 mt-0.5" />
                 ) : null}
                 <div className="flex-1">
-                  <p className="font-medium">{processingStatus}</p>
+                  <p className="font-semibold text-sm">{processingStatus}</p>
                   {tasksCreated > 0 && (
-                    <p className="text-sm mt-1">
+                    <p className="text-xs mt-1">
                       {tasksCreated} new task{tasksCreated > 1 ? 's' : ''} will appear in your dashboard
                     </p>
                   )}
@@ -254,26 +273,30 @@ Example:
               </div>
             )}
 
-            <div className="flex gap-3">
+            <div className="flex flex-col sm:flex-row gap-3 pt-2">
               <button
                 type="submit"
                 disabled={loading || !content.trim()}
-                className="flex-1 bg-green-700 hover:bg-green-800 text-white font-medium py-3 px-6 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                className="flex-1 bg-green-700 hover:bg-green-800 active:bg-green-900 text-white font-semibold py-3.5 px-6 rounded-xl smooth-transition button-press disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 shadow-lg hover:shadow-xl disabled:shadow-md"
               >
                 {loading ? (
                   <>
-                    <Loader2 className="w-5 h-5 animate-spin" />
-                    Saving...
+                    <svg className="w-5 h-5 animate-spin" viewBox="0 0 24 24">
+                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" />
+                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
+                    </svg>
+                    Processing...
                   </>
                 ) : (
-                  'Save Note'
+                  'Save & Process Note'
                 )}
               </button>
 
               <button
                 type="button"
                 onClick={() => navigate('/dashboard')}
-                className="px-6 py-3 border border-gray-300 text-gray-700 font-medium rounded-lg hover:bg-gray-50 transition-colors"
+                disabled={loading}
+                className="sm:w-auto px-6 py-3.5 border-2 border-gray-300 text-gray-700 font-semibold rounded-xl hover:bg-gray-50 hover:border-gray-400 smooth-transition button-press disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 Cancel
               </button>
@@ -281,13 +304,30 @@ Example:
           </form>
         </div>
 
-        <div className="mt-6 bg-blue-50 border border-blue-200 rounded-lg p-4">
-          <h3 className="font-medium text-blue-900 mb-2">Tips for better results:</h3>
-          <ul className="text-sm text-blue-800 space-y-1 list-disc list-inside">
-            <li>Include assignee names for each task</li>
-            <li>Specify deadlines or timeframes when available</li>
-            <li>Use clear action items with specific outcomes</li>
-            <li>Mark urgent or high-priority items explicitly</li>
+        <div className="mt-6 bg-gradient-to-br from-blue-50 to-blue-50/50 border border-blue-200/60 rounded-xl p-5 smooth-transition">
+          <h3 className="font-semibold text-blue-900 mb-3 flex items-center gap-2">
+            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" />
+            </svg>
+            Tips for Better Results
+          </h3>
+          <ul className="text-sm text-blue-800 space-y-2">
+            <li className="flex items-start gap-2">
+              <span className="text-blue-600 mt-0.5">•</span>
+              <span>Include assignee names for each task (e.g., "John needs to...")</span>
+            </li>
+            <li className="flex items-start gap-2">
+              <span className="text-blue-600 mt-0.5">•</span>
+              <span>Specify deadlines or timeframes (e.g., "by Friday", "next week")</span>
+            </li>
+            <li className="flex items-start gap-2">
+              <span className="text-blue-600 mt-0.5">•</span>
+              <span>Use clear action verbs (complete, review, prepare, schedule)</span>
+            </li>
+            <li className="flex items-start gap-2">
+              <span className="text-blue-600 mt-0.5">•</span>
+              <span>Mark urgent items explicitly (urgent, high priority, ASAP)</span>
+            </li>
           </ul>
         </div>
       </main>
