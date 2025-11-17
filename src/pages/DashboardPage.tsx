@@ -356,10 +356,10 @@ export default function DashboardPage() {
           <div className="flex justify-between items-center h-14 sm:h-16">
             <div className="flex items-center gap-2 sm:gap-3 flex-1 min-w-0">
               <div className="text-xl sm:text-2xl flex-shrink-0">🌱</div>
-              <div className="flex flex-col sm:flex-row sm:items-center sm:gap-3 min-w-0">
+              <div className="flex items-center gap-2 min-w-0">
                 <h1 className="text-base sm:text-xl font-bold text-gray-900 truncate">GrowFlow</h1>
                 <span className="lg:hidden text-xs text-gray-400">•</span>
-                <h2 className="text-xs sm:text-sm font-semibold text-gray-600 lg:hidden truncate">My Notes</h2>
+                <h2 className="text-xs sm:text-sm font-medium text-gray-600 lg:hidden truncate">My Notes</h2>
               </div>
             </div>
 
@@ -866,25 +866,25 @@ export default function DashboardPage() {
             </button>
           </>
         ) : (
-          <div className="lg:hidden fixed bottom-6 left-6 right-6 bg-white rounded-xl shadow-xl border border-gray-200 p-4 z-10">
-            <div className="flex items-center gap-2">
+          <div className="lg:hidden fixed bottom-6 left-4 right-4 bg-white rounded-xl shadow-xl border border-gray-200 p-3 z-10">
+            <div className="grid grid-cols-3 gap-2">
               <button
                 onClick={toggleSelectAll}
-                className="flex-1 bg-gray-100 hover:bg-gray-200 text-gray-700 px-4 py-3 rounded-lg text-sm font-medium transition-all"
+                className="bg-gray-100 hover:bg-gray-200 active:bg-gray-300 text-gray-700 px-3 py-2.5 rounded-lg text-xs font-medium transition-all"
               >
-                {selectedTasks.size === filteredTasks.length ? 'Deselect All' : 'Select All'}
+                {selectedTasks.size === filteredTasks.length ? 'Deselect' : 'Select All'}
               </button>
               <button
                 onClick={handleBulkDelete}
                 disabled={selectedTasks.size === 0}
-                className="flex-1 bg-red-600 hover:bg-red-700 disabled:bg-gray-300 disabled:cursor-not-allowed text-white px-4 py-3 rounded-lg text-sm font-medium transition-all flex items-center justify-center gap-1.5"
+                className="bg-red-600 hover:bg-red-700 active:bg-red-800 disabled:bg-gray-300 disabled:cursor-not-allowed text-white px-3 py-2.5 rounded-lg text-xs font-medium transition-all flex items-center justify-center gap-1"
               >
-                <Trash2 className="w-4 h-4" />
-                Delete ({selectedTasks.size})
+                <Trash2 className="w-3.5 h-3.5" />
+                <span>({selectedTasks.size})</span>
               </button>
               <button
                 onClick={exitSelectionMode}
-                className="flex-1 bg-gray-100 hover:bg-gray-200 text-gray-700 px-4 py-3 rounded-lg text-sm font-medium transition-all"
+                className="bg-gray-100 hover:bg-gray-200 active:bg-gray-300 text-gray-700 px-3 py-2.5 rounded-lg text-xs font-medium transition-all"
               >
                 Cancel
               </button>
@@ -910,17 +910,17 @@ export default function DashboardPage() {
             {filteredTasks.map(task => (
               <div key={task.id} className="relative">
                 {isSelectionMode && (
-                  <div className="absolute top-3 left-3 z-10">
+                  <div className="absolute top-4 left-4 z-10">
                     <input
                       type="checkbox"
                       checked={selectedTasks.has(task.id)}
                       onChange={() => toggleTaskSelection(task.id)}
-                      className="w-5 h-5 rounded border-gray-300 text-green-600 focus:ring-green-500 cursor-pointer"
+                      className="w-5 h-5 rounded border-2 border-gray-300 text-green-600 focus:ring-2 focus:ring-green-500 focus:ring-offset-2 cursor-pointer shadow-sm"
                       onClick={(e) => e.stopPropagation()}
                     />
                   </div>
                 )}
-                <div className={isSelectionMode ? 'pointer-events-none' : ''}>
+                <div className={isSelectionMode ? 'pointer-events-none opacity-90' : ''}>
                   <TaskCard
                     task={task}
                     onStatusChange={handleStatusChange}
@@ -945,7 +945,7 @@ export default function DashboardPage() {
                       type="checkbox"
                       checked={selectedTasks.has(task.id)}
                       onChange={() => toggleTaskSelection(task.id)}
-                      className="w-5 h-5 mt-0.5 rounded border-gray-300 text-green-600 focus:ring-green-500 cursor-pointer"
+                      className="w-5 h-5 mt-1 mr-1 rounded border-2 border-gray-300 text-green-600 focus:ring-2 focus:ring-green-500 focus:ring-offset-2 cursor-pointer shadow-sm"
                       onClick={(e) => e.stopPropagation()}
                     />
                   )}
