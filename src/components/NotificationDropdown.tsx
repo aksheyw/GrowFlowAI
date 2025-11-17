@@ -63,14 +63,13 @@ export default function NotificationDropdown({
   return (
     <div
       ref={dropdownRef}
-      className="absolute right-0 sm:right-0 mt-2 w-[calc(100vw-1rem)] sm:w-96 bg-white rounded-xl shadow-xl border border-gray-200 z-50 overflow-hidden"
+      className="absolute right-0 sm:right-0 mt-2 w-[calc(100vw-1rem)] sm:w-96 bg-white/95 backdrop-blur-frosted rounded-xl shadow-xl border border-gray-200 z-50 overflow-hidden animate-slideDown"
       style={{
-        animation: 'slideDown 0.2s ease-out',
         left: 'auto',
         right: '0.5rem',
       }}
     >
-      <div className="p-4 border-b border-gray-200 flex justify-between items-center bg-gray-50">
+      <div className="p-4 border-b border-gray-200 flex justify-between items-center bg-gray-50/80 backdrop-blur-sm">
         <div>
           <h3 className="font-semibold text-gray-900">Notifications</h3>
           <p className="text-xs text-gray-500 mt-0.5">
@@ -80,7 +79,7 @@ export default function NotificationDropdown({
         {notifications.some(n => !n.read) && (
           <button
             onClick={onMarkAllAsRead}
-            className="text-xs font-medium text-green-700 hover:text-green-800 hover:bg-green-50 px-3 py-1.5 rounded-lg transition-all"
+            className="text-xs font-medium text-green-700 hover:text-green-800 hover:bg-green-50 px-3 py-1.5 rounded-lg smooth-transition button-press"
           >
             Mark all as read
           </button>
@@ -99,7 +98,7 @@ export default function NotificationDropdown({
             {notifications.map((notification, index) => (
               <div
                 key={notification.id}
-                className={`p-4 hover:bg-gray-50 transition-all cursor-pointer group relative ${
+                className={`p-4 hover:bg-gray-50 smooth-transition cursor-pointer group relative ${
                   !notification.read ? 'bg-green-50/50' : ''
                 }`}
                 style={{
@@ -131,7 +130,7 @@ export default function NotificationDropdown({
                         e.stopPropagation();
                         onMarkAsRead(notification.id);
                       }}
-                      className="flex-shrink-0 w-2.5 h-2.5 rounded-full bg-green-600 hover:bg-green-700 hover:scale-125 transition-all shadow-sm"
+                      className="flex-shrink-0 w-2.5 h-2.5 rounded-full bg-green-600 hover:bg-green-700 hover:scale-125 smooth-transition shadow-sm"
                       title="Mark as read"
                     />
                   )}
@@ -143,8 +142,8 @@ export default function NotificationDropdown({
       </div>
 
       {notifications.length > 0 && (
-        <div className="p-3 border-t border-gray-200 text-center bg-gray-50">
-          <button className="text-sm font-medium text-green-700 hover:text-green-800 hover:bg-green-50 flex items-center justify-center gap-1 w-full transition-all py-2 rounded-lg">
+        <div className="p-3 border-t border-gray-200 text-center bg-gray-50/80 backdrop-blur-sm">
+          <button className="text-sm font-medium text-green-700 hover:text-green-800 hover:bg-green-50 flex items-center justify-center gap-1 w-full smooth-transition button-press py-2 rounded-lg">
             View all notifications
             <ChevronRight className="w-4 h-4" />
           </button>

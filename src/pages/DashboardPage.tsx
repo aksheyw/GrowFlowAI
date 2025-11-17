@@ -6,6 +6,8 @@ import { LogOut, Plus, Search, LayoutGrid, List, SlidersHorizontal, ChevronDown,
 import TaskCard from '../components/TaskCard';
 import NotificationBell from '../components/NotificationBell';
 import MeetingDetailDrawer from '../components/MeetingDetailDrawer';
+import PlantIcon from '../components/PlantIcon';
+import ScrollToTop from '../components/ScrollToTop';
 
 type FilterType = 'all' | 'my-tasks' | 'not-started' | 'in-progress' | 'done';
 type SortType = 'newest' | 'oldest';
@@ -351,11 +353,13 @@ export default function DashboardPage() {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <header className="bg-white border-b border-gray-200 sticky top-0 z-20">
+      <header className="bg-white/80 backdrop-blur-frosted border-b border-gray-200 sticky top-0 z-20 smooth-transition">
         <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center h-14 sm:h-16">
             <div className="flex items-center gap-2 sm:gap-3 flex-1 min-w-0">
-              <div className="text-xl sm:text-2xl flex-shrink-0">🌱</div>
+              <div className="flex-shrink-0">
+                <PlantIcon className="w-6 h-6 sm:w-8 sm:h-8" />
+              </div>
               <div className="flex items-center gap-2 min-w-0">
                 <h1 className="text-base sm:text-xl font-bold text-gray-900 truncate">GrowFlow</h1>
                 <span className="lg:hidden text-xs text-gray-400">•</span>
@@ -409,13 +413,13 @@ export default function DashboardPage() {
               <>
                 <button
                   onClick={() => setIsSelectionMode(true)}
-                  className="bg-gray-100 hover:bg-gray-200 text-gray-700 px-6 py-3 rounded-lg flex items-center gap-2 transition-all font-medium"
+                  className="bg-gray-100 hover:bg-gray-200 text-gray-700 px-6 py-3 rounded-lg flex items-center gap-2 smooth-transition button-press font-medium"
                 >
                   Select Notes
                 </button>
                 <button
                   onClick={() => navigate('/add-note')}
-                  className="bg-green-700 hover:bg-green-800 text-white px-6 py-3 rounded-lg flex items-center gap-2 transition-all shadow-md hover:shadow-lg font-medium"
+                  className="bg-green-700 hover:bg-green-800 active:bg-green-900 text-white px-6 py-3 rounded-lg flex items-center gap-2 smooth-transition shadow-md hover:shadow-lg font-medium button-press"
                 >
                   <Plus className="w-5 h-5" />
                   Add Note
@@ -425,21 +429,21 @@ export default function DashboardPage() {
               <>
                 <button
                   onClick={toggleSelectAll}
-                  className="bg-gray-100 hover:bg-gray-200 text-gray-700 px-6 py-3 rounded-lg flex items-center gap-2 transition-all font-medium"
+                  className="bg-gray-100 hover:bg-gray-200 text-gray-700 px-6 py-3 rounded-lg flex items-center gap-2 smooth-transition button-press font-medium"
                 >
                   {selectedTasks.size === filteredTasks.length ? 'Deselect All' : 'Select All'}
                 </button>
                 <button
                   onClick={handleBulkDelete}
                   disabled={selectedTasks.size === 0}
-                  className="bg-red-600 hover:bg-red-700 disabled:bg-gray-300 disabled:cursor-not-allowed text-white px-6 py-3 rounded-lg flex items-center gap-2 transition-all font-medium"
+                  className="bg-red-600 hover:bg-red-700 active:bg-red-800 disabled:bg-gray-300 disabled:cursor-not-allowed text-white px-6 py-3 rounded-lg flex items-center gap-2 smooth-transition button-press font-medium"
                 >
                   <Trash2 className="w-5 h-5" />
                   Delete ({selectedTasks.size})
                 </button>
                 <button
                   onClick={exitSelectionMode}
-                  className="bg-gray-100 hover:bg-gray-200 text-gray-700 px-6 py-3 rounded-lg flex items-center gap-2 transition-all font-medium"
+                  className="bg-gray-100 hover:bg-gray-200 text-gray-700 px-6 py-3 rounded-lg flex items-center gap-2 smooth-transition button-press font-medium"
                 >
                   Cancel
                 </button>
@@ -464,7 +468,7 @@ export default function DashboardPage() {
             <div className="flex gap-2 flex-wrap sm:flex-nowrap">
               <button
                 onClick={() => setShowFilters(!showFilters)}
-                className={`px-4 py-2 rounded-lg font-medium transition-colors flex items-center gap-2 ${
+                className={`px-4 py-2 rounded-lg font-medium smooth-transition button-press flex items-center gap-2 ${
                   showFilters ? 'bg-green-700 text-white' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
                 }`}
               >
@@ -847,14 +851,14 @@ export default function DashboardPage() {
           <>
             <button
               onClick={() => navigate('/add-note')}
-              className="lg:hidden fixed bottom-6 right-6 w-14 h-14 bg-green-700 hover:bg-green-800 text-white rounded-full shadow-lg hover:shadow-xl flex items-center justify-center transition-all z-10"
+              className="lg:hidden fixed bottom-6 right-6 w-14 h-14 bg-green-700 hover:bg-green-800 active:bg-green-900 text-white rounded-full shadow-lg hover:shadow-xl flex items-center justify-center smooth-transition button-press z-10 animate-pulse-glow"
               aria-label="Add Note"
             >
               <Plus className="w-6 h-6" />
             </button>
             <button
               onClick={() => setIsSelectionMode(true)}
-              className="lg:hidden fixed bottom-24 right-6 w-14 h-14 bg-gray-700 hover:bg-gray-800 text-white rounded-full shadow-lg hover:shadow-xl flex items-center justify-center transition-all z-10"
+              className="lg:hidden fixed bottom-24 right-6 w-14 h-14 bg-gray-700 hover:bg-gray-800 active:bg-gray-900 text-white rounded-full shadow-lg hover:shadow-xl flex items-center justify-center smooth-transition button-press z-10"
               aria-label="Select Notes"
             >
               <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -866,25 +870,25 @@ export default function DashboardPage() {
             </button>
           </>
         ) : (
-          <div className="lg:hidden fixed bottom-6 left-4 right-4 bg-white rounded-xl shadow-xl border border-gray-200 p-3 z-10">
+          <div className="lg:hidden fixed bottom-6 left-4 right-4 bg-white/95 backdrop-blur-frosted rounded-xl shadow-xl border border-gray-200 p-3 z-10 animate-fadeInUp">
             <div className="grid grid-cols-3 gap-2">
               <button
                 onClick={toggleSelectAll}
-                className="bg-gray-100 hover:bg-gray-200 active:bg-gray-300 text-gray-700 px-3 py-2.5 rounded-lg text-xs font-medium transition-all"
+                className="bg-gray-100 hover:bg-gray-200 active:bg-gray-300 text-gray-700 px-3 py-2.5 rounded-lg text-xs font-medium smooth-transition button-press"
               >
                 {selectedTasks.size === filteredTasks.length ? 'Deselect' : 'Select All'}
               </button>
               <button
                 onClick={handleBulkDelete}
                 disabled={selectedTasks.size === 0}
-                className="bg-red-600 hover:bg-red-700 active:bg-red-800 disabled:bg-gray-300 disabled:cursor-not-allowed text-white px-3 py-2.5 rounded-lg text-xs font-medium transition-all flex items-center justify-center gap-1"
+                className="bg-red-600 hover:bg-red-700 active:bg-red-800 disabled:bg-gray-300 disabled:cursor-not-allowed text-white px-3 py-2.5 rounded-lg text-xs font-medium smooth-transition button-press flex items-center justify-center gap-1"
               >
                 <Trash2 className="w-3.5 h-3.5" />
                 <span>({selectedTasks.size})</span>
               </button>
               <button
                 onClick={exitSelectionMode}
-                className="bg-gray-100 hover:bg-gray-200 active:bg-gray-300 text-gray-700 px-3 py-2.5 rounded-lg text-xs font-medium transition-all"
+                className="bg-gray-100 hover:bg-gray-200 active:bg-gray-300 text-gray-700 px-3 py-2.5 rounded-lg text-xs font-medium smooth-transition button-press"
               >
                 Cancel
               </button>
@@ -893,13 +897,15 @@ export default function DashboardPage() {
         )}
 
         {filteredTasks.length === 0 ? (
-          <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-12 text-center">
-            <div className="text-6xl mb-4">🌱</div>
+          <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-12 text-center smooth-transition">
+            <div className="mb-6 flex justify-center">
+              <PlantIcon className="w-24 h-24" />
+            </div>
             <h3 className="text-xl font-semibold text-gray-900 mb-2">No notes yet</h3>
             <p className="text-gray-600 mb-6">Start by adding your first note</p>
             <button
               onClick={() => navigate('/add-note')}
-              className="bg-green-700 hover:bg-green-800 text-white px-6 py-3 rounded-lg inline-flex items-center gap-2 transition-colors"
+              className="bg-green-700 hover:bg-green-800 active:bg-green-900 text-white px-6 py-3 rounded-lg inline-flex items-center gap-2 smooth-transition button-press shadow-md hover:shadow-lg"
             >
               <Plus className="w-5 h-5" />
               Add Your First Note
@@ -1036,6 +1042,7 @@ export default function DashboardPage() {
         isOpen={isMeetingDrawerOpen}
         onClose={handleCloseMeetingDrawer}
       />
+      <ScrollToTop />
     </div>
   );
 }

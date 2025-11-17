@@ -65,7 +65,7 @@ export default function TaskCard({ task, onStatusChange, onDelete, onMeetingClic
   return (
     <div
       onClick={() => navigate(`/task/${task.id}`)}
-      className="bg-white rounded-xl shadow-sm border border-gray-200 p-5 hover:shadow-md transition-all duration-200 cursor-pointer flex flex-col h-full"
+      className="bg-white rounded-xl shadow-sm border border-gray-200 p-5 hover:shadow-lg hover:border-gray-300 smooth-transition cursor-pointer flex flex-col h-full group hover:-translate-y-1"
     >
       <div className="flex items-start justify-between mb-4">
         <div className="text-4xl leading-none">{PLANT_STAGES[task.status]}</div>
@@ -75,7 +75,7 @@ export default function TaskCard({ task, onStatusChange, onDelete, onMeetingClic
           </span>
           <button
             onClick={handleDelete}
-            className="p-1.5 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+            className="p-1.5 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg smooth-transition button-press"
             title="Delete task"
           >
             <Trash2 className="w-4 h-4" />
@@ -124,7 +124,7 @@ export default function TaskCard({ task, onStatusChange, onDelete, onMeetingClic
                   onMeetingClick(task.note.id);
                 }
               }}
-              className="font-medium text-blue-600 hover:text-blue-800 hover:underline transition-colors"
+              className="font-medium text-blue-600 hover:text-blue-800 hover:underline smooth-transition"
             >
               {task.note.meeting_title}
             </button>
@@ -145,7 +145,7 @@ export default function TaskCard({ task, onStatusChange, onDelete, onMeetingClic
               e.stopPropagation();
               onStatusChange(task.id, e.target.value as Task['status']);
             }}
-            className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm bg-white hover:border-gray-400 focus:ring-2 focus:ring-green-500 focus:border-transparent outline-none transition-all"
+            className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm bg-white hover:border-green-700 focus:ring-2 focus:ring-green-500 focus:border-transparent outline-none smooth-transition cursor-pointer"
           >
             <option value="Not Started">Not Started</option>
             <option value="In Progress">In Progress</option>

@@ -29,12 +29,12 @@ export default function NotificationBell() {
     <div className="relative">
       <button
         onClick={() => setIsOpen(!isOpen)}
-        className={`relative p-2 text-gray-600 hover:bg-gray-100 rounded-lg transition-all ${
+        className={`relative p-2 text-gray-600 hover:bg-gray-100 rounded-lg smooth-transition button-press ${
           bellShake ? 'animate-bell-shake' : ''
-        }`}
+        } ${isOpen ? 'bg-gray-100' : ''}`}
         title="Notifications"
       >
-        <Bell className="w-5 h-5" />
+        <Bell className={`w-5 h-5 smooth-transition ${isOpen ? 'text-green-700' : ''}`} />
 
         {unreadCount > 0 && (
           <div className="absolute -top-1 -right-1 bg-red-500 text-white text-xs font-bold rounded-full min-w-[20px] h-5 px-1.5 flex items-center justify-center shadow-lg animate-badge-pop">
