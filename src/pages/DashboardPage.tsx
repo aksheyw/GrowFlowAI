@@ -50,6 +50,8 @@ export default function DashboardPage() {
   const searchRef = useRef<HTMLInputElement>(null);
   const [selectedMeetingNote, setSelectedMeetingNote] = useState<Note | null>(null);
   const [isMeetingDrawerOpen, setIsMeetingDrawerOpen] = useState(false);
+  const [selectedTasks, setSelectedTasks] = useState<Set<string>>(new Set());
+  const [isSelectionMode, setIsSelectionMode] = useState(false);
 
   useEffect(() => {
     loadTasks();
@@ -207,6 +209,56 @@ export default function DashboardPage() {
     }
   }
 
+  async function handleBulkDelete() {
+    if (selectedTasks.size === 0) return;
+
+    const confirmDelete = window.confirm(
+      `Are you sure you want to delete ${selectedTasks.size} note${selectedTasks.size > 1 ? 's' : ''}? This action cannot be undone.`
+    );
+
+    if (!confirmDelete) return;
+
+    try {
+      const taskIds = Array.from(selectedTasks);
+      const { error } = await supabase
+        .from('tasks')
+        .delete()
+        .in('id', taskIds);
+
+      if (error) throw error;
+
+      setTasks(tasks.filter(task => !selectedTasks.has(task.id)));
+      setSelectedTasks(new Set());
+      setIsSelectionMode(false);
+    } catch (error) {
+      console.error('Error deleting tasks:', error);
+      alert('Failed to delete some notes. Please try again.');
+    }
+  }
+
+  function toggleTaskSelection(taskId: string) {
+    const newSelection = new Set(selectedTasks);
+    if (newSelection.has(taskId)) {
+      newSelection.delete(taskId);
+    } else {
+      newSelection.add(taskId);
+    }
+    setSelectedTasks(newSelection);
+  }
+
+  function toggleSelectAll() {
+    if (selectedTasks.size === filteredTasks.length) {
+      setSelectedTasks(new Set());
+    } else {
+      setSelectedTasks(new Set(filteredTasks.map(task => task.id)));
+    }
+  }
+
+  function exitSelectionMode() {
+    setIsSelectionMode(false);
+    setSelectedTasks(new Set());
+  }
+
   async function handleLogout() {
     await signOut();
     navigate('/login');
@@ -306,8 +358,8 @@ export default function DashboardPage() {
               <div className="text-xl sm:text-2xl flex-shrink-0">🌱</div>
               <div className="flex flex-col sm:flex-row sm:items-center sm:gap-3 min-w-0">
                 <h1 className="text-base sm:text-xl font-bold text-gray-900 truncate">GrowFlow</h1>
-                <span className="hidden lg:block text-xs text-gray-400">•</span>
-                <h2 className="text-xs sm:text-sm font-semibold text-gray-600 lg:text-gray-900 truncate">My Notes</h2>
+                <span className="lg:hidden text-xs text-gray-400">•</span>
+                <h2 className="text-xs sm:text-sm font-semibold text-gray-600 lg:hidden truncate">My Notes</h2>
               </div>
             </div>
 
@@ -352,13 +404,48 @@ export default function DashboardPage() {
             <p className="text-gray-600 mt-1">Personal workspace • Team collaboration • All in one</p>
           </div>
 
-          <button
-            onClick={() => navigate('/add-note')}
-            className="bg-green-700 hover:bg-green-800 text-white px-6 py-3 rounded-lg flex items-center gap-2 transition-all shadow-md hover:shadow-lg font-medium"
-          >
-            <Plus className="w-5 h-5" />
-            Add Note
-          </button>
+          <div className="flex items-center gap-3">
+            {!isSelectionMode ? (
+              <>
+                <button
+                  onClick={() => setIsSelectionMode(true)}
+                  className="bg-gray-100 hover:bg-gray-200 text-gray-700 px-6 py-3 rounded-lg flex items-center gap-2 transition-all font-medium"
+                >
+                  Select Notes
+                </button>
+                <button
+                  onClick={() => navigate('/add-note')}
+                  className="bg-green-700 hover:bg-green-800 text-white px-6 py-3 rounded-lg flex items-center gap-2 transition-all shadow-md hover:shadow-lg font-medium"
+                >
+                  <Plus className="w-5 h-5" />
+                  Add Note
+                </button>
+              </>
+            ) : (
+              <>
+                <button
+                  onClick={toggleSelectAll}
+                  className="bg-gray-100 hover:bg-gray-200 text-gray-700 px-6 py-3 rounded-lg flex items-center gap-2 transition-all font-medium"
+                >
+                  {selectedTasks.size === filteredTasks.length ? 'Deselect All' : 'Select All'}
+                </button>
+                <button
+                  onClick={handleBulkDelete}
+                  disabled={selectedTasks.size === 0}
+                  className="bg-red-600 hover:bg-red-700 disabled:bg-gray-300 disabled:cursor-not-allowed text-white px-6 py-3 rounded-lg flex items-center gap-2 transition-all font-medium"
+                >
+                  <Trash2 className="w-5 h-5" />
+                  Delete ({selectedTasks.size})
+                </button>
+                <button
+                  onClick={exitSelectionMode}
+                  className="bg-gray-100 hover:bg-gray-200 text-gray-700 px-6 py-3 rounded-lg flex items-center gap-2 transition-all font-medium"
+                >
+                  Cancel
+                </button>
+              </>
+            )}
+          </div>
         </div>
 
         <div className="hidden lg:block bg-white rounded-xl shadow-sm border border-gray-200 p-4 mb-4 lg:mb-6">
@@ -756,13 +843,54 @@ export default function DashboardPage() {
           </div>
         </div>
 
-        <button
-          onClick={() => navigate('/add-note')}
-          className="lg:hidden fixed bottom-6 right-6 w-14 h-14 bg-green-700 hover:bg-green-800 text-white rounded-full shadow-lg hover:shadow-xl flex items-center justify-center transition-all z-10"
-          aria-label="Add Note"
-        >
-          <Plus className="w-6 h-6" />
-        </button>
+        {!isSelectionMode ? (
+          <>
+            <button
+              onClick={() => navigate('/add-note')}
+              className="lg:hidden fixed bottom-6 right-6 w-14 h-14 bg-green-700 hover:bg-green-800 text-white rounded-full shadow-lg hover:shadow-xl flex items-center justify-center transition-all z-10"
+              aria-label="Add Note"
+            >
+              <Plus className="w-6 h-6" />
+            </button>
+            <button
+              onClick={() => setIsSelectionMode(true)}
+              className="lg:hidden fixed bottom-24 right-6 w-14 h-14 bg-gray-700 hover:bg-gray-800 text-white rounded-full shadow-lg hover:shadow-xl flex items-center justify-center transition-all z-10"
+              aria-label="Select Notes"
+            >
+              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <rect x="3" y="3" width="7" height="7" rx="1" strokeWidth="2" />
+                <rect x="14" y="3" width="7" height="7" rx="1" strokeWidth="2" />
+                <rect x="3" y="14" width="7" height="7" rx="1" strokeWidth="2" />
+                <rect x="14" y="14" width="7" height="7" rx="1" strokeWidth="2" />
+              </svg>
+            </button>
+          </>
+        ) : (
+          <div className="lg:hidden fixed bottom-6 left-6 right-6 bg-white rounded-xl shadow-xl border border-gray-200 p-4 z-10">
+            <div className="flex items-center gap-2">
+              <button
+                onClick={toggleSelectAll}
+                className="flex-1 bg-gray-100 hover:bg-gray-200 text-gray-700 px-4 py-3 rounded-lg text-sm font-medium transition-all"
+              >
+                {selectedTasks.size === filteredTasks.length ? 'Deselect All' : 'Select All'}
+              </button>
+              <button
+                onClick={handleBulkDelete}
+                disabled={selectedTasks.size === 0}
+                className="flex-1 bg-red-600 hover:bg-red-700 disabled:bg-gray-300 disabled:cursor-not-allowed text-white px-4 py-3 rounded-lg text-sm font-medium transition-all flex items-center justify-center gap-1.5"
+              >
+                <Trash2 className="w-4 h-4" />
+                Delete ({selectedTasks.size})
+              </button>
+              <button
+                onClick={exitSelectionMode}
+                className="flex-1 bg-gray-100 hover:bg-gray-200 text-gray-700 px-4 py-3 rounded-lg text-sm font-medium transition-all"
+              >
+                Cancel
+              </button>
+            </div>
+          </div>
+        )}
 
         {filteredTasks.length === 0 ? (
           <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-12 text-center">
@@ -780,13 +908,27 @@ export default function DashboardPage() {
         ) : viewType === 'card' ? (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5 auto-rows-fr">
             {filteredTasks.map(task => (
-              <TaskCard
-                key={task.id}
-                task={task}
-                onStatusChange={handleStatusChange}
-                onDelete={handleDeleteTask}
-                onMeetingClick={handleMeetingClick}
-              />
+              <div key={task.id} className="relative">
+                {isSelectionMode && (
+                  <div className="absolute top-3 left-3 z-10">
+                    <input
+                      type="checkbox"
+                      checked={selectedTasks.has(task.id)}
+                      onChange={() => toggleTaskSelection(task.id)}
+                      className="w-5 h-5 rounded border-gray-300 text-green-600 focus:ring-green-500 cursor-pointer"
+                      onClick={(e) => e.stopPropagation()}
+                    />
+                  </div>
+                )}
+                <div className={isSelectionMode ? 'pointer-events-none' : ''}>
+                  <TaskCard
+                    task={task}
+                    onStatusChange={handleStatusChange}
+                    onDelete={handleDeleteTask}
+                    onMeetingClick={handleMeetingClick}
+                  />
+                </div>
+              </div>
             ))}
           </div>
         ) : (
@@ -794,10 +936,19 @@ export default function DashboardPage() {
             {filteredTasks.map(task => (
               <div
                 key={task.id}
-                onClick={() => navigate(`/task/${task.id}`)}
-                className="bg-white rounded-lg shadow-sm border border-gray-200 p-3 hover:shadow-md transition-shadow cursor-pointer"
+                onClick={() => !isSelectionMode && navigate(`/task/${task.id}`)}
+                className={`bg-white rounded-lg shadow-sm border border-gray-200 p-3 hover:shadow-md transition-shadow ${!isSelectionMode ? 'cursor-pointer' : ''}`}
               >
                 <div className="flex items-start gap-3">
+                  {isSelectionMode && (
+                    <input
+                      type="checkbox"
+                      checked={selectedTasks.has(task.id)}
+                      onChange={() => toggleTaskSelection(task.id)}
+                      className="w-5 h-5 mt-0.5 rounded border-gray-300 text-green-600 focus:ring-green-500 cursor-pointer"
+                      onClick={(e) => e.stopPropagation()}
+                    />
+                  )}
                   <div className="text-2xl flex-shrink-0">
                     {task.status === 'Not Started' && '🌱'}
                     {task.status === 'In Progress' && '🌿'}

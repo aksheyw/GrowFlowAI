@@ -66,6 +66,7 @@ export default function NotificationDropdown({
       className="absolute right-0 mt-2 w-96 max-w-[calc(100vw-2rem)] bg-white rounded-xl shadow-xl border border-gray-200 z-50 overflow-hidden"
       style={{
         animation: 'slideDown 0.2s ease-out',
+        marginRight: '-8px',
       }}
     >
       <div className="p-4 border-b border-gray-200 flex justify-between items-center bg-gray-50">
