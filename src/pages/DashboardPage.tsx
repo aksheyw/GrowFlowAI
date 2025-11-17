@@ -916,17 +916,17 @@ export default function DashboardPage() {
             {filteredTasks.map(task => (
               <div key={task.id} className="relative">
                 {isSelectionMode && (
-                  <div className="absolute top-4 left-4 z-10">
+                  <div className="absolute top-3 left-3 z-10">
                     <input
                       type="checkbox"
                       checked={selectedTasks.has(task.id)}
                       onChange={() => toggleTaskSelection(task.id)}
-                      className="w-5 h-5 rounded border-2 border-gray-300 text-green-600 focus:ring-2 focus:ring-green-500 focus:ring-offset-2 cursor-pointer shadow-sm"
+                      className="w-5 h-5 rounded border-2 border-gray-300 text-green-600 focus:ring-2 focus:ring-green-500 focus:ring-offset-2 cursor-pointer shadow-sm bg-white"
                       onClick={(e) => e.stopPropagation()}
                     />
                   </div>
                 )}
-                <div className={isSelectionMode ? 'pointer-events-none opacity-90' : ''}>
+                <div className={isSelectionMode ? 'pointer-events-none opacity-90 pl-8' : ''}>
                   <TaskCard
                     task={task}
                     onStatusChange={handleStatusChange}
