@@ -12,7 +12,7 @@ import PremiumEmptyState from '../components/premium/PremiumEmptyState';
 import NotificationBell from '../components/NotificationBell';
 import { useToast } from '../contexts/ToastContext';
 
-export default function DashboardPageNew() {
+export default function DashboardPage() {
   const { profile, signOut } = useAuth();
   const navigate = useNavigate();
   const { showToast } = useToast();
