@@ -25,13 +25,19 @@ export function getTimeOfDay(): string {
   return 'evening';
 }
 
-export function getInitials(name: string): string {
+export function getInitials(name: string | undefined): string {
+  if (!name) return '?';
   return name
     .split(' ')
     .map(n => n[0])
     .join('')
     .toUpperCase()
     .slice(0, 2);
+}
+
+export function getFirstName(fullName: string | undefined): string {
+  if (!fullName) return 'there';
+  return fullName.split(' ')[0];
 }
 
 export function formatDeadline(deadline: string | null): {

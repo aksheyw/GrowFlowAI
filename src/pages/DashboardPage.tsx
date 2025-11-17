@@ -1,29 +1,16 @@
 import { useState, useEffect } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
 import { LogOut, Plus } from 'lucide-react';
+import confetti from 'canvas-confetti';
 import { useAuth } from '../contexts/AuthContext';
 import { supabase, Task } from '../lib/supabase';
-import { useToast } from '../contexts/ToastContext';
+import { getTimeOfDay, getFirstName, getInitials } from '../utils/premiumHelpers';
+import PremiumTaskCard from '../components/premium/PremiumTaskCard';
+import PremiumFilterBar, { PremiumFilterType } from '../components/premium/PremiumFilterBar';
+import PremiumEmptyState from '../components/premium/PremiumEmptyState';
 import NotificationBell from '../components/NotificationBell';
-
-type FilterType = 'all' | 'Not Started' | 'In Progress' | 'Done';
-
-function getTimeOfDay() {
-  const hour = new Date().getHours();
-  if (hour < 12) return 'morning';
-  if (hour < 18) return 'afternoon';
-  return 'evening';
-}
-
-function getInitials(name: string | undefined) {
-  if (!name) return '?';
-  return name
-    .split(' ')
-    .map(n => n[0])
-    .join('')
-    .toUpperCase()
-    .slice(0, 2);
-}
+import { useToast } from '../contexts/ToastContext';
 
 export default function DashboardPage() {
   const { profile, signOut } = useAuth();
@@ -31,23 +18,12 @@ export default function DashboardPage() {
   const { showToast } = useToast();
   const [tasks, setTasks] = useState<Task[]>([]);
   const [loading, setLoading] = useState(true);
-  const [activeFilter, setActiveFilter] = useState<FilterType>('all');
-  const [isScrolled, setIsScrolled] = useState(false);
+  const [activeFilter, setActiveFilter] = useState<PremiumFilterType>('all');
 
   useEffect(() => {
     loadTasks();
     const cleanup = subscribeToRealtime();
-
-    const handleScroll = () => {
-      setIsScrolled(window.scrollY > 20);
-    };
-
-    window.addEventListener('scroll', handleScroll);
-
-    return () => {
-      cleanup();
-      window.removeEventListener('scroll', handleScroll);
-    };
+    return cleanup;
   }, []);
 
   async function loadTasks() {
@@ -78,7 +54,16 @@ export default function DashboardPage() {
         console.log('Task change:', payload);
 
         if (payload.eventType === 'UPDATE' && payload.new && (payload.new as Task).status === 'Done') {
+          confetti({
+            particleCount: 100,
+            spread: 70,
+            origin: { y: 0.6 }
+          });
           showToast('Task completed!', 'success');
+        }
+
+        if (payload.eventType === 'INSERT') {
+          showToast('New task added!', 'success');
         }
 
         loadTasks();
@@ -118,150 +103,167 @@ export default function DashboardPage() {
     'Done': tasks.filter(t => t.status === 'Done').length,
   };
 
+  const filters = [
+    { id: 'all' as PremiumFilterType, label: 'All', count: taskCounts.all },
+    { id: 'Not Started' as PremiumFilterType, label: 'Not Started', count: taskCounts['Not Started'] },
+    { id: 'In Progress' as PremiumFilterType, label: 'In Progress', count: taskCounts['In Progress'] },
+    { id: 'Done' as PremiumFilterType, label: 'Done', count: taskCounts['Done'] },
+  ];
+
   const timeOfDay = getTimeOfDay();
-  const greeting = `Good ${timeOfDay}`;
+  const firstName = getFirstName(profile?.full_name);
+  const greeting = `Good ${timeOfDay}, ${firstName}`;
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-gray-50 to-green-50/30 flex items-center justify-center">
+        <motion.div
+          className="text-center"
+          initial={{ opacity: 0, scale: 0.9 }}
+          animate={{ opacity: 1, scale: 1 }}
+        >
+          <div className="text-8xl mb-4 animate-spin">🌱</div>
+          <p className="text-gray-600">Loading your tasks...</p>
+        </motion.div>
+      </div>
+    );
+  }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50">
+    <div className="min-h-screen bg-gradient-to-br from-gray-50 to-green-50/30">
       {/* Premium Header */}
-      <header
-        className={`sticky top-0 z-50 transition-all duration-300 ${
-          isScrolled
-            ? 'bg-white/80 backdrop-blur-xl shadow-lg shadow-black/5'
-            : 'bg-transparent'
-        }`}
-      >
+      <header className="sticky top-0 z-50 bg-white/80 backdrop-blur-xl border-b border-gray-200/50 shadow-sm">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex items-center justify-between h-20">
-            <div className="flex items-center gap-4">
-              <div className={`w-12 h-12 rounded-2xl bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center text-white font-bold text-lg shadow-lg transition-all duration-300 ${
-                isScrolled ? 'scale-90' : 'scale-100'
-              }`}>
-                {getInitials(profile?.full_name)}
-              </div>
-              <div>
-                <h1 className="text-xl font-semibold text-gray-900">{greeting}</h1>
-                <p className="text-sm text-gray-500">{profile?.full_name}</p>
-              </div>
-            </div>
+          <div className="flex items-center justify-between h-16">
+            <motion.div
+              className="flex items-center gap-3"
+              initial={{ opacity: 0, x: -20 }}
+              animate={{ opacity: 1, x: 0 }}
+            >
+              <motion.div
+                className="text-3xl"
+                whileHover={{ scale: 1.15, rotate: 5 }}
+                whileTap={{ scale: 0.95 }}
+              >
+                🌱
+              </motion.div>
+              <h1 className="text-xl sm:text-2xl font-bold bg-gradient-to-r from-[#2D5016] to-[#6FA84C] bg-clip-text text-transparent">
+                GrowFlow
+              </h1>
+            </motion.div>
 
             <div className="flex items-center gap-3">
               <NotificationBell />
-              <button
+              <motion.button
                 onClick={signOut}
-                className="p-2.5 rounded-xl hover:bg-gray-100 text-gray-600 transition-all hover:scale-105 active:scale-95"
+                className="p-2 rounded-xl hover:bg-gray-100 text-gray-600 transition-colors"
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
                 title="Sign out"
               >
                 <LogOut className="w-5 h-5" />
-              </button>
+              </motion.button>
+              <div className="hidden sm:flex items-center gap-3 pl-3 border-l border-gray-200">
+                <div className="w-10 h-10 rounded-full bg-gradient-to-br from-[#6FA84C] to-[#A4D96C] flex items-center justify-center text-white font-semibold">
+                  {getInitials(profile?.full_name)}
+                </div>
+                <div className="text-sm">
+                  <p className="font-medium text-gray-900">{profile?.full_name}</p>
+                  <p className="text-gray-500 text-xs">{profile?.email}</p>
+                </div>
+              </div>
             </div>
           </div>
         </div>
       </header>
 
       {/* Main Content */}
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8">
+        {/* Greeting Section */}
+        <motion.div
+          className="mb-6 sm:mb-8"
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+        >
+          <h2 className="text-3xl sm:text-4xl font-bold text-gray-900 mb-2">{greeting}</h2>
+          <p className="text-gray-600">
+            You have {tasks.length} {tasks.length === 1 ? 'task' : 'tasks'} to manage
+          </p>
+        </motion.div>
+
+        {/* Stats Cards */}
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 sm:gap-6 mb-6 sm:mb-8">
+          {[
+            { label: 'Not Started', count: taskCounts['Not Started'], emoji: '🌱', color: 'from-gray-400 to-gray-500' },
+            { label: 'In Progress', count: taskCounts['In Progress'], emoji: '🪴', color: 'from-yellow-400 to-orange-500' },
+            { label: 'Completed', count: taskCounts['Done'], emoji: '🌺', color: 'from-green-400 to-emerald-500' },
+          ].map((stat, index) => (
+            <motion.div
+              key={stat.label}
+              className="bg-white rounded-2xl p-6 shadow-sm hover:shadow-xl transition-shadow duration-300 border border-gray-200/50"
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: index * 0.1 }}
+              whileHover={{ y: -4 }}
+            >
+              <div className="flex items-center justify-between mb-2">
+                <p className="text-gray-600 text-sm font-medium">{stat.label}</p>
+                <span className="text-4xl">{stat.emoji}</span>
+              </div>
+              <p className={`text-3xl font-bold bg-gradient-to-r ${stat.color} bg-clip-text text-transparent`}>
+                {stat.count}
+              </p>
+            </motion.div>
+          ))}
+        </div>
+
         {/* Filter Bar */}
-        <div className="bg-white/80 backdrop-blur-xl rounded-3xl shadow-lg shadow-black/5 p-2 mb-8">
-          <div className="flex gap-2 overflow-x-auto scrollbar-hide">
-            {(['all', 'Not Started', 'In Progress', 'Done'] as FilterType[]).map((filter) => (
-              <button
-                key={filter}
-                onClick={() => setActiveFilter(filter)}
-                className={`flex-shrink-0 px-6 py-3 rounded-2xl font-medium transition-all duration-200 ${
-                  activeFilter === filter
-                    ? 'bg-gradient-to-r from-blue-500 to-indigo-600 text-white shadow-lg shadow-blue-500/25'
-                    : 'text-gray-600 hover:bg-gray-50'
-                }`}
-              >
-                <span>{filter}</span>
-                <span className="ml-2 text-sm opacity-75">
-                  {taskCounts[filter]}
-                </span>
-              </button>
-            ))}
-          </div>
+        <div className="mb-6 sm:mb-8">
+          <PremiumFilterBar
+            filters={filters}
+            activeFilter={activeFilter}
+            onFilterChange={setActiveFilter}
+          />
         </div>
 
         {/* Tasks Grid */}
-        {loading ? (
-          <div className="flex items-center justify-center h-64">
-            <div className="w-12 h-12 border-4 border-blue-500/30 border-t-blue-500 rounded-full animate-spin" />
-          </div>
-        ) : filteredTasks.length === 0 ? (
-          <div className="text-center py-16">
-            <div className="inline-flex items-center justify-center w-24 h-24 rounded-3xl bg-gradient-to-br from-blue-500/10 to-indigo-500/10 mb-6">
-              <Plus className="w-12 h-12 text-blue-500" />
-            </div>
-            <h3 className="text-2xl font-semibold text-gray-900 mb-2">No tasks yet</h3>
-            <p className="text-gray-500 mb-8">Start by adding your first task</p>
-            <button
-              onClick={() => navigate('/add-note')}
-              className="px-8 py-4 bg-gradient-to-r from-blue-500 to-indigo-600 text-white rounded-2xl font-medium shadow-lg shadow-blue-500/25 hover:shadow-xl hover:shadow-blue-500/30 transition-all hover:scale-105 active:scale-95"
-            >
-              Add Task
-            </button>
-          </div>
+        {filteredTasks.length === 0 ? (
+          <PremiumEmptyState onAddTask={() => navigate('/add-note')} />
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {filteredTasks.map((task) => (
-              <div
-                key={task.id}
-                onClick={() => navigate(`/task/${task.id}`)}
-                className="group bg-white rounded-3xl p-6 shadow-lg shadow-black/5 hover:shadow-xl hover:shadow-black/10 transition-all duration-300 cursor-pointer hover:scale-[1.02] active:scale-[0.98]"
-              >
-                <div className="flex items-start justify-between mb-4">
-                  <h3 className="text-lg font-semibold text-gray-900 group-hover:text-blue-600 transition-colors line-clamp-2">
-                    {task.description}
-                  </h3>
-                  <select
-                    value={task.status}
-                    onClick={(e) => e.stopPropagation()}
-                    onChange={(e) => handleStatusChange(task.id, e.target.value)}
-                    className={`px-3 py-1.5 rounded-xl text-xs font-medium transition-all ${
-                      task.status === 'Done'
-                        ? 'bg-green-100 text-green-700'
-                        : task.status === 'In Progress'
-                        ? 'bg-blue-100 text-blue-700'
-                        : 'bg-gray-100 text-gray-700'
-                    }`}
-                  >
-                    <option value="Not Started">Not Started</option>
-                    <option value="In Progress">In Progress</option>
-                    <option value="Done">Done</option>
-                  </select>
-                </div>
-
-
-                <div className="flex items-center justify-between pt-4 border-t border-gray-100">
-                  <div className="flex items-center gap-2">
-                    {task.assignee?.avatar_url ? (
-                      <img
-                        src={task.assignee.avatar_url}
-                        alt={task.assignee.full_name}
-                        className="w-8 h-8 rounded-full"
-                      />
-                    ) : (
-                      <div className="w-8 h-8 rounded-full bg-gradient-to-br from-blue-400 to-indigo-500 flex items-center justify-center text-white text-xs font-medium">
-                        {getInitials(task.assignee?.full_name)}
-                      </div>
-                    )}
-                    <span className="text-sm text-gray-600">{task.assignee?.full_name}</span>
-                  </div>
-                </div>
-              </div>
-            ))}
-          </div>
+          <motion.div
+            className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6"
+            layout
+          >
+            <AnimatePresence mode="popLayout">
+              {filteredTasks.map((task, index) => (
+                <motion.div
+                  key={task.id}
+                  layout
+                  initial={{ opacity: 0, scale: 0.9 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  exit={{ opacity: 0, scale: 0.9 }}
+                  transition={{ delay: index * 0.05 }}
+                >
+                  <PremiumTaskCard task={task} onStatusChange={handleStatusChange} />
+                </motion.div>
+              ))}
+            </AnimatePresence>
+          </motion.div>
         )}
       </main>
 
       {/* Floating Action Button */}
-      <button
+      <motion.button
         onClick={() => navigate('/add-note')}
-        className="fixed bottom-8 right-8 w-16 h-16 bg-gradient-to-r from-blue-500 to-indigo-600 text-white rounded-2xl shadow-2xl shadow-blue-500/40 hover:shadow-3xl hover:shadow-blue-500/50 transition-all hover:scale-110 active:scale-95 flex items-center justify-center group"
+        className="fixed bottom-6 right-6 sm:bottom-8 sm:right-8 w-14 h-14 sm:w-16 sm:h-16 bg-gradient-to-r from-[#6FA84C] to-[#A4D96C] text-white rounded-full shadow-2xl shadow-green-900/40 flex items-center justify-center group"
+        whileHover={{ scale: 1.1 }}
+        whileTap={{ scale: 0.9 }}
+        initial={{ opacity: 0, scale: 0 }}
+        animate={{ opacity: 1, scale: 1 }}
+        transition={{ delay: 0.5 }}
       >
         <Plus className="w-7 h-7 group-hover:rotate-90 transition-transform duration-300" />
-      </button>
+      </motion.button>
     </div>
   );
 }
