@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { Bell } from 'lucide-react';
 import NotificationDropdown from './NotificationDropdown';
 import { useNotifications } from '../hooks/useNotifications';
@@ -8,22 +8,38 @@ export default function NotificationBell() {
   const { notifications, unreadCount, markAsRead, markAllAsRead } = useNotifications();
   const { addToast } = useToast();
   const [isOpen, setIsOpen] = useState(false);
-  const [prevUnreadCount, setPrevUnreadCount] = useState(unreadCount);
   const [bellShake, setBellShake] = useState(false);
+  const previousNotificationIds = useRef(new Set<string>());
+  const isInitialLoad = useRef(true);
 
   useEffect(() => {
-    if (unreadCount > prevUnreadCount) {
-      const newNotifications = notifications.filter(n => !n.read).slice(0, unreadCount - prevUnreadCount);
-      if (newNotifications.length > 0) {
-        newNotifications.forEach(notification => {
+    if (isInitialLoad.current) {
+      previousNotificationIds.current = new Set(notifications.map(n => n.id));
+      isInitialLoad.current = false;
+      return;
+    }
+
+    const currentIds = new Set(notifications.map(n => n.id));
+    const newNotifications = notifications.filter(
+      n => !previousNotificationIds.current.has(n.id) && !n.read
+    );
+
+    if (newNotifications.length > 0) {
+      newNotifications.forEach(notification => {
+        const notificationAge = Date.now() - new Date(notification.created_at).getTime();
+        if (notificationAge < 10000) {
           addToast(notification.message, 'notification', 5000);
-        });
+        }
+      });
+
+      if (unreadCount > 0) {
         setBellShake(true);
         setTimeout(() => setBellShake(false), 500);
       }
     }
-    setPrevUnreadCount(unreadCount);
-  }, [unreadCount, notifications, addToast, prevUnreadCount]);
+
+    previousNotificationIds.current = currentIds;
+  }, [notifications, unreadCount, addToast]);
 
   return (
     <div className="relative">
