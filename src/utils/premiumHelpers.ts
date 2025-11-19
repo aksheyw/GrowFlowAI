@@ -3,8 +3,8 @@ import { Task } from '../lib/supabase';
 export function getPlantEmoji(status: Task['status']): string {
   const emojiMap: Record<Task['status'], string> = {
     'Not Started': '🌱',
-    'In Progress': '🪴',
-    'Done': '🌺'
+    'In Progress': '🌿',
+    'Done': '🌳'
   };
   return emojiMap[status] || '🌱';
 }
@@ -92,12 +92,12 @@ export const STATUS_OPTIONS = [
     value: 'In Progress' as const,
     label: 'In Progress',
     description: 'Growing nicely',
-    emoji: '🪴'
+    emoji: '🌿'
   },
   {
     value: 'Done' as const,
     label: 'Completed',
-    description: 'Fully bloomed!',
-    emoji: '🌺'
+    description: 'Fully grown!',
+    emoji: '🌳'
   }
 ];

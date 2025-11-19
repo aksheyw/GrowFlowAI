@@ -71,6 +71,7 @@ export default function PremiumTaskCard({ task, onStatusChange }: PremiumTaskCar
         shadow-sm hover:shadow-xl
         transition-all duration-300 ease-out
         p-6 cursor-pointer
+        h-full flex flex-col
       "
     >
       <div
@@ -86,7 +87,7 @@ export default function PremiumTaskCard({ task, onStatusChange }: PremiumTaskCar
           whileHover={{ scale: 1.15, rotate: 5 }}
           transition={{ type: 'spring', stiffness: 300, damping: 20 }}
           onClick={celebratePlant}
-          className="text-6xl sm:text-7xl filter drop-shadow-lg cursor-pointer"
+          className="text-5xl filter drop-shadow-lg cursor-pointer"
         >
           {getPlantEmoji(task.status)}
         </motion.div>
@@ -97,88 +98,92 @@ export default function PremiumTaskCard({ task, onStatusChange }: PremiumTaskCar
         />
       </div>
 
-      <h3 className="
-        text-lg sm:text-xl font-semibold text-gray-900 mb-3
-        line-clamp-2
-        group-hover:text-[#2D5016]
-        transition-colors duration-200
-      ">
-        {task.description}
-      </h3>
-
-      <div className="flex flex-wrap items-center gap-3 text-sm mb-4">
-        <div className="flex items-center gap-2">
-          {task.assignee ? (
-            <>
-              <div className="
-                w-8 h-8 rounded-full
-                bg-gradient-to-br from-[#6FA84C] to-[#2D5016]
-                flex items-center justify-center
-                text-white font-medium text-xs
-                shadow-sm ring-2 ring-white
-              ">
-                {getInitials(task.assignee.full_name)}
-              </div>
-              <span className="font-medium text-gray-700">
-                {task.assignee.full_name}
-              </span>
-            </>
-          ) : (
-            <>
-              <div className="
-                w-8 h-8 rounded-full
-                bg-gray-200
-                flex items-center justify-center
-                text-gray-500 font-medium text-xs
-                shadow-sm ring-2 ring-white
-              ">
-                ?
-              </div>
-              <span className="font-medium text-gray-500 italic">
-                Unassigned
-              </span>
-            </>
-          )}
-        </div>
-
-        <div
-          className={`
-            flex items-center gap-1.5 px-3 py-1.5 rounded-lg
-            ${deadline.isOverdue
-              ? 'bg-red-50 text-red-700 font-semibold'
-              : deadline.isDueSoon
-                ? 'bg-yellow-50 text-yellow-700'
-                : 'bg-gray-50 text-gray-700'
-            }
-          `}
-        >
-          <Calendar className="w-4 h-4" />
-          <span className="text-xs font-medium">
-            {deadline.text}
-          </span>
-        </div>
-
-        <div className={`
-          px-3 py-1.5 rounded-lg text-xs font-semibold
-          ${priorityStyle.badge}
-        `}>
-          {priorityStyle.icon} {task.priority}
-        </div>
+      <div className="flex-grow mb-4">
+        <h3 className="
+          text-lg sm:text-xl font-semibold text-gray-900
+          line-clamp-3
+          group-hover:text-[#2D5016]
+          transition-colors duration-200
+        ">
+          {task.description}
+        </h3>
       </div>
 
-      <div className="h-2 bg-gray-100 rounded-full overflow-hidden">
-        <motion.div
-          initial={{ width: 0 }}
-          animate={{ width: `${getProgressPercentage(task.status)}%` }}
-          transition={{ duration: 0.8, ease: 'easeOut', delay: 0.2 }}
-          className={`
-            h-full rounded-full
-            ${task.status === 'Done'
-              ? 'bg-gradient-to-r from-green-400 to-emerald-500'
-              : 'bg-gradient-to-r from-[#6FA84C] to-[#A4D96C]'
-            }
-          `}
-        />
+      <div className="mt-auto">
+        <div className="flex flex-wrap items-center gap-3 text-sm mb-4">
+          <div className="flex items-center gap-2">
+            {task.assignee ? (
+              <>
+                <div className="
+                  w-8 h-8 rounded-full
+                  bg-gradient-to-br from-[#6FA84C] to-[#2D5016]
+                  flex items-center justify-center
+                  text-white font-medium text-xs
+                  shadow-sm ring-2 ring-white
+                ">
+                  {getInitials(task.assignee.full_name)}
+                </div>
+                <span className="font-medium text-gray-700">
+                  {task.assignee.full_name}
+                </span>
+              </>
+            ) : (
+              <>
+                <div className="
+                  w-8 h-8 rounded-full
+                  bg-gray-200
+                  flex items-center justify-center
+                  text-gray-500 font-medium text-xs
+                  shadow-sm ring-2 ring-white
+                ">
+                  ?
+                </div>
+                <span className="font-medium text-gray-500 italic">
+                  Unassigned
+                </span>
+              </>
+            )}
+          </div>
+
+          <div
+            className={`
+              flex items-center gap-1.5 px-3 py-1.5 rounded-lg
+              ${deadline.isOverdue
+                ? 'bg-red-50 text-red-700 font-semibold'
+                : deadline.isDueSoon
+                  ? 'bg-yellow-50 text-yellow-700'
+                  : 'bg-gray-50 text-gray-700'
+              }
+            `}
+          >
+            <Calendar className="w-4 h-4" />
+            <span className="text-xs font-medium">
+              {deadline.text}
+            </span>
+          </div>
+
+          <div className={`
+            px-3 py-1.5 rounded-lg text-xs font-semibold
+            ${priorityStyle.badge}
+          `}>
+            {priorityStyle.icon} {task.priority}
+          </div>
+        </div>
+
+        <div className="h-2 bg-gray-100 rounded-full overflow-hidden">
+          <motion.div
+            initial={{ width: 0 }}
+            animate={{ width: `${getProgressPercentage(task.status)}%` }}
+            transition={{ duration: 0.8, ease: 'easeOut', delay: 0.2 }}
+            className={`
+              h-full rounded-full
+              ${task.status === 'Done'
+                ? 'bg-gradient-to-r from-green-400 to-emerald-500'
+                : 'bg-gradient-to-r from-[#6FA84C] to-[#A4D96C]'
+              }
+            `}
+          />
+        </div>
       </div>
 
       <div className="

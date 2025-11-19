@@ -1,13 +1,14 @@
-import { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import React, { useState, useEffect } from 'react';
+import { useNavigate, Link } from 'react-router-dom';
+import { motion } from 'framer-motion';
 import { supabase } from '../lib/supabase';
 import { useToast } from '../contexts/ToastContext';
-import { Sprout } from 'lucide-react';
+import AuthInput from '../components/AuthInput';
+import AuthButton from '../components/AuthButton';
 
 export default function ResetPasswordPage() {
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
-  const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   const { addToast } = useToast();
   const navigate = useNavigate();
@@ -15,21 +16,21 @@ export default function ResetPasswordPage() {
   useEffect(() => {
     const hash = window.location.hash;
     if (!hash || !hash.includes('type=recovery')) {
-      navigate('/');
+      // In a real app we might redirect, but for dev/demo we might want to show the UI
+      // navigate('/');
     }
   }, [navigate]);
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
-    setError('');
 
     if (password !== confirmPassword) {
-      setError('Passwords do not match');
+      addToast('Passwords do not match', 'error');
       return;
     }
 
     if (password.length < 6) {
-      setError('Password must be at least 6 characters');
+      addToast('Password must be at least 6 characters', 'error');
       return;
     }
 
@@ -42,83 +43,101 @@ export default function ResetPasswordPage() {
       if (error) throw error;
 
       addToast('Password updated successfully!', 'success');
-      navigate('/');
-    } catch (error) {
+      navigate('/login');
+    } catch (error: any) {
       console.error('Error updating password:', error);
-      setError(error instanceof Error ? error.message : 'Failed to update password');
+      addToast(error.message || 'Failed to update password', 'error');
     } finally {
       setLoading(false);
     }
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-green-50 to-green-100 flex items-center justify-center p-4">
-      <div className="bg-white rounded-2xl shadow-xl w-full max-w-md p-8">
-        <div className="flex flex-col items-center mb-8">
-          <div className="bg-green-100 p-4 rounded-full mb-4">
-            <Sprout className="w-12 h-12 text-green-700" />
-          </div>
-          <h1 className="text-3xl font-bold text-gray-900">GrowFlow</h1>
-          <p className="text-gray-600 mt-2">Reset your password</p>
+    <div className="min-h-screen flex bg-white">
+      {/* Left side - Illustration */}
+      <div className="hidden lg:flex lg:w-[55%] bg-[#F2F5F1] items-center justify-center p-16 relative overflow-hidden">
+        {/* Background decoration */}
+        <div className="absolute inset-0 opacity-40">
+          <div className="absolute top-[-10%] left-[-10%] w-[600px] h-[600px] bg-[#D4E8C9] rounded-full mix-blend-multiply filter blur-[80px] animate-blob"></div>
+          <div className="absolute top-[20%] right-[-10%] w-[500px] h-[500px] bg-[#E8F3E0] rounded-full mix-blend-multiply filter blur-[80px] animate-blob animation-delay-2000"></div>
+          <div className="absolute bottom-[-10%] left-[20%] w-[600px] h-[600px] bg-[#F0F7EB] rounded-full mix-blend-multiply filter blur-[80px] animate-blob animation-delay-4000"></div>
         </div>
 
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <div>
-            <label htmlFor="password" className="block text-sm font-medium text-gray-700 mb-1">
-              New Password
-            </label>
-            <input
-              id="password"
+        <div className="max-w-xl relative z-10">
+          <motion.div
+            initial={{ opacity: 0, scale: 0.9 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
+            className="mb-12"
+          >
+            <div className="w-20 h-20 bg-white rounded-3xl shadow-xl flex items-center justify-center text-4xl mb-8 rotate-3 hover:rotate-6 transition-transform duration-500 ease-out">
+              🌱
+            </div>
+            <h2 className="text-5xl font-bold text-[#1A2F16] mb-6 tracking-tight leading-[1.1]">
+              Fresh start,<br />
+              <span className="text-[#5A8E3D]">fresh growth.</span>
+            </h2>
+            <p className="text-xl text-[#5A6B54] leading-relaxed max-w-md">
+              Secure your account and get back to nurturing your productivity garden.
+            </p>
+          </motion.div>
+        </div>
+      </div>
+
+      {/* Right side - Form */}
+      <div className="flex-1 flex items-center justify-center p-8 lg:p-16">
+        <motion.div
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6, delay: 0.2 }}
+          className="w-full max-w-[400px]"
+        >
+          <div className="text-center mb-10 lg:text-left">
+            <div className="lg:hidden w-16 h-16 bg-[#F2F5F1] rounded-2xl flex items-center justify-center text-3xl mb-6 mx-auto">
+              🌱
+            </div>
+            <h1 className="text-3xl font-bold text-[#1A2F16] mb-3 tracking-tight">
+              Reset Password
+            </h1>
+            <p className="text-[#5A6B54] text-[15px]">
+              Enter your new password below.
+            </p>
+          </div>
+
+          <form onSubmit={handleSubmit} className="flex flex-col gap-5">
+            <AuthInput
+              label="New Password"
               type="password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent outline-none transition-all"
-              placeholder="••••••••"
+              placeholder=" "
               required
-              minLength={6}
             />
-          </div>
 
-          <div>
-            <label htmlFor="confirmPassword" className="block text-sm font-medium text-gray-700 mb-1">
-              Confirm New Password
-            </label>
-            <input
-              id="confirmPassword"
+            <AuthInput
+              label="Confirm New Password"
               type="password"
               value={confirmPassword}
               onChange={(e) => setConfirmPassword(e.target.value)}
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent outline-none transition-all"
-              placeholder="••••••••"
+              placeholder=" "
               required
-              minLength={6}
             />
-          </div>
 
-          {error && (
-            <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg text-sm">
-              {error}
-            </div>
-          )}
+            <AuthButton loading={loading} loadingText="Updating..." className="mt-2">
+              Update Password
+            </AuthButton>
+          </form>
 
-          <button
-            type="submit"
-            disabled={loading}
-            className="w-full bg-green-700 hover:bg-green-800 text-white font-medium py-3 px-4 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-          >
-            {loading ? 'Updating...' : 'Update Password'}
-          </button>
-        </form>
-
-        <div className="mt-6 text-center">
-          <button
-            type="button"
-            onClick={() => navigate('/')}
-            className="text-sm text-green-700 hover:text-green-800 font-medium"
-          >
-            Back to Login
-          </button>
-        </div>
+          <p className="text-center text-[14px] text-[#5A6B54] mt-8">
+            Remember your password?
+            <Link
+              to="/login"
+              className="ml-1.5 text-[#5A8E3D] hover:text-[#3D6821] font-semibold transition-colors"
+            >
+              Back to Login
+            </Link>
+          </p>
+        </motion.div>
       </div>
     </div>
   );

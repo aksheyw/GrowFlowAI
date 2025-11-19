@@ -7,7 +7,7 @@ import { useAuth } from '../contexts/AuthContext';
 import { supabase, Task } from '../lib/supabase';
 import { getTimeOfDay, getFirstName, getInitials } from '../utils/premiumHelpers';
 import PremiumTaskCard from '../components/premium/PremiumTaskCard';
-import PremiumFilterBar, { PremiumFilterType } from '../components/premium/PremiumFilterBar';
+import PremiumFilterBar, { PremiumFilterType, SortOption } from '../components/premium/PremiumFilterBar';
 import PremiumEmptyState from '../components/premium/PremiumEmptyState';
 import NotificationBell from '../components/NotificationBell';
 import { useToast } from '../contexts/ToastContext';
@@ -19,6 +19,7 @@ export default function DashboardPage() {
   const [tasks, setTasks] = useState<Task[]>([]);
   const [loading, setLoading] = useState(true);
   const [activeFilter, setActiveFilter] = useState<PremiumFilterType>('all');
+  const [sortBy, setSortBy] = useState<SortOption>('deadline');
 
   useEffect(() => {
     loadTasks();
@@ -76,6 +77,11 @@ export default function DashboardPage() {
   }
 
   async function handleStatusChange(taskId: string, newStatus: string) {
+    // Optimistic update
+    setTasks(prevTasks => prevTasks.map(t =>
+      t.id === taskId ? { ...t, status: newStatus as Task['status'] } : t
+    ));
+
     try {
       const { error } = await supabase
         .from('tasks')
@@ -87,14 +93,30 @@ export default function DashboardPage() {
       showToast(`Task status updated to ${newStatus}`, 'success');
     } catch (error) {
       console.error('Error updating task:', error);
+      // Revert by reloading from server to ensure consistency
+      loadTasks();
       showToast('Failed to update task status', 'error');
     }
   }
 
-  const filteredTasks = tasks.filter(task => {
-    if (activeFilter === 'all') return true;
-    return task.status === activeFilter;
-  });
+  const filteredTasks = tasks
+    .filter(task => {
+      if (activeFilter === 'all') return true;
+      return task.status === activeFilter;
+    })
+    .sort((a, b) => {
+      if (sortBy === 'deadline') {
+        if (!a.deadline) return 1;
+        if (!b.deadline) return -1;
+        return new Date(a.deadline).getTime() - new Date(b.deadline).getTime();
+      }
+      if (sortBy === 'priority') {
+        const priorityOrder = { High: 0, Medium: 1, Low: 2 };
+        return priorityOrder[a.priority] - priorityOrder[b.priority];
+      }
+      // Default to created_at
+      return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
+    });
 
   const taskCounts = {
     all: tasks.length,
@@ -181,26 +203,36 @@ export default function DashboardPage() {
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8">
         {/* Greeting Section */}
         <motion.div
-          className="mb-6 sm:mb-8"
+          className="mb-4 sm:mb-8"
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
         >
-          <h2 className="text-3xl sm:text-4xl font-bold text-gray-900 mb-2">{greeting}</h2>
-          <p className="text-gray-600">
+          <h2 className="text-2xl sm:text-4xl font-bold text-gray-900 mb-1 sm:mb-2">{greeting}</h2>
+          <p className="text-gray-600 text-sm sm:text-base">
             You have {tasks.length} {tasks.length === 1 ? 'task' : 'tasks'} to manage
           </p>
         </motion.div>
 
         {/* Stats Cards */}
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 sm:gap-6 mb-6 sm:mb-8">
+        {/* Stats Cards */}
+        <div className="
+          flex overflow-x-auto pb-4 gap-4 snap-x snap-mandatory scrollbar-hide -mx-4 px-4
+          sm:grid sm:grid-cols-3 sm:gap-6 sm:pb-0 sm:mx-0 sm:px-0
+          mb-6 sm:mb-8
+        ">
           {[
             { label: 'Not Started', count: taskCounts['Not Started'], emoji: '🌱', color: 'from-gray-400 to-gray-500' },
-            { label: 'In Progress', count: taskCounts['In Progress'], emoji: '🪴', color: 'from-yellow-400 to-orange-500' },
-            { label: 'Completed', count: taskCounts['Done'], emoji: '🌺', color: 'from-green-400 to-emerald-500' },
+            { label: 'In Progress', count: taskCounts['In Progress'], emoji: '🌿', color: 'from-yellow-400 to-orange-500' },
+            { label: 'Completed', count: taskCounts['Done'], emoji: '🌳', color: 'from-green-400 to-emerald-500' },
           ].map((stat, index) => (
             <motion.div
               key={stat.label}
-              className="bg-white rounded-2xl p-6 shadow-sm hover:shadow-xl transition-shadow duration-300 border border-gray-200/50"
+              className="
+                min-w-[280px] sm:min-w-0 flex-shrink-0 snap-center
+                bg-white rounded-2xl p-5 sm:p-6 
+                shadow-sm hover:shadow-xl transition-shadow duration-300 
+                border border-gray-200/50
+              "
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: index * 0.1 }}
@@ -208,7 +240,7 @@ export default function DashboardPage() {
             >
               <div className="flex items-center justify-between mb-2">
                 <p className="text-gray-600 text-sm font-medium">{stat.label}</p>
-                <span className="text-4xl">{stat.emoji}</span>
+                <span className="text-3xl sm:text-4xl">{stat.emoji}</span>
               </div>
               <p className={`text-3xl font-bold bg-gradient-to-r ${stat.color} bg-clip-text text-transparent`}>
                 {stat.count}
@@ -223,6 +255,8 @@ export default function DashboardPage() {
             filters={filters}
             activeFilter={activeFilter}
             onFilterChange={setActiveFilter}
+            sortBy={sortBy}
+            onSortChange={setSortBy}
           />
         </div>
 
