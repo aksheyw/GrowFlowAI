@@ -262,7 +262,7 @@ ${tasks.map((task, i) => `${i + 1}. ${task.description} - ${task.assignee?.full_
 
                 // Reload notes to check for updates after a delay
                 setTimeout(() => {
-                    loadNote();
+                    window.location.reload();
                 }, 5000);
             } else {
                 throw new Error('Workflow returned failure');
