@@ -187,34 +187,7 @@ export default function TaskDetailPage() {
   if (!task) return null;
 
   return (
-    <div className="min-h-screen bg-gray-50 font-sans">
-      {/* Sticky Header */}
-      <header className="sticky top-0 z-40 bg-white/80 backdrop-blur-md border-b border-gray-200">
-        <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
-          <motion.div
-            className="flex items-center gap-3"
-            initial={{ opacity: 0, x: -20 }}
-            animate={{ opacity: 1, x: 0 }}
-          >
-            <motion.div
-              className="text-3xl"
-              whileHover={{ scale: 1.15, rotate: 5 }}
-              whileTap={{ scale: 0.95 }}
-            >
-              🌱
-            </motion.div>
-            <h1 className="text-xl sm:text-2xl font-bold bg-gradient-to-r from-[#2D5016] to-[#6FA84C] bg-clip-text text-transparent">
-              GrowFlow
-            </h1>
-          </motion.div>
-          <div className="flex items-center gap-4">
-            <div className="w-8 h-8 rounded-full bg-gradient-to-br from-[#6FA84C] to-[#2D5016] flex items-center justify-center text-white text-xs font-medium">
-              {getInitials(task.assignee?.full_name || 'Unassigned')}
-            </div>
-          </div>
-        </div>
-      </header>
-
+    <div className="min-h-screen bg-gray-50 font-sans pb-20 md:pb-0">
       {/* Breadcrumb */}
       <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
         <button
@@ -233,25 +206,25 @@ export default function TaskDetailPage() {
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          className="bg-white rounded-3xl p-8 shadow-xl border border-gray-100 relative overflow-hidden mb-8 group"
+          className="bg-white rounded-2xl sm:rounded-3xl p-4 sm:p-8 shadow-xl border border-gray-100 relative overflow-hidden mb-6 sm:mb-8 group"
         >
           <div className="absolute inset-0 bg-gradient-to-br from-green-50/50 to-emerald-50/50 pointer-events-none" />
 
-          <div className="relative flex flex-col md:flex-row gap-8 items-start">
-            {/* Large Emoji */}
+          <div className="relative flex flex-col md:flex-row gap-4 sm:gap-8 items-start">
+            {/* Large Emoji - Responsive sizing */}
             <motion.div
               whileHover={{ scale: 1.1, rotate: 5 }}
-              className="text-8xl md:text-9xl flex-shrink-0 cursor-default select-none"
+              className="text-5xl sm:text-8xl md:text-9xl flex-shrink-0 cursor-default select-none"
             >
               {getPlantEmoji(task.status)}
             </motion.div>
 
             <div className="flex-1 w-full">
               {/* Status Badge (Top Right on Desktop) */}
-              <div className="flex justify-between items-start mb-4">
+              <div className="flex justify-between items-start mb-3 sm:mb-4">
                 <div className="hidden md:block" /> {/* Spacer */}
                 <span className={`
-                  px-3 py-1.5 rounded-full text-sm font-bold flex items-center gap-2
+                  px-2 py-1 sm:px-3 sm:py-1.5 rounded-full text-xs sm:text-sm font-bold flex items-center gap-1 sm:gap-2
                   ${task.status === 'Done' ? 'bg-green-100 text-green-800' :
                     task.status === 'In Progress' ? 'bg-yellow-100 text-yellow-800' :
                       'bg-gray-100 text-gray-700'}
@@ -263,7 +236,7 @@ export default function TaskDetailPage() {
               </div>
 
               {/* Editable Description */}
-              <div className="mb-6">
+              <div className="mb-4 sm:mb-6">
                 {isEditingDescription ? (
                   <textarea
                     ref={descriptionRef}
@@ -276,47 +249,47 @@ export default function TaskDetailPage() {
                         handleDescriptionSave();
                       }
                     }}
-                    className="w-full text-2xl md:text-3xl font-bold text-gray-900 bg-transparent border-b-2 border-[#6FA84C] focus:outline-none resize-none"
+                    className="w-full text-xl sm:text-2xl md:text-3xl font-bold text-gray-900 bg-transparent border-b-2 border-[#6FA84C] focus:outline-none resize-none"
                     rows={2}
                     autoFocus
                   />
                 ) : (
                   <h1
                     onClick={() => setIsEditingDescription(true)}
-                    className="text-2xl md:text-3xl font-bold text-gray-900 cursor-pointer hover:text-[#2D5016] transition-colors flex items-start gap-3 group/title"
+                    className="text-xl sm:text-2xl md:text-3xl font-bold text-gray-900 cursor-pointer hover:text-[#2D5016] transition-colors flex items-start gap-3 group/title"
                   >
                     {task.description}
-                    <Edit2 className="w-5 h-5 text-gray-400 opacity-0 group-hover/title:opacity-100 transition-opacity mt-1" />
+                    <Edit2 className="w-4 h-4 sm:w-5 sm:h-5 text-gray-400 opacity-0 group-hover/title:opacity-100 transition-opacity mt-1" />
                   </h1>
                 )}
               </div>
 
               {/* Metadata Badges */}
-              <div className="flex flex-wrap gap-4">
+              <div className="flex flex-wrap gap-2 sm:gap-4">
                 {/* Assignee */}
-                <div className="flex items-center gap-2 bg-white/80 px-3 py-1.5 rounded-xl border border-gray-200">
-                  <User className="w-4 h-4 text-gray-500" />
-                  <span className="font-medium text-sm text-gray-900">
+                <div className="flex items-center gap-2 bg-white/80 px-2 py-1 sm:px-3 sm:py-1.5 rounded-xl border border-gray-200">
+                  <User className="w-3 h-3 sm:w-4 sm:h-4 text-gray-500" />
+                  <span className="font-medium text-xs sm:text-sm text-gray-900">
                     {task.assignee?.full_name || 'Unassigned'}
                   </span>
                 </div>
 
                 {/* Due Date */}
-                <div className="flex items-center gap-2 bg-white/80 px-3 py-1.5 rounded-xl border border-gray-200">
-                  <Calendar className="w-4 h-4 text-gray-500" />
-                  <span className="font-medium text-sm text-gray-900">
+                <div className="flex items-center gap-2 bg-white/80 px-2 py-1 sm:px-3 sm:py-1.5 rounded-xl border border-gray-200">
+                  <Calendar className="w-3 h-3 sm:w-4 sm:h-4 text-gray-500" />
+                  <span className="font-medium text-xs sm:text-sm text-gray-900">
                     {formatDeadline(task.deadline).text}
                   </span>
                 </div>
 
                 {/* Priority */}
                 <div className={`
-                  flex items-center gap-2 px-3 py-1.5 rounded-xl border
+                  flex items-center gap-2 px-2 py-1 sm:px-3 sm:py-1.5 rounded-xl border
                   ${task.priority === 'High' ? 'bg-red-50 border-red-100 text-red-700' :
                     task.priority === 'Medium' ? 'bg-yellow-50 border-yellow-100 text-yellow-700' :
                       'bg-blue-50 border-blue-100 text-blue-700'}
                 `}>
-                  <span className="text-sm font-bold">
+                  <span className="text-xs sm:text-sm font-bold">
                     {task.priority === 'High' ? '🔥 High Priority' :
                       task.priority === 'Medium' ? '⚡ Medium Priority' :
                         '📌 Low Priority'}
@@ -340,7 +313,7 @@ export default function TaskDetailPage() {
                 Task Controls
               </h2>
 
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
                 {/* Status */}
                 <div>
                   <label className="block text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2">Status</label>

@@ -326,7 +326,7 @@ ${tasks.map((task, i) => `${i + 1}. ${task.description} - ${task.assignee?.full_
     // Loading state
     if (isLoading) {
         return (
-            <div className="min-h-screen bg-gradient-to-br from-gray-50 to-blue-50/30">
+            <div className="min-h-screen bg-gradient-to-br from-gray-50 to-green-50/20 pb-20 md:pb-0">
                 <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
                     <div className="bg-white rounded-3xl p-12 border border-gray-100 animate-pulse">
                         <div className="w-20 h-20 bg-gray-200 rounded-3xl mx-auto mb-6" />

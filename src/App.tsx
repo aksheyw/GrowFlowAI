@@ -1,8 +1,12 @@
-import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
+import { BrowserRouter, Routes, Route, Navigate, useLocation } from 'react-router-dom';
+import { AnimatePresence, motion } from 'framer-motion';
 import { AuthProvider } from './contexts/AuthContext';
 import { ToastProvider } from './contexts/ToastContext';
 import ProtectedRoute from './components/ProtectedRoute';
 import ToastContainer from './components/ToastContainer';
+import Header from './components/Layout/Header';
+import MobileTabBar from './components/Layout/MobileTabBar';
+import FloatingActionButton from './components/Layout/FloatingActionButton';
 import LoginPage from './pages/LoginPage';
 import SignupPage from './pages/SignupPage';
 import ResetPasswordPage from './pages/ResetPasswordPage';
@@ -13,66 +17,146 @@ import TestEdgeFunctionPage from './pages/TestEdgeFunctionPage';
 import TaskDetailPage from './pages/TaskDetailPage';
 import MeetingNoteDetailPage from './pages/MeetingNoteDetailPage';
 
+// Page transition variants
+const pageVariants = {
+  initial: {
+    opacity: 0,
+    x: 20,
+  },
+  animate: {
+    opacity: 1,
+    x: 0,
+    transition: {
+      duration: 0.3,
+      ease: 'easeOut' as const,
+    },
+  },
+  exit: {
+    opacity: 0,
+    x: -20,
+    transition: {
+      duration: 0.2,
+    },
+  },
+};
+
+function AnimatedRoutes() {
+  const location = useLocation();
+
+  return (
+    <AnimatePresence mode="wait">
+      <Routes location={location} key={location.pathname}>
+        <Route path="/login" element={<LoginPage />} />
+        <Route path="/signup" element={<SignupPage />} />
+        <Route path="/reset-password" element={<ResetPasswordPage />} />
+        <Route
+          path="/dashboard"
+          element={
+            <ProtectedRoute>
+              <motion.div
+                variants={pageVariants}
+                initial="initial"
+                animate="animate"
+                exit="exit"
+              >
+                <DashboardPage />
+              </motion.div>
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/add-note"
+          element={
+            <ProtectedRoute>
+              <motion.div
+                variants={pageVariants}
+                initial="initial"
+                animate="animate"
+                exit="exit"
+              >
+                <AddNotePage />
+              </motion.div>
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/test-notifications"
+          element={
+            <ProtectedRoute>
+              <motion.div
+                variants={pageVariants}
+                initial="initial"
+                animate="animate"
+                exit="exit"
+              >
+                <TestNotificationPage />
+              </motion.div>
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/test-edge-function"
+          element={
+            <ProtectedRoute>
+              <motion.div
+                variants={pageVariants}
+                initial="initial"
+                animate="animate"
+                exit="exit"
+              >
+                <TestEdgeFunctionPage />
+              </motion.div>
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/task/:taskId"
+          element={
+            <ProtectedRoute>
+              <motion.div
+                variants={pageVariants}
+                initial="initial"
+                animate="animate"
+                exit="exit"
+              >
+                <TaskDetailPage />
+              </motion.div>
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/note/:noteId"
+          element={
+            <ProtectedRoute>
+              <motion.div
+                variants={pageVariants}
+                initial="initial"
+                animate="animate"
+                exit="exit"
+              >
+                <MeetingNoteDetailPage />
+              </motion.div>
+            </ProtectedRoute>
+          }
+        />
+        <Route path="/" element={<Navigate to="/dashboard" replace />} />
+      </Routes>
+    </AnimatePresence>
+  );
+}
+
 function App() {
   return (
     <BrowserRouter>
       <AuthProvider>
         <ToastProvider>
-          <ToastContainer />
-          <Routes>
-            <Route path="/login" element={<LoginPage />} />
-            <Route path="/signup" element={<SignupPage />} />
-            <Route path="/reset-password" element={<ResetPasswordPage />} />
-            <Route
-              path="/dashboard"
-              element={
-                <ProtectedRoute>
-                  <DashboardPage />
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/add-note"
-              element={
-                <ProtectedRoute>
-                  <AddNotePage />
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/test-notifications"
-              element={
-                <ProtectedRoute>
-                  <TestNotificationPage />
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/test-edge-function"
-              element={
-                <ProtectedRoute>
-                  <TestEdgeFunctionPage />
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/task/:taskId"
-              element={
-                <ProtectedRoute>
-                  <TaskDetailPage />
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/note/:noteId"
-              element={
-                <ProtectedRoute>
-                  <MeetingNoteDetailPage />
-                </ProtectedRoute>
-              }
-            />
-            <Route path="/" element={<Navigate to="/dashboard" replace />} />
-          </Routes>
+          <div className="min-h-screen">
+            <Header />
+            <ToastContainer />
+            <AnimatedRoutes />
+            <MobileTabBar />
+            <FloatingActionButton />
+          </div>
         </ToastProvider>
       </AuthProvider>
     </BrowserRouter>
