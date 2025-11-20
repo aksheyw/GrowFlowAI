@@ -227,31 +227,55 @@ ${tasks.map((task, i) => `${i + 1}. ${task.description} - ${task.assignee?.full_
     }
 
     async function handleReprocess() {
-        if (!note || !user) return;
+        console.log('Starting reprocess...', { noteId: note?.id, userId: user?.id });
+        if (!note || !user) {
+            console.error('Missing note or user', { note, user });
+            return;
+        }
 
         setIsReprocessing(true);
 
         try {
-            // This would call your n8n webhook for reprocessing
-            // For now, just show a message
-            showToast({
-                type: 'info',
-                title: 'Reprocessing',
-                message: 'This feature will trigger AI reprocessing in production',
-                duration: 4000
+            const response = await fetch('https://n8n.srv1134430.hstgr.cloud/webhook/reprocess-note', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    content: note.content,
+                    note_id: note.id,
+                    user_id: user.id
+                })
             });
 
-            setTimeout(() => {
-                setIsReprocessing(false);
-            }, 2000);
+            if (!response.ok) throw new Error('Failed to trigger reprocessing');
+
+            const data = await response.json();
+
+            if (data.success) {
+                showToast({
+                    type: 'success',
+                    title: 'Reprocessing started',
+                    message: 'AI is analyzing your notes. The summary will update shortly.',
+                    duration: 4000
+                });
+
+                // Reload notes to check for updates after a delay
+                setTimeout(() => {
+                    loadNote();
+                }, 5000);
+            } else {
+                throw new Error('Workflow returned failure');
+            }
 
         } catch (error) {
             console.error('Error reprocessing:', error);
             showToast({
                 type: 'error',
                 title: 'Failed to reprocess',
-                message: 'Please try again'
+                message: 'Please try again later'
             });
+        } finally {
             setIsReprocessing(false);
         }
     }
