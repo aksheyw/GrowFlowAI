@@ -1,50 +1,197 @@
-import { useState } from 'react';
+import { useState, useEffect, useRef, useMemo } from 'react';
+import { motion } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
+import {
+  ArrowLeft,
+  Sparkles,
+  FileText,
+  AlignLeft,
+  CheckCircle2,
+  Check,
+  Lightbulb,
+  Loader2
+} from 'lucide-react';
+import confetti from 'canvas-confetti';
 import { useAuth } from '../contexts/AuthContext';
+import { useToast } from '../contexts/ToastContext';
 import { supabase } from '../lib/supabase';
-import { ArrowLeft, CheckCircle2, AlertCircle } from 'lucide-react';
-import PlantIcon from '../components/PlantIcon';
+import ProcessingOverlay from '../components/ProcessingOverlay';
+import SuccessOverlay from '../components/SuccessOverlay';
+import {
+  getCharacterCount,
+  getWordCount,
+  estimateTaskCount,
+  isValidNoteText
+} from '../utils/textAnalysis';
+
+const TIPS = [
+  "Include names of people mentioned (e.g., \"Alex will complete...\")",
+  "Mention deadlines or timeframes explicitly (\"by Nov 15th\", \"this week\")",
+  "Use keywords like \"urgent\", \"ASAP\", or \"critical\" for high-priority tasks",
+  "Start each task on a new line for better detection",
+  "Include meeting context (who was present, what was discussed)"
+];
+
+const EXAMPLE_NOTES = `Team standup meeting - Nov 19, 2024
+Attendees: Alex, Jordan, and myself
+
+Key discussion points:
+- Sprint planning for next week
+- Dashboard redesign progress
+- Authentication module status
+
+Action items:
+1. Alex will complete the user authentication module by Nov 25th - this is urgent and blocking other work
+2. Jordan is working on the dashboard redesign, needs to have mockups ready by Nov 22nd
+3. I need to schedule a code review session with the entire team, targeting Nov 21st
+4. Alex should also update the API documentation once auth is complete
+
+Next meeting: Nov 26th, same time`;
 
 export default function AddNotePage() {
   const navigate = useNavigate();
   const { user } = useAuth();
-  const [content, setContent] = useState('');
-  const [loading, setLoading] = useState(false);
-  const [processingStatus, setProcessingStatus] = useState('');
-  const [tasksCreated, setTasksCreated] = useState(0);
-  const [success, setSuccess] = useState(false);
-  const [error, setError] = useState('');
-  const [meetingTitle, setMeetingTitle] = useState('');
-  const [meetingDate, setMeetingDate] = useState('');
-  const [meetingLocation, setMeetingLocation] = useState('');
-  const [meetingParticipants, setMeetingParticipants] = useState('');
-  const [defaultPriority, setDefaultPriority] = useState<'Low' | 'Medium' | 'High'>('Medium');
+  const { addToast } = useToast();
+  const textareaRef = useRef<HTMLTextAreaElement>(null);
 
-  async function handleSubmit(e: React.FormEvent) {
-    e.preventDefault();
-    if (!user || !content.trim()) return;
+  // UI State
+  const [noteText, setNoteText] = useState('');
+  const [isFocused, setIsFocused] = useState(false);
+  const [isProcessing, setIsProcessing] = useState(false);
+  const [showSuccess, setShowSuccess] = useState(false);
+  const [currentStep, setCurrentStep] = useState(0);
+  const [taskCount, setTaskCount] = useState(0);
+  const [countdown, setCountdown] = useState(3);
+  const [showCancel, setShowCancel] = useState(false);
 
-    setLoading(true);
-    setSuccess(false);
-    setError('');
-    setTasksCreated(0);
-    setProcessingStatus('Saving your note...');
+  // Computed values
+  const characterCount = useMemo(() => getCharacterCount(noteText), [noteText]);
+  const wordCount = useMemo(() => getWordCount(noteText), [noteText]);
+  const estimatedTasks = useMemo(() => estimateTaskCount(noteText), [noteText]);
+  const isValid = useMemo(() => isValidNoteText(noteText) && !isProcessing, [noteText, isProcessing]);
+
+  // Auto-focus textarea on mount
+  useEffect(() => {
+    textareaRef.current?.focus();
+  }, []);
+
+  // Step progression during processing
+  useEffect(() => {
+    if (!isProcessing) {
+      setCurrentStep(0);
+      return;
+    }
+
+    const stepDuration = 1500; // 1.5 seconds per step
+
+    const interval = setInterval(() => {
+      setCurrentStep(prev => {
+        if (prev < 3) { // 4 steps total (0-3)
+          return prev + 1;
+        }
+        return prev;
+      });
+    }, stepDuration);
+
+    return () => clearInterval(interval);
+  }, [isProcessing]);
+
+  // Show cancel button after 3 seconds
+  useEffect(() => {
+    if (!isProcessing) {
+      setShowCancel(false);
+      return;
+    }
+
+    const timer = setTimeout(() => {
+      setShowCancel(true);
+    }, 3000);
+
+    return () => clearTimeout(timer);
+  }, [isProcessing]);
+
+  // Success countdown and redirect
+  useEffect(() => {
+    if (!showSuccess) return;
+
+    // Trigger confetti
+    confetti({
+      particleCount: 150,
+      spread: 100,
+      origin: { y: 0.5 },
+      colors: ['#2D5016', '#6FA84C', '#A4D96C', '#4ADE80']
+    });
+
+    // Countdown timer
+    let count = 3;
+    setCountdown(count);
+
+    const interval = setInterval(() => {
+      count--;
+      setCountdown(count);
+
+      if (count === 0) {
+        clearInterval(interval);
+        navigate('/dashboard');
+      }
+    }, 1000);
+
+    return () => clearInterval(interval);
+  }, [showSuccess, navigate]);
+
+  // Keyboard shortcuts
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      // Cmd/Ctrl + Enter to process
+      if ((e.metaKey || e.ctrlKey) && e.key === 'Enter') {
+        if (isValid && !isProcessing) {
+          handleProcess();
+        }
+      }
+
+      // Escape to cancel processing
+      if (e.key === 'Escape' && isProcessing && showCancel) {
+        handleCancel();
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [isValid, isProcessing, showCancel]);
+
+  const handleTextChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
+    setNoteText(e.target.value);
+  };
+
+  const handlePaste = () => {
+    // Show brief toast notification after paste
+    setTimeout(() => {
+      if (noteText.length > 100) {
+        addToast('Notes pasted! 📋 Review and click "Process with AI" when ready', 'success', 3000);
+      }
+    }, 100);
+  };
+
+  const loadExample = () => {
+    setNoteText(EXAMPLE_NOTES);
+    textareaRef.current?.focus();
+    addToast('Example notes loaded! Feel free to edit and try processing.', 'info', 3000);
+  };
+
+  const handleProcess = async () => {
+    if (!user || !isValid) return;
+
+    setIsProcessing(true);
+    setCurrentStep(0);
 
     try {
-      const participantsArray = meetingParticipants
-        ? meetingParticipants.split(',').map(p => p.trim()).filter(p => p.length > 0)
-        : null;
-
+      // First, save the note
       const { data: noteData, error: noteError } = await supabase
         .from('notes')
         .insert({
           user_id: user.id,
-          content: content.trim(),
-          processed: false,
-          meeting_title: meetingTitle.trim() || null,
-          meeting_date: meetingDate || null,
-          meeting_location: meetingLocation.trim() || null,
-          meeting_participants: participantsArray
+          content: noteText.trim(),
+          processed: false
         })
         .select()
         .single();
@@ -53,9 +200,7 @@ export default function AddNotePage() {
         throw new Error(`Failed to save note: ${noteError?.message || 'Unknown error'}`);
       }
 
-      console.log('Note saved:', noteData);
-      setProcessingStatus('Sending to AI for processing...');
-
+      // Process with edge function
       const edgeFunctionUrl = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/process-ai-notes`;
 
       const response = await fetch(edgeFunctionUrl, {
@@ -66,9 +211,9 @@ export default function AddNotePage() {
         },
         body: JSON.stringify({
           user_id: user.id,
-          note_text: content.trim(),
+          note_text: noteText.trim(),
           note_id: noteData.id,
-          default_priority: defaultPriority
+          default_priority: 'Medium'
         })
       });
 
@@ -82,255 +227,319 @@ export default function AddNotePage() {
       console.log('Processing result:', result);
 
       const tasksCreatedCount = result.created || 0;
-      setTasksCreated(tasksCreatedCount);
+      setTaskCount(tasksCreatedCount);
 
-      setSuccess(true);
-      setContent('');
-      setProcessingStatus(`Successfully created ${tasksCreatedCount} task${tasksCreatedCount !== 1 ? 's' : ''}!`);
+      // Show success screen
+      setIsProcessing(false);
+      setShowSuccess(true);
+      setNoteText(''); // Clear the input
 
-      setTimeout(() => {
-        navigate('/dashboard');
-      }, 2000);
     } catch (err) {
       console.error('Error processing note:', err);
       const errorMessage = err instanceof Error ? err.message : 'Unknown error occurred';
-      setError(`Failed to process notes: ${errorMessage}`);
-      setProcessingStatus('');
-    } finally {
-      setLoading(false);
+
+      setIsProcessing(false);
+      addToast(`Failed to process notes: ${errorMessage}`, 'error', 5000);
     }
-  }
+  };
+
+  const handleCancel = () => {
+    setIsProcessing(false);
+    setCurrentStep(0);
+    addToast('Processing cancelled', 'info', 2000);
+  };
+
+  const handleRedirect = () => {
+    navigate('/dashboard');
+  };
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <header className="bg-white/80 backdrop-blur-frosted border-b border-gray-200 sticky top-0 z-10 smooth-transition">
+    <div className="min-h-screen bg-gradient-to-br from-gray-50 to-green-50/30">
+      {/* Header */}
+      <header className="sticky top-0 z-40 bg-white/80 backdrop-blur-xl border-b border-gray-200/50 shadow-sm">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between h-16">
-            <button
+            <motion.button
               onClick={() => navigate('/dashboard')}
-              className="flex items-center gap-2 text-gray-600 hover:text-gray-900 smooth-transition button-press"
+              className="
+                flex items-center gap-2
+                text-gray-600 hover:text-gray-900
+                transition-colors duration-200
+                group
+              "
+              whileHover={{ x: -4 }}
+              whileTap={{ scale: 0.95 }}
             >
-              <ArrowLeft className="w-5 h-5" />
-              <span className="font-medium">Dashboard</span>
-            </button>
+              <ArrowLeft className="w-4 h-4 group-hover:-translate-x-1 transition-transform duration-200" />
+              <span className="text-sm font-medium">Back to Dashboard</span>
+            </motion.button>
+
             <div className="flex items-center gap-2">
-              <PlantIcon className="w-6 h-6" />
+              <motion.div
+                className="text-2xl"
+                whileHover={{ scale: 1.15, rotate: 5 }}
+              >
+                🌱
+              </motion.div>
               <span className="font-semibold text-gray-900 hidden sm:block">GrowFlow</span>
             </div>
           </div>
         </div>
       </header>
 
-      <main className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8">
-        <div className="bg-white rounded-2xl shadow-sm border border-gray-200 p-6 sm:p-8 smooth-transition">
-          <div className="mb-6">
-            <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 mb-2 tracking-tight">Add Note</h1>
-            <p className="text-gray-600 leading-relaxed">
-              Paste your notes below and we'll process them into actionable tasks
-            </p>
-          </div>
+      {/* Main Content */}
+      <main className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12">
+        {/* Page Header */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.4, delay: 0.1 }}
+          className="mb-8"
+        >
+          <h1 className="
+            text-3xl sm:text-4xl lg:text-5xl font-bold text-gray-900 mb-4
+            bg-gradient-to-r from-gray-900 to-gray-700
+            bg-clip-text
+          ">
+            Add Meeting Notes
+          </h1>
 
-          <form onSubmit={handleSubmit} className="space-y-6">
-            <div className="p-5 bg-gradient-to-br from-blue-50 to-blue-50/50 border border-blue-200/60 rounded-xl smooth-transition">
-              <h3 className="text-sm font-semibold text-blue-900 mb-4 flex items-center gap-2">
-                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                </svg>
-                Meeting Information
-              </h3>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <div>
-                  <label htmlFor="meetingTitle" className="block text-sm font-semibold text-gray-900 mb-2">
-                    Meeting Name
-                  </label>
-                  <input
-                    id="meetingTitle"
-                    type="text"
-                    value={meetingTitle}
-                    onChange={(e) => setMeetingTitle(e.target.value)}
-                    placeholder="e.g., Weekly Team Sync"
-                    className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-green-500 focus:border-transparent outline-none smooth-transition text-sm bg-white"
-                  />
-                </div>
+          <p className="text-base sm:text-lg lg:text-xl text-gray-600 flex items-center gap-2">
+            <Sparkles className="w-5 h-5 text-[#6FA84C]" />
+            Paste your notes below, and our AI will extract tasks for you
+          </p>
+        </motion.div>
 
-                <div>
-                  <label htmlFor="meetingDate" className="block text-sm font-semibold text-gray-900 mb-2">
-                    Meeting Date
-                  </label>
-                  <input
-                    id="meetingDate"
-                    type="date"
-                    value={meetingDate}
-                    onChange={(e) => setMeetingDate(e.target.value)}
-                    className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-green-500 focus:border-transparent outline-none smooth-transition text-sm bg-white"
-                  />
-                </div>
-
-                <div>
-                  <label htmlFor="meetingLocation" className="block text-sm font-semibold text-gray-900 mb-2">
-                    Location
-                  </label>
-                  <input
-                    id="meetingLocation"
-                    type="text"
-                    value={meetingLocation}
-                    onChange={(e) => setMeetingLocation(e.target.value)}
-                    placeholder="e.g., Zoom, Office Room 3A"
-                    className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-green-500 focus:border-transparent outline-none smooth-transition text-sm bg-white"
-                  />
-                </div>
-
-                <div>
-                  <label htmlFor="meetingParticipants" className="block text-sm font-semibold text-gray-900 mb-2">
-                    Participants
-                  </label>
-                  <input
-                    id="meetingParticipants"
-                    type="text"
-                    value={meetingParticipants}
-                    onChange={(e) => setMeetingParticipants(e.target.value)}
-                    placeholder="John, Sarah, Mike"
-                    className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-green-500 focus:border-transparent outline-none smooth-transition text-sm bg-white"
-                  />
-                </div>
-
-                <div className="sm:col-span-2">
-                  <label htmlFor="defaultPriority" className="block text-sm font-semibold text-gray-900 mb-2">
-                    Default Priority
-                  </label>
-                  <select
-                    id="defaultPriority"
-                    value={defaultPriority}
-                    onChange={(e) => setDefaultPriority(e.target.value as 'Low' | 'Medium' | 'High')}
-                    className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-green-500 focus:border-transparent outline-none smooth-transition text-sm bg-white cursor-pointer"
-                  >
-                    <option value="Low">Low Priority</option>
-                    <option value="Medium">Medium Priority</option>
-                    <option value="High">High Priority</option>
-                  </select>
-                </div>
-              </div>
-            </div>
-
-            <div>
-              <label htmlFor="notes" className="block text-sm font-semibold text-gray-900 mb-2">
-                Meeting Notes <span className="text-red-500">*</span>
-              </label>
-              <textarea
-                id="notes"
-                value={content}
-                onChange={(e) => setContent(e.target.value)}
-                rows={14}
-                className="w-full px-4 py-4 border border-gray-300 rounded-xl focus:ring-2 focus:ring-green-500 focus:border-transparent outline-none smooth-transition resize-none font-mono text-sm leading-relaxed bg-white"
-                placeholder="Paste your meeting notes here...
+        {/* Note Input Card */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.4, delay: 0.2 }}
+          className={`
+            bg-white rounded-3xl overflow-hidden
+            border-2 transition-all duration-300
+            ${isFocused
+              ? 'border-[#6FA84C] shadow-xl shadow-green-500/10'
+              : 'border-gray-100 shadow-lg'
+            }
+          `}
+        >
+          {/* Textarea */}
+          <label htmlFor="meeting-notes" className="sr-only">
+            Meeting notes
+          </label>
+          <textarea
+            ref={textareaRef}
+            id="meeting-notes"
+            value={noteText}
+            onChange={handleTextChange}
+            onFocus={() => setIsFocused(true)}
+            onBlur={() => setIsFocused(false)}
+            onPaste={handlePaste}
+            placeholder="Paste your meeting notes here...
 
 Example:
-- John needs to complete the Q4 report by Friday
-- Sarah will review the marketing campaign next week
-- Team needs to prepare presentation for client meeting on Dec 15"
-                required
-              />
-              <p className="mt-2 text-xs text-gray-500 flex items-center gap-1">
-                <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                </svg>
-                Include assignee names and deadlines for better task creation
-              </p>
+Team standup with Alex and Jordan. Discussed sprint priorities for this week.
+
+Alex will complete the user authentication module by Nov 12th - this is urgent.
+
+Jordan is working on the dashboard redesign, mockups due Nov 15th.
+
+I need to schedule a code review session with the team, probably by end of week."
+            className="
+              w-full p-6 sm:p-8
+              min-h-[300px] sm:min-h-[400px] lg:min-h-[500px]
+              text-base sm:text-lg leading-relaxed
+              text-gray-900 placeholder:text-gray-400
+              resize-none
+              focus:outline-none
+              font-normal
+            "
+            style={{
+              fontFamily: '-apple-system, BlinkMacSystemFont, "SF Pro Display", "Inter", sans-serif'
+            }}
+            aria-label="Enter your meeting notes"
+            aria-describedby="notes-description"
+          />
+
+          <div id="notes-description" className="sr-only">
+            Paste your meeting notes here. Include names, deadlines, and action items
+            for best results. Minimum 50 characters required.
+          </div>
+
+          {/* Footer */}
+          <div className="
+            px-6 sm:px-8 py-5 sm:py-6
+            bg-gradient-to-br from-gray-50 to-green-50/30
+            border-t border-gray-100
+            flex flex-col sm:flex-row items-start sm:items-center justify-between
+            gap-4
+          ">
+            {/* Metadata */}
+            <div className="flex flex-wrap items-center gap-3 sm:gap-4 text-sm text-gray-600">
+              {/* Character count */}
+              <motion.div
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                className="flex items-center gap-1.5"
+              >
+                <FileText className="w-4 h-4" />
+                <span className={characterCount === 0 ? 'text-gray-400' : ''}>
+                  {characterCount.toLocaleString()} characters
+                </span>
+              </motion.div>
+
+              {/* Word count */}
+              <motion.div
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                transition={{ delay: 0.1 }}
+                className="flex items-center gap-1.5"
+              >
+                <AlignLeft className="w-4 h-4" />
+                <span className={wordCount === 0 ? 'text-gray-400' : ''}>
+                  {wordCount.toLocaleString()} words
+                </span>
+              </motion.div>
+
+              {/* Estimated tasks */}
+              {characterCount > 50 && estimatedTasks > 0 && (
+                <motion.div
+                  initial={{ opacity: 0, scale: 0.9 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  transition={{ delay: 0.2 }}
+                  className="flex items-center gap-1.5 px-3 py-1 bg-green-100 text-green-700 rounded-lg font-medium"
+                >
+                  <CheckCircle2 className="w-4 h-4" />
+                  <span>~{estimatedTasks} tasks detected</span>
+                </motion.div>
+              )}
+
+              {/* Example button */}
+              <button
+                onClick={loadExample}
+                className="
+                  text-sm text-[#6FA84C] hover:text-[#2D5016]
+                  font-medium transition-colors
+                  flex items-center gap-1
+                "
+              >
+                <Lightbulb className="w-4 h-4" />
+                Try an example
+              </button>
             </div>
 
-            {error && (
-              <div className="px-4 py-4 rounded-xl flex items-start gap-3 bg-red-50/80 backdrop-blur-sm border border-red-200 text-red-700 animate-slideDown">
-                <AlertCircle className="w-5 h-5 flex-shrink-0 mt-0.5" />
-                <div className="flex-1">
-                  <p className="font-semibold text-sm">{error}</p>
-                  <p className="text-xs mt-1 text-red-600">Check the browser console for detailed error logs.</p>
-                </div>
+            {/* Process button */}
+            <motion.button
+              whileHover={{ scale: isValid ? 1.02 : 1 }}
+              whileTap={{ scale: isValid ? 0.98 : 1 }}
+              disabled={!isValid || isProcessing}
+              onClick={handleProcess}
+              className={`
+                px-6 sm:px-8 py-3 sm:py-4 rounded-2xl
+                font-semibold text-base
+                transition-all duration-200
+                flex items-center gap-2.5
+                whitespace-nowrap
+                ${isValid
+                  ? 'bg-gradient-to-r from-[#2D5016] to-[#6FA84C] text-white shadow-lg shadow-green-900/30 hover:shadow-xl hover:shadow-green-900/40'
+                  : 'bg-gray-200 text-gray-500 cursor-not-allowed'
+                }
+              `}
+            >
+              {isProcessing ? (
+                <>
+                  <Loader2 className="w-5 h-5 animate-spin" />
+                  <span>Processing...</span>
+                </>
+              ) : (
+                <>
+                  <Sparkles className="w-5 h-5" />
+                  <span>Process with AI</span>
+                  <span className="hidden lg:inline text-xs opacity-75 ml-1">
+                    (⌘↵)
+                  </span>
+                </>
+              )}
+            </motion.button>
+          </div>
+        </motion.div>
+
+        {/* Tips Section */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.4, delay: 0.3 }}
+          className="mt-8"
+        >
+          <div className="
+            p-6 sm:p-8
+            bg-gradient-to-br from-blue-50 to-indigo-50
+            rounded-2xl border border-blue-100
+          ">
+            {/* Header */}
+            <div className="flex items-start gap-3 mb-4">
+              <div className="
+                w-10 h-10 rounded-xl
+                bg-gradient-to-br from-blue-500 to-indigo-600
+                flex items-center justify-center
+                flex-shrink-0
+              ">
+                <Lightbulb className="w-5 h-5 text-white" />
               </div>
-            )}
-
-            {processingStatus && !error && (
-              <div className={`px-4 py-4 rounded-xl flex items-start gap-3 animate-slideDown ${
-                success
-                  ? 'bg-green-50/80 backdrop-blur-sm border border-green-200 text-green-700'
-                  : 'bg-blue-50/80 backdrop-blur-sm border border-blue-200 text-blue-700'
-              }`}>
-                {loading ? (
-                  <svg className="w-5 h-5 animate-spin flex-shrink-0 mt-0.5" viewBox="0 0 24 24">
-                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" />
-                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
-                  </svg>
-                ) : success ? (
-                  <CheckCircle2 className="w-5 h-5 flex-shrink-0 mt-0.5" />
-                ) : null}
-                <div className="flex-1">
-                  <p className="font-semibold text-sm">{processingStatus}</p>
-                  {tasksCreated > 0 && (
-                    <p className="text-xs mt-1">
-                      {tasksCreated} new task{tasksCreated > 1 ? 's' : ''} will appear in your dashboard
-                    </p>
-                  )}
-                </div>
+              <div>
+                <h3 className="text-lg font-semibold text-gray-900 mb-1">
+                  Tips for better results
+                </h3>
+                <p className="text-sm text-gray-600">
+                  Help our AI extract tasks more accurately
+                </p>
               </div>
-            )}
-
-            <div className="flex flex-col sm:flex-row gap-3 pt-2">
-              <button
-                type="submit"
-                disabled={loading || !content.trim()}
-                className="flex-1 bg-green-700 hover:bg-green-800 active:bg-green-900 text-white font-semibold py-3.5 px-6 rounded-xl smooth-transition button-press disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 shadow-lg hover:shadow-xl disabled:shadow-md"
-              >
-                {loading ? (
-                  <>
-                    <svg className="w-5 h-5 animate-spin" viewBox="0 0 24 24">
-                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" />
-                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
-                    </svg>
-                    Processing...
-                  </>
-                ) : (
-                  'Save & Process Note'
-                )}
-              </button>
-
-              <button
-                type="button"
-                onClick={() => navigate('/dashboard')}
-                disabled={loading}
-                className="sm:w-auto px-6 py-3.5 border-2 border-gray-300 text-gray-700 font-semibold rounded-xl hover:bg-gray-50 hover:border-gray-400 smooth-transition button-press disabled:opacity-50 disabled:cursor-not-allowed"
-              >
-                Cancel
-              </button>
             </div>
-          </form>
-        </div>
 
-        <div className="mt-6 bg-gradient-to-br from-blue-50 to-blue-50/50 border border-blue-200/60 rounded-xl p-5 smooth-transition">
-          <h3 className="font-semibold text-blue-900 mb-3 flex items-center gap-2">
-            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" />
-            </svg>
-            Tips for Better Results
-          </h3>
-          <ul className="text-sm text-blue-800 space-y-2">
-            <li className="flex items-start gap-2">
-              <span className="text-blue-600 mt-0.5">•</span>
-              <span>Include assignee names for each task (e.g., "John needs to...")</span>
-            </li>
-            <li className="flex items-start gap-2">
-              <span className="text-blue-600 mt-0.5">•</span>
-              <span>Specify deadlines or timeframes (e.g., "by Friday", "next week")</span>
-            </li>
-            <li className="flex items-start gap-2">
-              <span className="text-blue-600 mt-0.5">•</span>
-              <span>Use clear action verbs (complete, review, prepare, schedule)</span>
-            </li>
-            <li className="flex items-start gap-2">
-              <span className="text-blue-600 mt-0.5">•</span>
-              <span>Mark urgent items explicitly (urgent, high priority, ASAP)</span>
-            </li>
-          </ul>
-        </div>
+            {/* Tips list */}
+            <div className="space-y-3 ml-0 sm:ml-13">
+              {TIPS.map((tip, index) => (
+                <motion.div
+                  key={index}
+                  initial={{ opacity: 0, x: -20 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  transition={{ duration: 0.3, delay: 0.4 + (index * 0.1) }}
+                  className="flex items-start gap-3"
+                >
+                  <div className="
+                    w-6 h-6 rounded-full
+                    bg-gradient-to-br from-green-400 to-emerald-500
+                    flex items-center justify-center
+                    flex-shrink-0 mt-0.5
+                  ">
+                    <Check className="w-4 h-4 text-white" />
+                  </div>
+                  <p className="text-sm text-gray-700 leading-relaxed">
+                    {tip}
+                  </p>
+                </motion.div>
+              ))}
+            </div>
+          </div>
+        </motion.div>
       </main>
+
+      {/* Processing Overlay */}
+      <ProcessingOverlay
+        isVisible={isProcessing}
+        currentStep={currentStep}
+        onCancel={handleCancel}
+        showCancel={showCancel}
+      />
+
+      {/* Success Overlay */}
+      <SuccessOverlay
+        isVisible={showSuccess}
+        taskCount={taskCount}
+        countdown={countdown}
+        onRedirect={handleRedirect}
+      />
     </div>
   );
 }

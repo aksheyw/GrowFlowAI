@@ -68,20 +68,40 @@ export default function MeetingDetailDrawer({ note, isOpen, onClose, currentTask
 
       <div
         id="meeting-drawer"
-        className={`fixed top-0 right-0 h-full w-full sm:w-[500px] bg-white shadow-2xl z-50 transform transition-transform duration-300 overflow-y-auto ${
-          isOpen ? 'translate-x-0' : 'translate-x-full'
-        }`}
+        className={`fixed top-0 right-0 h-full w-full sm:w-[500px] bg-white shadow-2xl z-50 transform transition-transform duration-300 overflow-y-auto ${isOpen ? 'translate-x-0' : 'translate-x-full'
+          }`}
       >
-        <div className="sticky top-0 bg-white border-b border-gray-200 px-6 py-4 flex items-center justify-between z-10">
-          <h2 className="text-xl font-bold text-gray-900 flex items-center gap-2">
-            <FileText className="w-6 h-6 text-blue-600" />
-            Meeting Details
-          </h2>
+        <div className="sticky top-0 bg-white border-b border-gray-200 px-6 py-4 z-10">
+          <div className="flex items-center justify-between mb-3">
+            <h2 className="text-xl font-bold text-gray-900 flex items-center gap-2">
+              <FileText className="w-6 h-6 text-blue-600" />
+              Meeting Details
+            </h2>
+            <button
+              onClick={onClose}
+              className="p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-lg transition-colors"
+            >
+              <X className="w-5 h-5" />
+            </button>
+          </div>
+
+          {/* View Full Page Button */}
           <button
-            onClick={onClose}
-            className="p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-lg transition-colors"
+            onClick={() => {
+              navigate(`/note/${note.id}`);
+              onClose();
+            }}
+            className="
+            w-full px-4 py-2.5 rounded-xl
+            bg-gradient-to-r from-blue-500 to-indigo-600
+            text-white font-semibold text-sm
+            hover:shadow-lg hover:from-blue-600 hover:to-indigo-700
+            transition-all duration-200
+            flex items-center justify-center gap-2
+          "
           >
-            <X className="w-5 h-5" />
+            <FileText className="w-4 h-4" />
+            <span>View Full Meeting Page</span>
           </button>
         </div>
 
@@ -177,24 +197,21 @@ export default function MeetingDetailDrawer({ note, isOpen, onClose, currentTask
                         navigate(`/task/${task.id}`);
                         onClose();
                       }}
-                      className={`p-4 rounded-lg border-2 transition-all cursor-pointer ${
-                        isCurrentTask
+                      className={`p-4 rounded-lg border-2 transition-all cursor-pointer ${isCurrentTask
                           ? 'bg-green-50 border-green-500 shadow-md'
                           : 'bg-white border-gray-200 hover:border-gray-300 hover:shadow-sm'
-                      }`}
+                        }`}
                     >
                       <div className="flex items-start gap-3">
                         {getTaskIcon(task.status)}
                         <div className="flex-1 min-w-0">
-                          <p className={`text-sm font-medium ${
-                            isCurrentTask ? 'text-gray-900' : 'text-gray-700'
-                          }`}>
+                          <p className={`text-sm font-medium ${isCurrentTask ? 'text-gray-900' : 'text-gray-700'
+                            }`}>
                             {task.description}
                           </p>
                           <div className="flex items-center gap-2 mt-2 flex-wrap">
-                            <span className={`px-2 py-0.5 rounded-full text-xs font-medium border ${
-                              getPriorityColor(task.priority)
-                            }`}>
+                            <span className={`px-2 py-0.5 rounded-full text-xs font-medium border ${getPriorityColor(task.priority)
+                              }`}>
                               {task.priority}
                             </span>
                             <span className="text-xs text-gray-500">{task.status}</span>

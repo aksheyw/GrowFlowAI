@@ -1,6 +1,6 @@
 import { useNavigate } from 'react-router-dom';
 import { Task } from '../lib/supabase';
-import { Calendar, Clock, Trash2, FileText } from 'lucide-react';
+import { Calendar, Clock, Trash2 } from 'lucide-react';
 
 interface TaskCardProps {
   task: Task;

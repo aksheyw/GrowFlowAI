@@ -57,6 +57,7 @@ export default function PremiumTaskCard({ task, onStatusChange }: PremiumTaskCar
 
   return (
     <motion.div
+      data-task-id={task.id}
       layout
       initial={{ opacity: 0, scale: 0.9 }}
       animate={{ opacity: 1, scale: 1 }}

@@ -1,6 +1,9 @@
 import { useRef, useEffect } from 'react';
+import { motion } from 'framer-motion';
+import { useNavigate } from 'react-router-dom';
+import { BellOff, CheckCheck } from 'lucide-react';
 import { Notification } from '../lib/supabase';
-import { ChevronRight } from 'lucide-react';
+import NotificationItem from './NotificationItem';
 
 interface NotificationDropdownProps {
   notifications: Notification[];
@@ -10,12 +13,6 @@ interface NotificationDropdownProps {
   onClose: () => void;
 }
 
-const NOTIFICATION_ICONS = {
-  assigned: '📋',
-  updated: '✏️',
-  completed: '✅',
-};
-
 export default function NotificationDropdown({
   notifications,
   onMarkAsRead,
@@ -24,127 +21,180 @@ export default function NotificationDropdown({
   onClose,
 }: NotificationDropdownProps) {
   const dropdownRef = useRef<HTMLDivElement>(null);
+  const navigate = useNavigate();
+  const unreadCount = notifications.filter(n => !n.read).length;
 
+  // Close on outside click
   useEffect(() => {
-    function handleClickOutside(event: MouseEvent) {
-      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
+    if (!isOpen) return;
+
+    const handleClickOutside = (e: MouseEvent) => {
+      const target = e.target as Node;
+
+      // Don't close if clicking the bell button
+      if ((target as Element).closest?.('.notification-bell')) {
+        return;
+      }
+
+      if (dropdownRef.current && !dropdownRef.current.contains(target)) {
         onClose();
       }
-    }
+    };
 
-    if (isOpen) {
-      document.addEventListener('mousedown', handleClickOutside);
-      return () => document.removeEventListener('mousedown', handleClickOutside);
-    }
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
   }, [isOpen, onClose]);
 
-  if (!isOpen) return null;
+  // Close on Escape key
+  useEffect(() => {
+    if (!isOpen) return;
 
-  const getTimeAgo = (createdAt: string): string => {
-    const now = new Date();
-    const created = new Date(createdAt);
-    const diffMs = now.getTime() - created.getTime();
-    const diffSecs = Math.floor(diffMs / 1000);
-    const diffMins = Math.floor(diffMs / 60000);
-    const diffHours = Math.floor(diffMs / 3600000);
-    const diffDays = Math.floor(diffMs / 86400000);
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        onClose();
+      }
+    };
 
-    if (diffSecs < 10) return 'just now';
-    if (diffSecs < 60) return `${diffSecs} seconds ago`;
-    if (diffMins === 1) return '1 minute ago';
-    if (diffMins < 60) return `${diffMins} minutes ago`;
-    if (diffHours === 1) return '1 hour ago';
-    if (diffHours < 24) return `${diffHours} hours ago`;
-    if (diffDays === 1) return '1 day ago';
-    if (diffDays < 7) return `${diffDays} days ago`;
-    return created.toLocaleDateString();
+    document.addEventListener('keydown', handleKeyDown);
+    return () => document.removeEventListener('keydown', handleKeyDown);
+  }, [isOpen, onClose]);
+
+  const handleNotificationClick = (notification: Notification) => {
+    // Close dropdown
+    onClose();
+
+    // Mark as read
+    if (!notification.read) {
+      onMarkAsRead(notification.id);
+    }
+
+    // Navigate to dashboard with task highlighted
+    if (notification.task_id) {
+      navigate('/dashboard', {
+        state: { highlightTaskId: notification.task_id }
+      });
+    }
   };
 
   return (
-    <div
+    <motion.div
       ref={dropdownRef}
-      className="fixed sm:absolute left-2 right-2 sm:left-auto sm:right-0 mt-2 sm:w-96 bg-white/95 backdrop-blur-frosted rounded-xl shadow-xl border border-gray-200 z-50 overflow-hidden animate-slideDown"
+      initial={{ opacity: 0, y: -10, scale: 0.95 }}
+      animate={{ opacity: 1, y: 0, scale: 1 }}
+      exit={{ opacity: 0, y: -10, scale: 0.95 }}
+      transition={{ duration: 0.2, ease: "easeOut" }}
+      className="
+        notification-dropdown
+        absolute right-0 mt-3
+        w-[420px] max-w-[calc(100vw-2rem)]
+        bg-white rounded-2xl
+        shadow-2xl border border-gray-100
+        overflow-hidden
+        z-50
+      "
+      role="region"
+      aria-label="Notifications dropdown"
+      aria-live="polite"
     >
-      <div className="p-4 border-b border-gray-200 flex justify-between items-center bg-gray-50/80 backdrop-blur-sm">
-        <div>
-          <h3 className="font-semibold text-gray-900">Notifications</h3>
-          <p className="text-xs text-gray-500 mt-0.5">
-            {notifications.length === 0 ? 'No notifications' : `${notifications.length} recent`}
-          </p>
+      {/* Header */}
+      <div className="
+        px-6 py-4 
+        border-b border-gray-100
+        bg-gradient-to-r from-gray-50 to-white
+      ">
+        <div className="flex items-center justify-between">
+          <h3 className="text-lg font-semibold text-gray-900">
+            Notifications
+          </h3>
+
+          {/* Mark all as read button */}
+          {unreadCount > 0 && (
+            <motion.button
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
+              onClick={onMarkAllAsRead}
+              className="
+                text-sm text-[#6FA84C] hover:text-[#2D5016]
+                font-medium transition-colors duration-200
+                flex items-center gap-1.5
+              "
+            >
+              <CheckCheck className="w-4 h-4" />
+              <span>Mark all read</span>
+            </motion.button>
+          )}
         </div>
-        {notifications.some(n => !n.read) && (
-          <button
-            onClick={onMarkAllAsRead}
-            className="text-xs font-medium text-green-700 hover:text-green-800 hover:bg-green-50 px-3 py-1.5 rounded-lg smooth-transition button-press"
-          >
-            Mark all as read
-          </button>
+
+        {/* Unread count indicator */}
+        {unreadCount > 0 && (
+          <p className="text-xs text-gray-600 mt-1">
+            {unreadCount} unread {unreadCount === 1 ? 'notification' : 'notifications'}
+          </p>
         )}
       </div>
 
-      <div className="max-h-[400px] overflow-y-auto">
+      {/* Notification List */}
+      <div className="max-h-[500px] overflow-y-auto">
         {notifications.length === 0 ? (
-          <div className="p-12 text-center">
-            <div className="text-5xl mb-3">🔔</div>
-            <p className="text-gray-500 text-sm font-medium">No notifications yet</p>
-            <p className="text-gray-400 text-xs mt-1">You'll see updates here</p>
+          <div className="px-6 py-16 text-center">
+            <motion.div
+              initial={{ scale: 0.9, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              transition={{ delay: 0.1 }}
+            >
+              <div className="
+                w-16 h-16 mx-auto mb-4
+                bg-gradient-to-br from-gray-100 to-gray-200
+                rounded-2xl
+                flex items-center justify-center
+              ">
+                <BellOff className="w-8 h-8 text-gray-400" />
+              </div>
+              <h4 className="text-base font-semibold text-gray-900 mb-2">
+                All caught up!
+              </h4>
+              <p className="text-sm text-gray-600">
+                You have no new notifications
+              </p>
+            </motion.div>
           </div>
         ) : (
-          <div className="divide-y divide-gray-100">
+          <div className="divide-y divide-gray-50">
             {notifications.map((notification, index) => (
-              <div
+              <NotificationItem
                 key={notification.id}
-                className={`p-4 hover:bg-gray-50 smooth-transition cursor-pointer group relative ${
-                  !notification.read ? 'bg-green-50/50' : ''
-                }`}
-                style={{
-                  animation: `fadeIn 0.3s ease-out ${index * 0.05}s both`,
-                }}
-              >
-                <div className="flex gap-3">
-                  <div className="text-2xl flex-shrink-0 leading-none">
-                    {NOTIFICATION_ICONS[notification.type]}
-                  </div>
-
-                  <div className="flex-1 min-w-0">
-                    <p className={`text-sm break-words ${
-                      !notification.read ? 'text-gray-900 font-medium' : 'text-gray-700'
-                    }`}>
-                      {notification.message}
-                    </p>
-                    <p className="text-xs text-gray-500 mt-1.5 flex items-center gap-1">
-                      <span>{getTimeAgo(notification.created_at)}</span>
-                      {!notification.read && (
-                        <span className="w-1 h-1 rounded-full bg-green-600"></span>
-                      )}
-                    </p>
-                  </div>
-
-                  {!notification.read && (
-                    <button
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        onMarkAsRead(notification.id);
-                      }}
-                      className="flex-shrink-0 w-2.5 h-2.5 rounded-full bg-green-600 hover:bg-green-700 hover:scale-125 smooth-transition shadow-sm"
-                      title="Mark as read"
-                    />
-                  )}
-                </div>
-              </div>
+                notification={notification}
+                index={index}
+                onMarkRead={onMarkAsRead}
+                onClick={handleNotificationClick}
+              />
             ))}
           </div>
         )}
       </div>
 
+      {/* Footer */}
       {notifications.length > 0 && (
-        <div className="p-3 border-t border-gray-200 text-center bg-gray-50/80 backdrop-blur-sm">
-          <button className="text-sm font-medium text-green-700 hover:text-green-800 hover:bg-green-50 flex items-center justify-center gap-1 w-full smooth-transition button-press py-2 rounded-lg">
+        <div className="
+          px-6 py-3
+          border-t border-gray-100
+          bg-gray-50
+          text-center
+        ">
+          <button
+            onClick={() => {
+              onClose();
+              navigate('/notifications');
+            }}
+            className="
+              text-sm text-gray-600 hover:text-gray-900
+              font-medium transition-colors duration-200
+            "
+          >
             View all notifications
-            <ChevronRight className="w-4 h-4" />
           </button>
         </div>
       )}
-    </div>
+    </motion.div>
   );
 }

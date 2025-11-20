@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { LogOut, Plus } from 'lucide-react';
 import confetti from 'canvas-confetti';
 import { useAuth } from '../contexts/AuthContext';
@@ -15,7 +15,8 @@ import { useToast } from '../contexts/ToastContext';
 export default function DashboardPage() {
   const { profile, signOut } = useAuth();
   const navigate = useNavigate();
-  const { showToast } = useToast();
+  const location = useLocation();
+  const { addToast } = useToast();
   const [tasks, setTasks] = useState<Task[]>([]);
   const [loading, setLoading] = useState(true);
   const [activeFilter, setActiveFilter] = useState<PremiumFilterType>('all');
@@ -26,6 +27,27 @@ export default function DashboardPage() {
     const cleanup = subscribeToRealtime();
     return cleanup;
   }, []);
+
+  // Handle task highlighting from notifications
+  useEffect(() => {
+    const highlightTaskId = location.state?.highlightTaskId;
+    if (!highlightTaskId || loading) return;
+
+    // Wait for tasks to render
+    setTimeout(() => {
+      const element = document.querySelector(`[data-task-id="${highlightTaskId}"]`);
+      if (element) {
+        // Scroll into view
+        element.scrollIntoView({ behavior: 'smooth', block: 'center' });
+
+        // Add highlight animation
+        element.classList.add('highlight-pulse');
+        setTimeout(() => {
+          element.classList.remove('highlight-pulse');
+        }, 2000);
+      }
+    }, 300);
+  }, [location.state?.highlightTaskId, loading]);
 
   async function loadTasks() {
     try {
@@ -42,7 +64,7 @@ export default function DashboardPage() {
       setTasks(data || []);
     } catch (error) {
       console.error('Error loading tasks:', error);
-      showToast('Failed to fetch your tasks', 'error');
+      addToast('Failed to fetch your tasks', 'error');
     } finally {
       setLoading(false);
     }
@@ -60,11 +82,11 @@ export default function DashboardPage() {
             spread: 70,
             origin: { y: 0.6 }
           });
-          showToast('Task completed!', 'success');
+          addToast('Task completed!', 'success');
         }
 
         if (payload.eventType === 'INSERT') {
-          showToast('New task added!', 'success');
+          addToast('New task added!', 'success');
         }
 
         loadTasks();
@@ -90,12 +112,12 @@ export default function DashboardPage() {
 
       if (error) throw error;
 
-      showToast(`Task status updated to ${newStatus}`, 'success');
+      addToast(`Task status updated to ${newStatus}`, 'success');
     } catch (error) {
       console.error('Error updating task:', error);
       // Revert by reloading from server to ensure consistency
       loadTasks();
-      showToast('Failed to update task status', 'error');
+      addToast('Failed to update task status', 'error');
     }
   }
 

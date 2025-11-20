@@ -11,6 +11,7 @@ import AddNotePage from './pages/AddNotePage';
 import TestNotificationPage from './pages/TestNotificationPage';
 import TestEdgeFunctionPage from './pages/TestEdgeFunctionPage';
 import TaskDetailPage from './pages/TaskDetailPage';
+import MeetingNoteDetailPage from './pages/MeetingNoteDetailPage';
 
 function App() {
   return (
@@ -59,6 +60,14 @@ function App() {
               element={
                 <ProtectedRoute>
                   <TaskDetailPage />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/note/:noteId"
+              element={
+                <ProtectedRoute>
+                  <MeetingNoteDetailPage />
                 </ProtectedRoute>
               }
             />

@@ -1,26 +1,48 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-import { supabase, Task, Profile, TaskDetail } from '../lib/supabase';
-import { ArrowLeft, Clock, User, Loader2, Plus, X, Trash2, FileText, Users, MapPin, Calendar } from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { supabase, Task, Profile } from '../lib/supabase';
+import {
+  ArrowLeft,
+  Clock,
+  User,
+  Loader2,
+  Plus,
+  Trash2,
+  FileText,
+  Calendar,
+  CheckCircle2,
+  Copy,
+  Share2,
+  Edit2,
+  AlertTriangle
+} from 'lucide-react';
 import PlantIcon from '../components/PlantIcon';
 import { useToast } from '../contexts/ToastContext';
-import MeetingDetailDrawer from '../components/MeetingDetailDrawer';
+import { getPlantEmoji, formatDeadline, getInitials } from '../utils/premiumHelpers';
+import { formatTimeAgo, formatDateShort } from '../utils/meetingHelpers';
+
+interface TaskWithDetails extends Task {
+  creator?: Profile;
+}
 
 export default function TaskDetailPage() {
   const { taskId } = useParams<{ taskId: string }>();
   const navigate = useNavigate();
-  const { addToast } = useToast();
-  const [task, setTask] = useState<Task | null>(null);
-  const [profiles, setProfiles] = useState<Profile[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [saving, setSaving] = useState(false);
-  const [newDetail, setNewDetail] = useState('');
-  const [details, setDetails] = useState<TaskDetail[]>([]);
-  const [deleting, setDeleting] = useState(false);
-  const [descriptionValue, setDescriptionValue] = useState('');
-  const [showMeetingDrawer, setShowMeetingDrawer] = useState(false);
-  const [relatedTasks, setRelatedTasks] = useState<Task[]>([]);
+  const { showToast } = useToast();
+  const descriptionRef = useRef<HTMLTextAreaElement>(null);
 
+  // State
+  const [task, setTask] = useState<TaskWithDetails | null>(null);
+  const [profiles, setProfiles] = useState<Profile[]>([]);
+  const [relatedTasks, setRelatedTasks] = useState<Task[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [deleting, setDeleting] = useState(false);
+  const [isEditingDescription, setIsEditingDescription] = useState(false);
+  const [descriptionValue, setDescriptionValue] = useState('');
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+
+  // Fetch Data
   useEffect(() => {
     if (taskId) {
       loadTaskAndProfiles();
@@ -29,7 +51,8 @@ export default function TaskDetailPage() {
 
   async function loadTaskAndProfiles() {
     try {
-      const [taskResult, profilesResult, detailsResult] = await Promise.all([
+      // 1. Fetch Task & Profiles
+      const [taskResult, profilesResult] = await Promise.all([
         supabase
           .from('tasks')
           .select(`
@@ -43,50 +66,47 @@ export default function TaskDetailPage() {
         supabase
           .from('profiles')
           .select('*')
-          .order('full_name'),
-        supabase
-          .from('task_details')
-          .select('*')
-          .eq('task_id', taskId)
-          .order('order_index')
+          .order('full_name')
       ]);
 
       if (taskResult.error) throw taskResult.error;
       if (profilesResult.error) throw profilesResult.error;
-      if (detailsResult.error) throw detailsResult.error;
+
+      if (!taskResult.data) {
+        throw new Error('Task not found');
+      }
 
       setTask(taskResult.data);
       setProfiles(profilesResult.data || []);
-      setDetails(detailsResult.data || []);
-      setDescriptionValue(taskResult.data?.description || '');
+      setDescriptionValue(taskResult.data.description || '');
 
-      if (taskResult.data?.note_id) {
-        const { data: tasksData, error: tasksError } = await supabase
+      // 2. Fetch Related Tasks (Siblings) if note exists
+      if (taskResult.data.note_id) {
+        const { data: siblings, error: siblingsError } = await supabase
           .from('tasks')
-          .select(`
-            *,
-            assignee:assignee_id(id, full_name, email, avatar_url)
-          `)
+          .select('*, assignee:assignee_id(full_name)')
           .eq('note_id', taskResult.data.note_id)
+          .neq('id', taskId) // Exclude current task
           .order('created_at');
 
-        if (!tasksError && tasksData) {
-          setRelatedTasks(tasksData);
+        if (!siblingsError) {
+          setRelatedTasks(siblings || []);
         }
       }
+
     } catch (error) {
       console.error('Error loading task:', error);
-      addToast('Failed to load task details', 'error');
+      showToast({ type: 'error', title: 'Failed to load task', message: 'Please try again' });
       navigate('/dashboard');
     } finally {
       setLoading(false);
     }
   }
 
+  // Handlers
   async function handleUpdate(updates: Partial<Task>) {
     if (!task) return;
 
-    setSaving(true);
     try {
       const { error } = await supabase
         .from('tasks')
@@ -96,187 +116,292 @@ export default function TaskDetailPage() {
       if (error) throw error;
 
       setTask({ ...task, ...updates });
-      addToast('Task updated successfully', 'success');
+      showToast({ type: 'success', title: 'Updated', message: 'Task updated successfully' });
     } catch (error) {
-      console.error('Error updating task:', error);
-      addToast('Failed to update task', 'error');
-    } finally {
-      setSaving(false);
+      console.error('Error updating:', error);
+      showToast({ type: 'error', title: 'Error', message: 'Failed to update task' });
     }
   }
 
-  async function handleAddDetail() {
-    if (!newDetail.trim() || !task) return;
+  async function handleDescriptionSave() {
+    if (descriptionValue !== task?.description) {
+      await handleUpdate({ description: descriptionValue });
+    }
+    setIsEditingDescription(false);
+  }
 
+  async function handleDelete() {
+    if (!task) return;
+    setDeleting(true);
+    try {
+      const { error } = await supabase.from('tasks').delete().eq('id', task.id);
+      if (error) throw error;
+      showToast({ type: 'success', title: 'Deleted', message: 'Task deleted successfully' });
+      navigate('/dashboard');
+    } catch (error) {
+      console.error('Error deleting:', error);
+      showToast({ type: 'error', title: 'Error', message: 'Failed to delete task' });
+      setDeleting(false);
+    }
+  }
+
+  async function handleDuplicate() {
+    if (!task) return;
     try {
       const { data, error } = await supabase
-        .from('task_details')
+        .from('tasks')
         .insert({
-          task_id: task.id,
-          content: newDetail.trim(),
-          order_index: details.length
+          description: `Copy of ${task.description}`,
+          status: 'Not Started',
+          priority: task.priority,
+          note_id: task.note_id,
+          user_id: task.user_id, // Keep original creator or current user? Using original for now
+          assignee_id: task.assignee_id,
+          deadline: task.deadline
         })
         .select()
         .single();
 
       if (error) throw error;
 
-      setDetails([...details, data]);
-      setNewDetail('');
-      addToast('Detail added successfully', 'success');
-    } catch (error) {
-      console.error('Error adding detail:', error);
-      addToast('Failed to add detail', 'error');
+      showToast({ type: 'success', title: 'Duplicated', message: 'Task duplicated successfully' });
+      navigate(`/task/${data.id}`);
+    } catch {
+      showToast({ type: 'error', title: 'Error', message: 'Failed to duplicate task' });
     }
   }
 
-  async function handleRemoveDetail(detailId: string) {
-    try {
-      const { error } = await supabase
-        .from('task_details')
-        .delete()
-        .eq('id', detailId);
+  // Render Helpers
+  const getGrowthProgress = (status: string) => {
+    const stages = [
+      { id: 'seed', label: 'Seed', sub: 'Ready to plant', status: 'Not Started' },
+      { id: 'sprout', label: 'Sprout', sub: 'Growing nicely', status: 'In Progress' },
+      { id: 'bloom', label: 'Full Bloom', sub: 'Completed!', status: 'Done' }
+    ];
 
-      if (error) throw error;
+    const currentIndex = stages.findIndex(s => s.status === status);
+    const progress = status === 'Done' ? 100 : status === 'In Progress' ? 50 : 10;
 
-      setDetails(details.filter(d => d.id !== detailId));
-      addToast('Detail removed successfully', 'success');
-    } catch (error) {
-      console.error('Error removing detail:', error);
-      addToast('Failed to remove detail', 'error');
-    }
-  }
-
-  async function handleDeleteTask() {
-    if (!task) return;
-
-    const confirmDelete = window.confirm(
-      'Are you sure you want to delete this task? This action cannot be undone.'
-    );
-
-    if (!confirmDelete) return;
-
-    setDeleting(true);
-    try {
-      const { error } = await supabase
-        .from('tasks')
-        .delete()
-        .eq('id', task.id);
-
-      if (error) throw error;
-
-      addToast('Task deleted successfully', 'success');
-      navigate('/dashboard');
-    } catch (error) {
-      console.error('Error deleting task:', error);
-      addToast('Failed to delete task', 'error');
-      setDeleting(false);
-    }
-  }
-
-  const formatCreatedAt = (dateString: string) => {
-    const date = new Date(dateString);
-    return date.toLocaleString('en-IN', {
-      timeZone: 'Asia/Kolkata',
-      day: '2-digit',
-      month: 'short',
-      year: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit',
-      hour12: true
-    });
-  };
-
-  const getInitials = (name: string) => {
-    return name
-      .split(' ')
-      .map(n => n[0])
-      .join('')
-      .toUpperCase()
-      .slice(0, 2);
-  };
-
-  if (loading) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-green-700 mx-auto"></div>
-          <p className="mt-4 text-gray-600">Loading task details...</p>
+      <div className="space-y-6">
+        <div className="space-y-4">
+          {stages.map((stage, idx) => {
+            const isCompleted = idx <= currentIndex;
+            const isCurrent = idx === currentIndex;
+
+            return (
+              <div key={stage.id} className={`flex items-start gap-3 ${isCompleted ? 'opacity-100' : 'opacity-50'}`}>
+                <div className={`
+                  w-6 h-6 rounded-full flex items-center justify-center border-2 flex-shrink-0
+                  ${isCompleted
+                    ? 'bg-[#2D5016] border-[#2D5016] text-white'
+                    : 'border-gray-300 text-transparent'}
+                `}>
+                  {isCompleted && <CheckCircle2 className="w-4 h-4" />}
+                </div>
+                <div>
+                  <p className={`font-medium ${isCurrent ? 'text-[#2D5016]' : 'text-gray-900'}`}>
+                    {stage.id === 'seed' ? '🌱' : stage.id === 'sprout' ? '🌿' : '🌺'} {stage.label}
+                  </p>
+                  <p className="text-xs text-gray-500">{stage.sub}</p>
+                </div>
+                {isCurrent && (
+                  <span className="ml-auto text-xs font-bold text-[#2D5016] bg-green-100 px-2 py-1 rounded-full">
+                    CURRENT
+                  </span>
+                )}
+              </div>
+            );
+          })}
+        </div>
+
+        <div>
+          <div className="flex justify-between text-xs font-medium text-gray-600 mb-1">
+            <span>Overall Progress</span>
+            <span>{progress}%</span>
+          </div>
+          <div className="h-2 bg-gray-100 rounded-full overflow-hidden">
+            <motion.div
+              initial={{ width: 0 }}
+              animate={{ width: `${progress}%` }}
+              className="h-full bg-gradient-to-r from-[#6FA84C] to-[#2D5016]"
+            />
+          </div>
         </div>
       </div>
     );
-  }
+  };
 
-  if (!task) {
-    return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="text-center">
-          <p className="text-gray-600">Task not found</p>
-          <button
-            onClick={() => navigate('/dashboard')}
-            className="mt-4 text-green-700 hover:text-green-800 font-medium"
-          >
-            Back to Dashboard
-          </button>
-        </div>
-      </div>
-    );
-  }
+  if (loading) return (
+    <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+      <Loader2 className="w-8 h-8 text-[#2D5016] animate-spin" />
+    </div>
+  );
+
+  if (!task) return null;
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <header className="bg-white/80 backdrop-blur-frosted border-b border-gray-200 sticky top-0 z-10 smooth-transition">
-        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex items-center justify-between h-16">
-            <button
-              onClick={() => navigate('/dashboard')}
-              className="flex items-center gap-2 text-gray-600 hover:text-gray-900 smooth-transition button-press"
+    <div className="min-h-screen bg-gray-50 font-sans">
+      {/* Sticky Header */}
+      <header className="sticky top-0 z-40 bg-white/80 backdrop-blur-md border-b border-gray-200">
+        <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
+          <motion.div
+            className="flex items-center gap-3"
+            initial={{ opacity: 0, x: -20 }}
+            animate={{ opacity: 1, x: 0 }}
+          >
+            <motion.div
+              className="text-3xl"
+              whileHover={{ scale: 1.15, rotate: 5 }}
+              whileTap={{ scale: 0.95 }}
             >
-              <ArrowLeft className="w-5 h-5" />
-              <span className="font-medium">Dashboard</span>
-            </button>
-            <div className="flex items-center gap-2">
-              <PlantIcon className="w-6 h-6" />
-              <span className="font-semibold text-gray-900 hidden sm:block">GrowFlow</span>
+              🌱
+            </motion.div>
+            <h1 className="text-xl sm:text-2xl font-bold bg-gradient-to-r from-[#2D5016] to-[#6FA84C] bg-clip-text text-transparent">
+              GrowFlow
+            </h1>
+          </motion.div>
+          <div className="flex items-center gap-4">
+            <div className="w-8 h-8 rounded-full bg-gradient-to-br from-[#6FA84C] to-[#2D5016] flex items-center justify-center text-white text-xs font-medium">
+              {getInitials(task.assignee?.full_name || 'Unassigned')}
             </div>
           </div>
         </div>
       </header>
 
-      <main className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <div className="bg-white rounded-2xl shadow-sm border border-gray-200 p-6 sm:p-8 smooth-transition">
-          <div className="mb-6">
-            <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 mb-4 tracking-tight">Task Details</h1>
+      {/* Breadcrumb */}
+      <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
+        <button
+          onClick={() => navigate('/dashboard')}
+          className="flex items-center gap-2 text-sm text-gray-600 hover:text-gray-900 transition-colors group"
+        >
+          <ArrowLeft className="w-4 h-4 group-hover:-translate-x-1 transition-transform" />
+          Dashboard
+          <span className="text-gray-400">/</span>
+          <span className="font-medium text-gray-900">Task Details</span>
+        </button>
+      </div>
 
-            <div className="space-y-4">
-              <div>
-                <label className="block text-sm font-semibold text-gray-900 mb-2">
-                  Description
-                </label>
-                <textarea
-                  value={descriptionValue}
-                  onChange={(e) => setDescriptionValue(e.target.value)}
-                  onBlur={() => {
-                    if (descriptionValue !== task.description) {
-                      handleUpdate({ description: descriptionValue });
-                    }
-                  }}
-                  rows={3}
-                  className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-green-500 focus:border-transparent outline-none smooth-transition resize-none bg-white"
-                  disabled={saving}
-                />
+      <main className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 pb-12">
+        {/* Hero Section */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="bg-white rounded-3xl p-8 shadow-xl border border-gray-100 relative overflow-hidden mb-8 group"
+        >
+          <div className="absolute inset-0 bg-gradient-to-br from-green-50/50 to-emerald-50/50 pointer-events-none" />
+
+          <div className="relative flex flex-col md:flex-row gap-8 items-start">
+            {/* Large Emoji */}
+            <motion.div
+              whileHover={{ scale: 1.1, rotate: 5 }}
+              className="text-8xl md:text-9xl flex-shrink-0 cursor-default select-none"
+            >
+              {getPlantEmoji(task.status)}
+            </motion.div>
+
+            <div className="flex-1 w-full">
+              {/* Status Badge (Top Right on Desktop) */}
+              <div className="flex justify-between items-start mb-4">
+                <div className="hidden md:block" /> {/* Spacer */}
+                <span className={`
+                  px-3 py-1.5 rounded-full text-sm font-bold flex items-center gap-2
+                  ${task.status === 'Done' ? 'bg-green-100 text-green-800' :
+                    task.status === 'In Progress' ? 'bg-yellow-100 text-yellow-800' :
+                      'bg-gray-100 text-gray-700'}
+                `}>
+                  {task.status === 'Done' ? '🌳 Done' :
+                    task.status === 'In Progress' ? '🌿 In Progress' :
+                      '🌱 Not Started'}
+                </span>
               </div>
 
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              {/* Editable Description */}
+              <div className="mb-6">
+                {isEditingDescription ? (
+                  <textarea
+                    ref={descriptionRef}
+                    value={descriptionValue}
+                    onChange={(e) => setDescriptionValue(e.target.value)}
+                    onBlur={handleDescriptionSave}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter' && !e.shiftKey) {
+                        e.preventDefault();
+                        handleDescriptionSave();
+                      }
+                    }}
+                    className="w-full text-2xl md:text-3xl font-bold text-gray-900 bg-transparent border-b-2 border-[#6FA84C] focus:outline-none resize-none"
+                    rows={2}
+                    autoFocus
+                  />
+                ) : (
+                  <h1
+                    onClick={() => setIsEditingDescription(true)}
+                    className="text-2xl md:text-3xl font-bold text-gray-900 cursor-pointer hover:text-[#2D5016] transition-colors flex items-start gap-3 group/title"
+                  >
+                    {task.description}
+                    <Edit2 className="w-5 h-5 text-gray-400 opacity-0 group-hover/title:opacity-100 transition-opacity mt-1" />
+                  </h1>
+                )}
+              </div>
+
+              {/* Metadata Badges */}
+              <div className="flex flex-wrap gap-4">
+                {/* Assignee */}
+                <div className="flex items-center gap-2 bg-white/80 px-3 py-1.5 rounded-xl border border-gray-200">
+                  <User className="w-4 h-4 text-gray-500" />
+                  <span className="font-medium text-sm text-gray-900">
+                    {task.assignee?.full_name || 'Unassigned'}
+                  </span>
+                </div>
+
+                {/* Due Date */}
+                <div className="flex items-center gap-2 bg-white/80 px-3 py-1.5 rounded-xl border border-gray-200">
+                  <Calendar className="w-4 h-4 text-gray-500" />
+                  <span className="font-medium text-sm text-gray-900">
+                    {formatDeadline(task.deadline).text}
+                  </span>
+                </div>
+
+                {/* Priority */}
+                <div className={`
+                  flex items-center gap-2 px-3 py-1.5 rounded-xl border
+                  ${task.priority === 'High' ? 'bg-red-50 border-red-100 text-red-700' :
+                    task.priority === 'Medium' ? 'bg-yellow-50 border-yellow-100 text-yellow-700' :
+                      'bg-blue-50 border-blue-100 text-blue-700'}
+                `}>
+                  <span className="text-sm font-bold">
+                    {task.priority === 'High' ? '🔥 High Priority' :
+                      task.priority === 'Medium' ? '⚡ Medium Priority' :
+                        '📌 Low Priority'}
+                  </span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </motion.div>
+
+        {/* Main Grid */}
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+
+          {/* Left Column (Controls & Timeline) */}
+          <div className="lg:col-span-2 space-y-8">
+
+            {/* Controls Card */}
+            <div className="bg-white rounded-2xl p-6 border border-gray-100 shadow-sm">
+              <h2 className="text-lg font-bold text-gray-900 mb-6 flex items-center gap-2">
+                <FileText className="w-5 h-5 text-[#6FA84C]" />
+                Task Controls
+              </h2>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                {/* Status */}
                 <div>
-                  <label className="block text-sm font-semibold text-gray-900 mb-2">
-                    Status
-                  </label>
+                  <label className="block text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2">Status</label>
                   <select
                     value={task.status}
                     onChange={(e) => handleUpdate({ status: e.target.value as Task['status'] })}
-                    className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-green-500 focus:border-transparent outline-none smooth-transition bg-white cursor-pointer"
-                    disabled={saving}
+                    className="w-full p-3 bg-gray-50 border border-gray-200 rounded-xl font-medium text-gray-900 focus:ring-2 focus:ring-[#6FA84C] focus:border-transparent outline-none transition-all"
                   >
                     <option value="Not Started">🌱 Not Started</option>
                     <option value="In Progress">🌿 In Progress</option>
@@ -284,264 +409,304 @@ export default function TaskDetailPage() {
                   </select>
                 </div>
 
+                {/* Assignee */}
                 <div>
-                  <label className="block text-sm font-semibold text-gray-900 mb-2">
-                    Priority
-                  </label>
-                  <select
-                    value={task.priority}
-                    onChange={(e) => handleUpdate({ priority: e.target.value as Task['priority'] })}
-                    className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-green-500 focus:border-transparent outline-none smooth-transition bg-white cursor-pointer"
-                    disabled={saving}
-                  >
-                    <option value="Low">Low Priority</option>
-                    <option value="Medium">Medium Priority</option>
-                    <option value="High">High Priority</option>
-                  </select>
-                </div>
-              </div>
-
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-sm font-semibold text-gray-900 mb-2">
-                    Assign To
-                  </label>
+                  <label className="block text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2">Assignee</label>
                   <select
                     value={task.assignee_id || ''}
                     onChange={(e) => handleUpdate({ assignee_id: e.target.value || null })}
-                    className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-green-500 focus:border-transparent outline-none smooth-transition bg-white cursor-pointer"
-                    disabled={saving}
+                    className="w-full p-3 bg-gray-50 border border-gray-200 rounded-xl font-medium text-gray-900 focus:ring-2 focus:ring-[#6FA84C] focus:border-transparent outline-none transition-all"
                   >
                     <option value="">Unassigned</option>
-                    {profiles.map(profile => (
-                      <option key={profile.id} value={profile.id}>
-                        {profile.full_name}
-                      </option>
+                    {profiles.map(p => (
+                      <option key={p.id} value={p.id}>{p.full_name}</option>
                     ))}
                   </select>
                 </div>
 
+                {/* Deadline */}
                 <div>
-                  <label className="block text-sm font-semibold text-gray-900 mb-2">
-                    Deadline
-                  </label>
+                  <label className="block text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2">Due Date</label>
                   <input
                     type="date"
                     value={task.deadline || ''}
                     onChange={(e) => handleUpdate({ deadline: e.target.value || null })}
-                    className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-green-500 focus:border-transparent outline-none smooth-transition bg-white"
-                    disabled={saving}
+                    className="w-full p-3 bg-gray-50 border border-gray-200 rounded-xl font-medium text-gray-900 focus:ring-2 focus:ring-[#6FA84C] focus:border-transparent outline-none transition-all"
                   />
+                </div>
+
+                {/* Priority */}
+                <div>
+                  <label className="block text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2">Priority</label>
+                  <div className="flex bg-gray-50 p-1 rounded-xl border border-gray-200">
+                    {['Low', 'Medium', 'High'].map((p) => (
+                      <button
+                        key={p}
+                        onClick={() => handleUpdate({ priority: p as Task['priority'] })}
+                        className={`
+                          flex-1 py-2 rounded-lg text-sm font-medium transition-all
+                          ${task.priority === p
+                            ? 'bg-white text-gray-900 shadow-sm border border-gray-100'
+                            : 'text-gray-500 hover:text-gray-700'}
+                        `}
+                      >
+                        {p === 'High' ? '🔥' : p === 'Medium' ? '⚡' : '📌'} {p}
+                      </button>
+                    ))}
+                  </div>
                 </div>
               </div>
             </div>
+
+            {/* Activity Timeline */}
+            <div className="bg-white rounded-2xl p-6 border border-gray-100 shadow-sm">
+              <h2 className="text-lg font-bold text-gray-900 mb-6 flex items-center gap-2">
+                <Clock className="w-5 h-5 text-[#6FA84C]" />
+                Activity Timeline
+              </h2>
+
+              <div className="space-y-6 relative before:absolute before:left-[19px] before:top-2 before:bottom-2 before:w-0.5 before:bg-gray-100">
+                {/* Created Event */}
+                <div className="relative flex gap-4">
+                  <div className="w-10 h-10 rounded-full bg-blue-50 border-2 border-white shadow-sm flex items-center justify-center z-10">
+                    <Plus className="w-5 h-5 text-blue-600" />
+                  </div>
+                  <div>
+                    <p className="text-sm text-gray-900">
+                      <span className="font-bold">{task.creator?.full_name || 'Someone'}</span> created this task
+                    </p>
+                    <p className="text-xs text-gray-500">{formatTimeAgo(task.created_at)}</p>
+                  </div>
+                </div>
+
+                {/* Last Updated Event (if different) */}
+                {task.updated_at !== task.created_at && (
+                  <div className="relative flex gap-4">
+                    <div className="w-10 h-10 rounded-full bg-yellow-50 border-2 border-white shadow-sm flex items-center justify-center z-10">
+                      <Edit2 className="w-5 h-5 text-yellow-600" />
+                    </div>
+                    <div>
+                      <p className="text-sm text-gray-900">
+                        Task was updated
+                      </p>
+                      <p className="text-xs text-gray-500">{formatTimeAgo(task.updated_at)}</p>
+                    </div>
+                  </div>
+                )}
+
+                {/* Current Status Event */}
+                <div className="relative flex gap-4">
+                  <div className="w-10 h-10 rounded-full bg-green-50 border-2 border-white shadow-sm flex items-center justify-center z-10">
+                    <CheckCircle2 className="w-5 h-5 text-green-600" />
+                  </div>
+                  <div>
+                    <p className="text-sm text-gray-900">
+                      Current status is <span className="font-bold">{task.status}</span>
+                    </p>
+                    <p className="text-xs text-gray-500">Just now</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+
           </div>
 
-          <div className="border-t border-gray-200 pt-6 mb-6">
-            <h2 className="text-lg font-semibold text-gray-900 mb-4">Additional Details</h2>
+          {/* Right Column (Progress & Info) */}
+          <div className="space-y-6">
 
-            <div className="mb-4">
-              <div className="flex gap-2">
-                <input
-                  type="text"
-                  value={newDetail}
-                  onChange={(e) => setNewDetail(e.target.value)}
-                  onKeyPress={(e) => e.key === 'Enter' && handleAddDetail()}
-                  placeholder="Add a detail or sub-task..."
-                  className="flex-1 px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-green-500 focus:border-transparent outline-none smooth-transition bg-white"
-                />
+            {/* Growth Progress */}
+            <div className="bg-white rounded-2xl p-6 border border-gray-100 shadow-sm">
+              <h2 className="text-lg font-bold text-gray-900 mb-6 flex items-center gap-2">
+                <PlantIcon className="w-5 h-5 text-[#6FA84C]" />
+                Growth Progress
+              </h2>
+              {getGrowthProgress(task.status)}
+            </div>
+
+            {/* Task Info */}
+            <div className="bg-white rounded-2xl p-6 border border-gray-100 shadow-sm text-sm">
+              <h2 className="text-lg font-bold text-gray-900 mb-4">ℹ️ Task Info</h2>
+              <div className="space-y-4">
+                <div>
+                  <p className="text-gray-500 mb-1">Created</p>
+                  <p className="font-medium text-gray-900">{formatDateShort(task.created_at)}</p>
+                </div>
+                <div>
+                  <p className="text-gray-500 mb-1">Created by</p>
+                  <div className="flex items-center gap-2">
+                    <div className="w-5 h-5 rounded-full bg-gray-200 flex items-center justify-center text-[10px]">
+                      {getInitials(task.creator?.full_name || 'Unknown')}
+                    </div>
+                    <p className="font-medium text-gray-900">{task.creator?.full_name || 'Unknown'}</p>
+                  </div>
+                </div>
+                {task.note && (
+                  <div className="pt-4 border-t border-gray-100">
+                    <p className="text-gray-500 mb-2">From meeting note</p>
+                    <button
+                      onClick={() => navigate(`/note/${task.note_id}`)}
+                      className="text-[#2D5016] font-medium hover:underline flex items-center gap-1"
+                    >
+                      <FileText className="w-3 h-3" />
+                      View original note →
+                    </button>
+                  </div>
+                )}
+              </div>
+            </div>
+
+            {/* Meeting Context Card */}
+            {task.note && (
+              <div className="bg-white rounded-2xl p-6 border border-gray-100 shadow-sm">
+                <h2 className="text-lg font-bold text-gray-900 mb-4 flex items-center gap-2">
+                  <FileText className="w-5 h-5 text-[#6FA84C]" />
+                  Meeting Context
+                </h2>
+
+                <div className="bg-blue-50/50 rounded-xl p-4 border border-blue-100 mb-4">
+                  <h3 className="font-bold text-gray-900 mb-1">{task.note.meeting_title || 'Untitled Meeting'}</h3>
+                  <p className="text-xs text-gray-500 mb-2">
+                    📅 {formatDateShort(task.note.meeting_date || task.note.created_at)} •
+                    👥 {task.note.meeting_participants?.length || 0} people
+                  </p>
+                  {task.note.meeting_summary && (
+                    <p className="text-sm text-gray-700 line-clamp-2 italic">
+                      "{task.note.meeting_summary}"
+                    </p>
+                  )}
+                </div>
+
+                {relatedTasks.length > 0 && (
+                  <div className="space-y-3">
+                    <p className="text-xs font-semibold text-gray-500 uppercase">Related Tasks ({relatedTasks.length + 1})</p>
+
+                    {/* Current Task */}
+                    <div className="flex items-center gap-2 p-2 bg-green-50 border border-green-100 rounded-lg">
+                      <span className="text-lg">{getPlantEmoji(task.status)}</span>
+                      <div className="flex-1 min-w-0">
+                        <p className="text-sm font-medium text-gray-900 truncate">{task.description}</p>
+                        <p className="text-xs text-gray-500">{task.assignee?.full_name || 'Unassigned'}</p>
+                      </div>
+                      <span className="text-[10px] font-bold text-green-700 bg-green-100 px-1.5 py-0.5 rounded">YOU</span>
+                    </div>
+
+                    {/* Siblings */}
+                    {relatedTasks.map(sibling => (
+                      <button
+                        key={sibling.id}
+                        onClick={() => navigate(`/task/${sibling.id}`)}
+                        className="w-full flex items-center gap-2 p-2 hover:bg-gray-50 rounded-lg transition-colors text-left group"
+                      >
+                        <span className="text-lg opacity-50 group-hover:opacity-100 transition-opacity">
+                          {getPlantEmoji(sibling.status)}
+                        </span>
+                        <div className="flex-1 min-w-0">
+                          <p className="text-sm text-gray-600 group-hover:text-gray-900 truncate">{sibling.description}</p>
+                          <p className="text-xs text-gray-400">{sibling.assignee?.full_name || 'Unassigned'}</p>
+                        </div>
+                      </button>
+                    ))}
+                  </div>
+                )}
+
                 <button
-                  onClick={handleAddDetail}
-                  className="px-4 py-3 bg-green-700 hover:bg-green-800 active:bg-green-900 text-white rounded-xl smooth-transition button-press flex items-center gap-2 font-medium"
+                  onClick={() => navigate(`/note/${task.note_id}`)}
+                  className="w-full mt-4 py-2 text-sm font-medium text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
                 >
-                  <Plus className="w-4 h-4" />
-                  Add
+                  View Full Meeting Note
+                </button>
+              </div>
+            )}
+
+            {/* Quick Actions */}
+            <div className="bg-white rounded-2xl p-6 border border-gray-100 shadow-sm">
+              <h2 className="text-lg font-bold text-gray-900 mb-4 flex items-center gap-2">
+                ⚡ Quick Actions
+              </h2>
+
+              <div className="space-y-2">
+                <button
+                  onClick={() => handleUpdate({ status: 'Done' })}
+                  className="w-full flex items-center gap-3 p-3 rounded-xl bg-gradient-to-r from-green-50 to-emerald-50 hover:from-green-100 hover:to-emerald-100 text-green-800 font-medium transition-all"
+                >
+                  <CheckCircle2 className="w-5 h-5" />
+                  Mark as Complete
+                </button>
+
+                <button
+                  onClick={handleDuplicate}
+                  className="w-full flex items-center gap-3 p-3 rounded-xl hover:bg-gray-50 text-gray-700 font-medium transition-all"
+                >
+                  <Copy className="w-5 h-5" />
+                  Duplicate Task
+                </button>
+
+                <button
+                  onClick={() => showToast({ type: 'info', title: 'Coming Soon', message: 'Sharing will be available soon' })}
+                  className="w-full flex items-center gap-3 p-3 rounded-xl hover:bg-gray-50 text-gray-700 font-medium transition-all"
+                >
+                  <Share2 className="w-5 h-5" />
+                  Share Task
+                </button>
+
+                <div className="h-px bg-gray-100 my-2" />
+
+                <button
+                  onClick={() => setShowDeleteModal(true)}
+                  className="w-full flex items-center gap-3 p-3 rounded-xl hover:bg-red-50 text-red-600 font-medium transition-all"
+                >
+                  <Trash2 className="w-5 h-5" />
+                  Delete Task
                 </button>
               </div>
             </div>
 
-            {details.length > 0 ? (
-              <ul className="space-y-2">
-                {details.map((detail) => (
-                  <li key={detail.id} className="flex items-center gap-3 bg-gray-50 px-4 py-3 rounded-lg">
-                    <span className="w-6 h-6 rounded-full bg-green-100 text-green-700 flex items-center justify-center text-xs font-medium flex-shrink-0">
-                      ✓
-                    </span>
-                    <span className="flex-1 text-gray-700">{detail.content}</span>
-                    <button
-                      onClick={() => handleRemoveDetail(detail.id)}
-                      className="text-gray-400 hover:text-red-600 transition-colors"
-                      title="Remove detail"
-                    >
-                      <X className="w-4 h-4" />
-                    </button>
-                  </li>
-                ))}
-              </ul>
-            ) : (
-              <p className="text-sm text-gray-500 italic">No additional details added yet. Use the form above to add sub-tasks or notes.</p>
-            )}
-          </div>
-
-          <div className="border-t border-gray-200 pt-6">
-            <h2 className="text-lg font-semibold text-gray-900 mb-4">Task Information</h2>
-
-            <div className="space-y-3">
-              <div className="flex items-center gap-3">
-                <User className="w-5 h-5 text-gray-400" />
-                <div>
-                  <p className="text-sm font-medium text-gray-700">Created by</p>
-                  <div className="flex items-center gap-2 mt-1">
-                    {(task as Task & { creator?: Profile }).creator ? (
-                      <>
-                        <div className="w-6 h-6 rounded-full bg-green-700 text-white flex items-center justify-center text-xs font-medium">
-                          {getInitials((task as Task & { creator?: Profile }).creator!.full_name)}
-                        </div>
-                        <span className="text-gray-900">{(task as Task & { creator?: Profile }).creator!.full_name}</span>
-                      </>
-                    ) : (
-                      <span className="text-gray-500">Unknown</span>
-                    )}
-                  </div>
-                </div>
-              </div>
-
-              <div className="flex items-center gap-3">
-                <Clock className="w-5 h-5 text-gray-400" />
-                <div>
-                  <p className="text-sm font-medium text-gray-700">Created on</p>
-                  <p className="text-gray-900 mt-1">{formatCreatedAt(task.created_at)}</p>
-                </div>
-              </div>
-
-              {task.assignee && (
-                <div className="flex items-center gap-3">
-                  <User className="w-5 h-5 text-gray-400" />
-                  <div>
-                    <p className="text-sm font-medium text-gray-700">Assigned to</p>
-                    <div className="flex items-center gap-2 mt-1">
-                      <div className="w-6 h-6 rounded-full bg-green-700 text-white flex items-center justify-center text-xs font-medium">
-                        {getInitials(task.assignee.full_name)}
-                      </div>
-                      <span className="text-gray-900">{task.assignee.full_name}</span>
-                    </div>
-                  </div>
-                </div>
-              )}
-            </div>
-          </div>
-
-          {task.note && task.note.meeting_title && (
-            <div className="border-t border-gray-200 pt-6">
-              <h2 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
-                <FileText className="w-5 h-5 text-blue-600" />
-                Meeting Context
-              </h2>
-
-              <div className="bg-blue-50 rounded-lg border border-blue-200 p-4 space-y-3">
-                <div className="flex items-start gap-3">
-                  <FileText className="w-5 h-5 text-blue-600 mt-0.5" />
-                  <div className="flex-1">
-                    <p className="text-sm font-medium text-gray-700">Meeting Title</p>
-                    <p className="text-gray-900 mt-1 font-semibold">{task.note.meeting_title}</p>
-                  </div>
-                </div>
-
-                {task.note.meeting_date && (
-                  <div className="flex items-start gap-3">
-                    <Calendar className="w-5 h-5 text-blue-600 mt-0.5" />
-                    <div className="flex-1">
-                      <p className="text-sm font-medium text-gray-700">Meeting Date</p>
-                      <p className="text-gray-900 mt-1">
-                        {new Date(task.note.meeting_date).toLocaleDateString('en-US', {
-                          weekday: 'long',
-                          year: 'numeric',
-                          month: 'long',
-                          day: 'numeric'
-                        })}
-                      </p>
-                    </div>
-                  </div>
-                )}
-
-                {task.note.meeting_location && (
-                  <div className="flex items-start gap-3">
-                    <MapPin className="w-5 h-5 text-blue-600 mt-0.5" />
-                    <div className="flex-1">
-                      <p className="text-sm font-medium text-gray-700">Location</p>
-                      <p className="text-gray-900 mt-1">{task.note.meeting_location}</p>
-                    </div>
-                  </div>
-                )}
-
-                {task.note.meeting_participants && task.note.meeting_participants.length > 0 && (
-                  <div className="flex items-start gap-3">
-                    <Users className="w-5 h-5 text-blue-600 mt-0.5" />
-                    <div className="flex-1">
-                      <p className="text-sm font-medium text-gray-700">Participants</p>
-                      <div className="flex flex-wrap gap-2 mt-2">
-                        {task.note.meeting_participants.map((participant, index) => (
-                          <span
-                            key={index}
-                            className="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-700 border border-blue-200"
-                          >
-                            {participant}
-                          </span>
-                        ))}
-                      </div>
-                    </div>
-                  </div>
-                )}
-
-                <div className="pt-3 border-t border-blue-200">
-                  <button
-                    onClick={() => setShowMeetingDrawer(true)}
-                    className="w-full sm:w-auto px-4 py-2.5 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-lg transition-colors flex items-center justify-center gap-2"
-                  >
-                    <FileText className="w-4 h-4" />
-                    View Full Meeting
-                  </button>
-                </div>
-              </div>
-            </div>
-          )}
-
-          {saving && (
-            <div className="mt-6 flex items-center justify-center gap-2 text-green-700">
-              <Loader2 className="w-5 h-5 animate-spin" />
-              <span>Saving changes...</span>
-            </div>
-          )}
-
-          <div className="border-t border-gray-200 pt-6 mt-6">
-            <button
-              onClick={handleDeleteTask}
-              disabled={deleting}
-              className="w-full sm:w-auto px-6 py-3 bg-red-600 hover:bg-red-700 active:bg-red-800 text-white font-semibold rounded-xl smooth-transition button-press flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed shadow-lg hover:shadow-xl"
-            >
-              {deleting ? (
-                <>
-                  <Loader2 className="w-5 h-5 animate-spin" />
-                  Deleting...
-                </>
-              ) : (
-                <>
-                  <Trash2 className="w-5 h-5" />
-                  Delete Task
-                </>
-              )}
-            </button>
           </div>
         </div>
       </main>
 
-      <MeetingDetailDrawer
-        note={task?.note || null}
-        isOpen={showMeetingDrawer}
-        onClose={() => setShowMeetingDrawer(false)}
-        currentTaskId={taskId}
-        relatedTasks={relatedTasks}
-      />
+      {/* Delete Modal */}
+      <AnimatePresence>
+        {showDeleteModal && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-50 bg-black/50 backdrop-blur-sm flex items-center justify-center p-6"
+            onClick={() => setShowDeleteModal(false)}
+          >
+            <motion.div
+              initial={{ scale: 0.9, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.9, opacity: 0 }}
+              onClick={e => e.stopPropagation()}
+              className="bg-white rounded-3xl p-8 max-w-md w-full shadow-2xl"
+            >
+              <div className="w-16 h-16 mx-auto mb-6 bg-red-100 rounded-2xl flex items-center justify-center">
+                <AlertTriangle className="w-8 h-8 text-red-600" />
+              </div>
+              <h2 className="text-2xl font-bold text-gray-900 text-center mb-3">Delete this task?</h2>
+              <p className="text-gray-600 text-center mb-6">This action cannot be undone.</p>
+              <div className="flex gap-3">
+                <button
+                  onClick={() => setShowDeleteModal(false)}
+                  className="flex-1 px-6 py-3 rounded-xl bg-gray-100 hover:bg-gray-200 text-gray-700 font-semibold transition-all"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={handleDelete}
+                  disabled={deleting}
+                  className="flex-1 px-6 py-3 rounded-xl bg-red-600 hover:bg-red-700 text-white font-semibold transition-all flex items-center justify-center gap-2"
+                >
+                  {deleting ? <Loader2 className="w-5 h-5 animate-spin" /> : <Trash2 className="w-5 h-5" />}
+                  Delete
+                </button>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }
