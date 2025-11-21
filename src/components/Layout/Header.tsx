@@ -1,5 +1,6 @@
 import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
+import { User } from 'lucide-react';
 import NotificationBell from '../NotificationBell';
 import Logo from '../Logo';
 
@@ -25,9 +26,12 @@ export default function Header() {
                         </motion.div>
                     </Link>
 
-                    {/* Right: Notifications */}
-                    <div className="flex items-center gap-3">
+                    {/* Right: Notifications & Profile */}
+                    <div className="flex items-center gap-4">
                         <NotificationBell />
+                        <Link to="/profile" className="w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center hover:bg-gray-200 transition-colors">
+                            <User className="w-5 h-5 text-gray-600" />
+                        </Link>
                     </div>
                 </div>
             </header>

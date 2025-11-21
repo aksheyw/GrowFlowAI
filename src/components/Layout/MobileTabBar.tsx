@@ -23,7 +23,7 @@ export default function MobileTabBar() {
             special: true, // Slightly larger/highlighted
         },
         {
-            path: '/notifications',
+            path: '/updates', // Changed from /notifications
             icon: Bell,
             label: 'Updates',
             badge: unreadCount > 0 ? unreadCount : null,

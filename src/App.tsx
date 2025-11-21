@@ -16,6 +16,8 @@ import TestNotificationPage from './pages/TestNotificationPage';
 import TestEdgeFunctionPage from './pages/TestEdgeFunctionPage';
 import TaskDetailPage from './pages/TaskDetailPage';
 import MeetingNoteDetailPage from './pages/MeetingNoteDetailPage';
+import ProfilePage from './pages/ProfilePage';
+
 
 // Page transition variants
 const pageVariants = {
@@ -135,6 +137,21 @@ function AnimatedRoutes() {
                 exit="exit"
               >
                 <MeetingNoteDetailPage />
+              </motion.div>
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/profile"
+          element={
+            <ProtectedRoute>
+              <motion.div
+                variants={pageVariants}
+                initial="initial"
+                animate="animate"
+                exit="exit"
+              >
+                <ProfilePage />
               </motion.div>
             </ProtectedRoute>
           }
