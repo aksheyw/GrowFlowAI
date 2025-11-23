@@ -1,6 +1,6 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { useLocation, Link } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router-dom';
 
 import confetti from 'canvas-confetti';
 import { useAuth } from '../contexts/AuthContext';
@@ -10,6 +10,8 @@ import PremiumTaskCard from '../components/premium/PremiumTaskCard';
 import PremiumFilterBar, { PremiumFilterType, SortOption } from '../components/premium/PremiumFilterBar';
 import PremiumEmptyState from '../components/premium/PremiumEmptyState';
 import MeetingNoteCard from '../components/premium/MeetingNoteCard';
+import { Card } from '../components/ui/Card';
+import { Button } from '../components/ui/Button';
 
 import { useToast } from '../contexts/ToastContext';
 
@@ -17,6 +19,7 @@ type DashboardTab = 'tasks' | 'notes';
 
 export default function DashboardPage() {
   const { profile } = useAuth();
+  const navigate = useNavigate();
 
   const location = useLocation();
   const { addToast } = useToast();
@@ -37,34 +40,7 @@ export default function DashboardPage() {
 
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    loadData();
-    const cleanup = subscribeToRealtime();
-    return cleanup;
-  }, []);
-
-  // Handle task highlighting from notifications
-  useEffect(() => {
-    const highlightTaskId = location.state?.highlightTaskId;
-    if (!highlightTaskId || loading) return;
-
-    // Wait for tasks to render
-    setTimeout(() => {
-      const element = document.querySelector(`[data-task-id="${highlightTaskId}"]`);
-      if (element) {
-        // Scroll into view
-        element.scrollIntoView({ behavior: 'smooth', block: 'center' });
-
-        // Add highlight animation
-        element.classList.add('highlight-pulse');
-        setTimeout(() => {
-          element.classList.remove('highlight-pulse');
-        }, 2000);
-      }
-    }, 300);
-  }, [location.state?.highlightTaskId, loading]);
-
-  async function loadData() {
+  const loadData = useCallback(async () => {
     try {
       setLoading(true);
 
@@ -105,9 +81,9 @@ export default function DashboardPage() {
     } finally {
       setLoading(false);
     }
-  }
+  }, [addToast]);
 
-  function subscribeToRealtime() {
+  const subscribeToRealtime = useCallback(() => {
     const channel = supabase
       .channel('dashboard-premium')
       .on('postgres_changes', { event: '*', schema: 'public', table: 'tasks' }, (payload) => {
@@ -134,7 +110,36 @@ export default function DashboardPage() {
     return () => {
       supabase.removeChannel(channel);
     };
-  }
+  }, [addToast, loadData]);
+
+  useEffect(() => {
+    loadData();
+    const cleanup = subscribeToRealtime();
+    return cleanup;
+  }, [loadData, subscribeToRealtime]);
+
+  // Handle task highlighting from notifications
+  useEffect(() => {
+    const highlightTaskId = location.state?.highlightTaskId;
+    if (!highlightTaskId || loading) return;
+
+    // Wait for tasks to render
+    setTimeout(() => {
+      const element = document.querySelector(`[data-task-id="${highlightTaskId}"]`);
+      if (element) {
+        // Scroll into view
+        element.scrollIntoView({ behavior: 'smooth', block: 'center' });
+
+        // Add highlight animation
+        element.classList.add('highlight-pulse');
+        setTimeout(() => {
+          element.classList.remove('highlight-pulse');
+        }, 2000);
+      }
+    }, 300);
+  }, [location.state?.highlightTaskId, loading]);
+
+
 
   async function handleStatusChange(taskId: string, newStatus: string) {
     // Optimistic update
@@ -277,18 +282,16 @@ export default function DashboardPage() {
                   { label: 'In Progress', count: taskCounts['In Progress'], emoji: '🌿', color: 'from-yellow-400 to-orange-500' },
                   { label: 'Completed', count: taskCounts['Done'], emoji: '🌳', color: 'from-green-400 to-emerald-500' },
                 ].map((stat, index) => (
-                  <motion.div
+                  <Card
                     key={stat.label}
                     className="
                       min-w-[240px] sm:min-w-0 flex-shrink-0 snap-center
-                      bg-white rounded-2xl p-5 sm:p-6 
-                      shadow-sm hover:shadow-xl transition-shadow duration-300 
-                      border border-gray-200/50
+                      p-5 sm:p-6 
+                      hover:shadow-xl transition-shadow duration-300 
                     "
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ delay: index * 0.1 }}
-                    whileHover={{ y: -4 }}
                   >
                     <div className="flex items-center justify-between mb-2">
                       <p className="text-gray-600 text-sm font-medium">{stat.label}</p>
@@ -297,7 +300,7 @@ export default function DashboardPage() {
                     <p className={`text-3xl font-bold bg-gradient-to-r ${stat.color} bg-clip-text text-transparent`}>
                       {stat.count}
                     </p>
-                  </motion.div>
+                  </Card>
                 ))}
               </div>
 
@@ -352,12 +355,13 @@ export default function DashboardPage() {
                   <p className="text-gray-500 max-w-md mb-8">
                     Paste your first meeting note to start growing your knowledge base.
                   </p>
-                  <Link
-                    to="/add-note"
-                    className="px-6 py-3 bg-[#2D5016] text-white rounded-xl font-medium hover:shadow-lg hover:scale-105 transition-all duration-200"
+                  <Button
+                    onClick={() => navigate('/add-note')}
+                    className="px-6 py-3 rounded-xl font-medium hover:shadow-lg hover:scale-105 transition-all duration-200"
+                    size="lg"
                   >
                     Add First Note
-                  </Link>
+                  </Button>
                 </div>
               ) : (
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">

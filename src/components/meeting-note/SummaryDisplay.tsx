@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Copy, Check, Mail, MessageSquare, FileText } from 'lucide-react';
+import { Copy, Check, Mail, MessageSquare, FileText, LucideIcon } from 'lucide-react';
 import { useToast } from '../../contexts/ToastContext';
 
 interface SummaryDisplayProps {
@@ -69,7 +69,7 @@ export default function SummaryDisplay({ summary }: SummaryDisplayProps) {
         }
     };
 
-    const formats: { id: Format; label: string; icon: any }[] = [
+    const formats: { id: Format; label: string; icon: LucideIcon }[] = [
         { id: 'email', label: 'Email', icon: Mail },
         { id: 'chat', label: 'Chat', icon: MessageSquare },
         { id: 'document', label: 'Document', icon: FileText }

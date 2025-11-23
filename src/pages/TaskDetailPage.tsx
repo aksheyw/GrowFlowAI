@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { supabase, Task, Profile } from '../lib/supabase';
@@ -19,9 +19,12 @@ import {
 } from 'lucide-react';
 import PlantIcon from '../components/PlantIcon';
 import { useToast } from '../contexts/ToastContext';
-import { getPlantEmoji, formatDeadline, getInitials } from '../utils/premiumHelpers';
+import { getPlantEmoji, formatDeadline, getInitials, cleanSummary } from '../utils/premiumHelpers';
 import { formatTimeAgo, formatDateShort } from '../utils/meetingHelpers';
 import TaskGrowthProgress from '../components/task-detail/TaskGrowthProgress';
+import { Card } from '../components/ui/Card';
+import { Button } from '../components/ui/Button';
+import { Badge } from '../components/ui/Badge';
 
 interface TaskWithDetails extends Task {
   creator?: Profile;
@@ -44,13 +47,7 @@ export default function TaskDetailPage() {
   const [showDeleteModal, setShowDeleteModal] = useState(false);
 
   // Fetch Data
-  useEffect(() => {
-    if (taskId) {
-      loadTaskAndProfiles();
-    }
-  }, [taskId]);
-
-  async function loadTaskAndProfiles() {
+  const loadTaskAndProfiles = useCallback(async () => {
     try {
       // 1. Fetch Task & Profiles
       const [taskResult, profilesResult] = await Promise.all([
@@ -102,7 +99,13 @@ export default function TaskDetailPage() {
     } finally {
       setLoading(false);
     }
-  }
+  }, [taskId, showToast, navigate]);
+
+  useEffect(() => {
+    if (taskId) {
+      loadTaskAndProfiles();
+    }
+  }, [taskId, loadTaskAndProfiles]);
 
   // Handlers
   async function handleUpdate(updates: Partial<Task>) {
@@ -190,23 +193,24 @@ export default function TaskDetailPage() {
     <div className="min-h-screen bg-gray-50 font-sans pb-20 md:pb-0">
       {/* Breadcrumb */}
       <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
-        <button
+        <Button
+          variant="ghost"
           onClick={() => navigate('/dashboard')}
-          className="flex items-center gap-2 text-sm text-gray-600 hover:text-gray-900 transition-colors group"
+          className="flex items-center gap-2 text-sm text-gray-600 hover:text-gray-900 transition-colors group pl-0 hover:bg-transparent"
         >
           <ArrowLeft className="w-4 h-4 group-hover:-translate-x-1 transition-transform" />
           Dashboard
           <span className="text-gray-400">/</span>
           <span className="font-medium text-gray-900">Task Details</span>
-        </button>
+        </Button>
       </div>
 
       <main className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 pb-12">
         {/* Hero Section */}
-        <motion.div
+        <Card
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          className="bg-white rounded-2xl sm:rounded-3xl p-4 sm:p-8 shadow-xl border border-gray-100 relative overflow-hidden mb-6 sm:mb-8 group"
+          className="p-4 sm:p-8 shadow-xl border-gray-100 relative overflow-hidden mb-6 sm:mb-8 group"
         >
           <div className="absolute inset-0 bg-gradient-to-br from-green-50/50 to-emerald-50/50 pointer-events-none" />
 
@@ -223,16 +227,11 @@ export default function TaskDetailPage() {
               {/* Status Badge (Top Right on Desktop) */}
               <div className="flex justify-between items-start mb-3 sm:mb-4">
                 <div className="hidden md:block" /> {/* Spacer */}
-                <span className={`
-                  px-2 py-1 sm:px-3 sm:py-1.5 rounded-full text-xs sm:text-sm font-bold flex items-center gap-1 sm:gap-2
-                  ${task.status === 'Done' ? 'bg-green-100 text-green-800' :
-                    task.status === 'In Progress' ? 'bg-yellow-100 text-yellow-800' :
-                      'bg-gray-100 text-gray-700'}
-                `}>
+                <Badge variant={task.status === 'Done' ? 'success' : task.status === 'In Progress' ? 'warning' : 'neutral'} className="text-sm px-3 py-1.5">
                   {task.status === 'Done' ? '🌳 Done' :
                     task.status === 'In Progress' ? '🌿 In Progress' :
                       '🌱 Not Started'}
-                </span>
+                </Badge>
               </div>
 
               {/* Editable Description */}
@@ -283,22 +282,15 @@ export default function TaskDetailPage() {
                 </div>
 
                 {/* Priority */}
-                <div className={`
-                  flex items-center gap-2 px-2 py-1 sm:px-3 sm:py-1.5 rounded-xl border
-                  ${task.priority === 'High' ? 'bg-red-50 border-red-100 text-red-700' :
-                    task.priority === 'Medium' ? 'bg-yellow-50 border-yellow-100 text-yellow-700' :
-                      'bg-blue-50 border-blue-100 text-blue-700'}
-                `}>
-                  <span className="text-xs sm:text-sm font-bold">
-                    {task.priority === 'High' ? '🔥 High Priority' :
-                      task.priority === 'Medium' ? '⚡ Medium Priority' :
-                        '📌 Low Priority'}
-                  </span>
-                </div>
+                <Badge variant={task.priority === 'High' ? 'danger' : task.priority === 'Medium' ? 'warning' : 'info'} className="px-3 py-1.5 text-sm">
+                  {task.priority === 'High' ? '🔥 High Priority' :
+                    task.priority === 'Medium' ? '⚡ Medium Priority' :
+                      '📌 Low Priority'}
+                </Badge>
               </div>
             </div>
           </div>
-        </motion.div>
+        </Card>
 
         {/* Main Grid */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
@@ -378,7 +370,7 @@ export default function TaskDetailPage() {
             </div>
 
             {/* Activity Timeline */}
-            <div className="bg-white rounded-2xl p-6 border border-gray-100 shadow-sm">
+            <Card>
               <h2 className="text-lg font-bold text-gray-900 mb-6 flex items-center gap-2">
                 <Clock className="w-5 h-5 text-[#6FA84C]" />
                 Activity Timeline
@@ -426,7 +418,7 @@ export default function TaskDetailPage() {
                   </div>
                 </div>
               </div>
-            </div>
+            </Card>
 
           </div>
 
@@ -434,16 +426,16 @@ export default function TaskDetailPage() {
           <div className="space-y-6">
 
             {/* Growth Progress */}
-            <div className="bg-white rounded-2xl p-6 border border-gray-100 shadow-sm">
+            <Card>
               <h2 className="text-lg font-bold text-gray-900 mb-6 flex items-center gap-2">
                 <PlantIcon className="w-5 h-5 text-[#6FA84C]" />
                 Growth Progress
               </h2>
               {getGrowthProgress(task.status)}
-            </div>
+            </Card>
 
             {/* Task Info */}
-            <div className="bg-white rounded-2xl p-6 border border-gray-100 shadow-sm text-sm">
+            <Card className="text-sm">
               <h2 className="text-lg font-bold text-gray-900 mb-4">ℹ️ Task Info</h2>
               <div className="space-y-4">
                 <div>
@@ -472,11 +464,12 @@ export default function TaskDetailPage() {
                   </div>
                 )}
               </div>
-            </div>
+            </Card>
+
 
             {/* Meeting Context Card */}
             {task.note && (
-              <div className="bg-white rounded-2xl p-6 border border-gray-100 shadow-sm">
+              <Card>
                 <h2 className="text-lg font-bold text-gray-900 mb-4 flex items-center gap-2">
                   <FileText className="w-5 h-5 text-[#6FA84C]" />
                   Meeting Context
@@ -490,7 +483,7 @@ export default function TaskDetailPage() {
                   </p>
                   {task.note.meeting_summary && (
                     <p className="text-sm text-gray-700 line-clamp-2 italic">
-                      "{task.note.meeting_summary}"
+                      "{cleanSummary(task.note.meeting_summary)}"
                     </p>
                   )}
                 </div>
@@ -534,51 +527,54 @@ export default function TaskDetailPage() {
                 >
                   View Full Meeting Note
                 </button>
-              </div>
+              </Card>
             )}
 
             {/* Quick Actions */}
-            <div className="bg-white rounded-2xl p-6 border border-gray-100 shadow-sm">
+            <Card>
               <h2 className="text-lg font-bold text-gray-900 mb-4 flex items-center gap-2">
                 ⚡ Quick Actions
               </h2>
 
               <div className="space-y-2">
-                <button
+                <Button
                   onClick={() => handleUpdate({ status: 'Done' })}
-                  className="w-full flex items-center gap-3 p-3 rounded-xl bg-gradient-to-r from-green-50 to-emerald-50 hover:from-green-100 hover:to-emerald-100 text-green-800 font-medium transition-all"
+                  className="w-full justify-start gap-3 p-3 h-auto bg-gradient-to-r from-green-50 to-emerald-50 hover:from-green-100 hover:to-emerald-100 text-green-800 border-0"
                 >
                   <CheckCircle2 className="w-5 h-5" />
                   Mark as Complete
-                </button>
+                </Button>
 
-                <button
+                <Button
+                  variant="secondary"
                   onClick={handleDuplicate}
-                  className="w-full flex items-center gap-3 p-3 rounded-xl hover:bg-gray-50 text-gray-700 font-medium transition-all"
+                  className="w-full justify-start gap-3 p-3 h-auto"
                 >
                   <Copy className="w-5 h-5" />
                   Duplicate Task
-                </button>
+                </Button>
 
-                <button
+                <Button
+                  variant="secondary"
                   onClick={() => showToast({ type: 'info', title: 'Coming Soon', message: 'Sharing will be available soon' })}
-                  className="w-full flex items-center gap-3 p-3 rounded-xl hover:bg-gray-50 text-gray-700 font-medium transition-all"
+                  className="w-full justify-start gap-3 p-3 h-auto"
                 >
                   <Share2 className="w-5 h-5" />
                   Share Task
-                </button>
+                </Button>
 
                 <div className="h-px bg-gray-100 my-2" />
 
-                <button
+                <Button
+                  variant="danger"
                   onClick={() => setShowDeleteModal(true)}
-                  className="w-full flex items-center gap-3 p-3 rounded-xl hover:bg-red-50 text-red-600 font-medium transition-all"
+                  className="w-full justify-start gap-3 p-3 h-auto"
                 >
                   <Trash2 className="w-5 h-5" />
                   Delete Task
-                </button>
+                </Button>
               </div>
-            </div>
+            </Card>
 
           </div>
         </div>
@@ -586,45 +582,50 @@ export default function TaskDetailPage() {
 
       {/* Delete Modal */}
       <AnimatePresence>
-        {showDeleteModal && (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            className="fixed inset-0 z-50 bg-black/50 backdrop-blur-sm flex items-center justify-center p-6"
-            onClick={() => setShowDeleteModal(false)}
-          >
+        {
+          showDeleteModal && (
             <motion.div
-              initial={{ scale: 0.9, opacity: 0 }}
-              animate={{ scale: 1, opacity: 1 }}
-              exit={{ scale: 0.9, opacity: 0 }}
-              onClick={e => e.stopPropagation()}
-              className="bg-white rounded-3xl p-8 max-w-md w-full shadow-2xl"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              className="fixed inset-0 z-50 bg-black/50 backdrop-blur-sm flex items-center justify-center p-6"
+              onClick={() => setShowDeleteModal(false)}
             >
-              <div className="w-16 h-16 mx-auto mb-6 bg-red-100 rounded-2xl flex items-center justify-center">
-                <AlertTriangle className="w-8 h-8 text-red-600" />
-              </div>
-              <h2 className="text-2xl font-bold text-gray-900 text-center mb-3">Delete this task?</h2>
-              <p className="text-gray-600 text-center mb-6">This action cannot be undone.</p>
-              <div className="flex gap-3">
-                <button
-                  onClick={() => setShowDeleteModal(false)}
-                  className="flex-1 px-6 py-3 rounded-xl bg-gray-100 hover:bg-gray-200 text-gray-700 font-semibold transition-all"
-                >
-                  Cancel
-                </button>
-                <button
-                  onClick={handleDelete}
-                  disabled={deleting}
-                  className="flex-1 px-6 py-3 rounded-xl bg-red-600 hover:bg-red-700 text-white font-semibold transition-all flex items-center justify-center gap-2"
-                >
-                  {deleting ? <Loader2 className="w-5 h-5 animate-spin" /> : <Trash2 className="w-5 h-5" />}
-                  Delete
-                </button>
-              </div>
+              <motion.div
+                initial={{ scale: 0.9, opacity: 0 }}
+                animate={{ scale: 1, opacity: 1 }}
+                exit={{ scale: 0.9, opacity: 0 }}
+                onClick={e => e.stopPropagation()}
+                className="bg-white rounded-3xl p-8 max-w-md w-full shadow-2xl"
+              >
+                <div className="w-16 h-16 mx-auto mb-6 bg-red-100 rounded-2xl flex items-center justify-center">
+                  <AlertTriangle className="w-8 h-8 text-red-600" />
+                </div>
+                <h2 className="text-2xl font-bold text-gray-900 text-center mb-3">Delete this task?</h2>
+                <p className="text-gray-600 text-center mb-6">This action cannot be undone.</p>
+                <div className="flex gap-3">
+                  <Button
+                    variant="secondary"
+                    onClick={() => setShowDeleteModal(false)}
+                    className="flex-1"
+                  >
+                    Cancel
+                  </Button>
+                  <Button
+                    variant="danger"
+                    onClick={handleDelete}
+                    disabled={deleting}
+                    isLoading={deleting}
+                    className="flex-1 gap-2"
+                  >
+                    {!deleting && <Trash2 className="w-5 h-5" />}
+                    Delete
+                  </Button>
+                </div>
+              </motion.div>
             </motion.div>
-          </motion.div>
-        )}
+          )
+        }
       </AnimatePresence>
     </div>
   );

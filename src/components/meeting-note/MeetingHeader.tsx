@@ -1,4 +1,6 @@
 import { motion } from 'framer-motion';
+import { Card } from '../ui/Card';
+import { Badge } from '../ui/Badge';
 import {
     FileText,
     Calendar,
@@ -32,16 +34,11 @@ export default function MeetingHeader({
     titleInputRef
 }: MeetingHeaderProps) {
     return (
-        <motion.div
+        <Card
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.4 }}
-            className="
-            bg-white rounded-3xl p-8 sm:p-12
-            border border-gray-100
-            shadow-xl
-            relative overflow-hidden
-          "
+            className="p-8 sm:p-12 shadow-xl relative overflow-hidden border-gray-100"
         >
             {/* Background gradient */}
             <div className="
@@ -164,17 +161,10 @@ export default function MeetingHeader({
                 flex flex-wrap items-center justify-center gap-3
               ">
                         {note.meeting_participants.map((participant, index) => (
-                            <motion.div
+                            <Badge
                                 key={index}
-                                initial={{ opacity: 0, scale: 0.8 }}
-                                animate={{ opacity: 1, scale: 1 }}
-                                transition={{ delay: 0.1 + (index * 0.05) }}
-                                className="
-                      flex items-center gap-2 px-4 py-2
-                      bg-white/80 backdrop-blur-sm
-                      border border-blue-200
-                      rounded-full
-                    "
+                                variant="neutral"
+                                className="px-4 py-2 bg-white/80 backdrop-blur-sm border-blue-200 gap-2"
                             >
                                 <div className="
                       w-8 h-8 rounded-full
@@ -187,11 +177,11 @@ export default function MeetingHeader({
                                 <span className="text-sm font-medium text-gray-900">
                                     {participant}
                                 </span>
-                            </motion.div>
+                            </Badge>
                         ))}
                     </div>
                 )}
             </div>
-        </motion.div>
+        </Card>
     );
 }

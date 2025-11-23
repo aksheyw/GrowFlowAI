@@ -47,7 +47,7 @@ export default function SummaryModal({ isOpen, onClose, note, userId, onSummaryG
         if (isOpen && !summaryData && !isLoading && !error) {
             generateSummary();
         }
-    }, [isOpen]);
+    }, [isOpen, summaryData, isLoading, error, generateSummary]);
 
     const handleCopy = async () => {
         if (!summaryData) return;

@@ -1,4 +1,6 @@
 import { motion } from 'framer-motion';
+import { Card } from '../ui/Card';
+import { Button } from '../ui/Button';
 import {
     AlignLeft,
     Copy,
@@ -18,15 +20,11 @@ export default function MeetingContent({ note, copied, onCopyNotes }: MeetingCon
     return (
         <div className="lg:col-span-2 space-y-8">
             {/* Original Notes Card */}
-            <motion.div
+            <Card
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.4, delay: 0.2 }}
-                className="
-                bg-white rounded-2xl p-6 sm:p-8
-                border border-gray-100
-                shadow-sm
-              "
+                className="p-6 sm:p-8 border-gray-100 shadow-sm"
             >
                 <div className="flex items-center justify-between mb-6">
                     <h2 className="text-xl font-bold text-gray-900 flex items-center gap-2">
@@ -35,15 +33,11 @@ export default function MeetingContent({ note, copied, onCopyNotes }: MeetingCon
                     </h2>
 
                     {/* Copy button */}
-                    <button
+                    <Button
                         onClick={onCopyNotes}
-                        className="
-                    flex items-center gap-2 px-4 py-2
-                    bg-gray-100 hover:bg-gray-200
-                    rounded-xl
-                    text-sm font-medium text-gray-700
-                    transition-all duration-200
-                  "
+                        variant="secondary"
+                        size="sm"
+                        className="gap-2"
                     >
                         {copied ? (
                             <>
@@ -56,7 +50,7 @@ export default function MeetingContent({ note, copied, onCopyNotes }: MeetingCon
                                 <span>Copy</span>
                             </>
                         )}
-                    </button>
+                    </Button>
                 </div>
 
                 {/* Notes content */}
@@ -84,7 +78,7 @@ export default function MeetingContent({ note, copied, onCopyNotes }: MeetingCon
                         {note.content.split(/\s+/).length.toLocaleString()} words
                     </span>
                 </div>
-            </motion.div>
+            </Card>
 
             {/* AI Summary Section */}
             <motion.div

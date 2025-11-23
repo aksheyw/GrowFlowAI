@@ -4,6 +4,8 @@ import { useNavigate } from 'react-router-dom';
 import { Task } from '../../lib/supabase';
 import { formatDeadline, getPlantEmoji, getProgressPercentage, getInitials } from '../../utils/premiumHelpers';
 import StatusDropdown from './StatusDropdown';
+import { Card } from '../ui/Card';
+import { Badge } from '../ui/Badge';
 
 interface PremiumTaskCardProps {
   task: Task;
@@ -56,7 +58,7 @@ export default function PremiumTaskCard({ task, onStatusChange }: PremiumTaskCar
   };
 
   return (
-    <motion.div
+    <Card
       data-task-id={task.id}
       layout
       initial={{ opacity: 0, scale: 0.9 }}
@@ -67,12 +69,11 @@ export default function PremiumTaskCard({ task, onStatusChange }: PremiumTaskCar
       onClick={handleCardClick}
       className="
         group relative
-        bg-white rounded-2xl
-        border border-gray-100
-        shadow-sm hover:shadow-xl
+        hover:shadow-xl
         transition-all duration-300 ease-out
         p-6 cursor-pointer
         h-full flex flex-col
+        border-gray-100
       "
     >
       <div
@@ -163,12 +164,9 @@ export default function PremiumTaskCard({ task, onStatusChange }: PremiumTaskCar
             </span>
           </div>
 
-          <div className={`
-            px-3 py-1.5 rounded-lg text-xs font-semibold
-            ${priorityStyle.badge}
-          `}>
+          <Badge variant={task.priority === 'High' ? 'danger' : task.priority === 'Medium' ? 'warning' : 'success'}>
             {priorityStyle.icon} {task.priority}
-          </div>
+          </Badge>
         </div>
 
         <div className="h-2 bg-gray-100 rounded-full overflow-hidden">
@@ -193,6 +191,6 @@ export default function PremiumTaskCard({ task, onStatusChange }: PremiumTaskCar
         group-hover:from-green-500/5 group-hover:to-green-500/10
         transition-all duration-300 pointer-events-none
       " />
-    </motion.div>
+    </Card>
   );
 }

@@ -13,12 +13,18 @@
   "dependencies": {
     "@headlessui/react": "^2.2.9",
     "@supabase/supabase-js": "^2.57.4",
+    "@tanstack/query-sync-storage-persister": "^5.90.12",
+    "@tanstack/react-query": "^5.90.10",
+    "@tanstack/react-query-persist-client": "^5.90.12",
     "canvas-confetti": "^1.9.4",
+    "clsx": "^2.1.1",
     "framer-motion": "^12.23.24",
     "lucide-react": "^0.344.0",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
-    "react-router-dom": "^7.9.5"
+    "react-router-dom": "^7.9.5",
+    "tailwind-merge": "^3.4.0",
+    "vite-plugin-pwa": "^1.1.0"
   },
   "devDependencies": {
     "@eslint/js": "^9.9.1",

@@ -1,9 +1,10 @@
-import { motion } from 'framer-motion';
 import { CheckSquare, Clock, ChevronRight } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { Task } from '../../lib/supabase';
 import { isTaskOverdue, isTaskDueSoon } from '../../utils/meetingHelpers';
 import { getPlantEmoji, formatDeadline, getInitials } from '../../utils/premiumHelpers';
+import { Card } from '../ui/Card';
+import { Button } from '../ui/Button';
 
 type TaskFilter = 'all' | 'not_started' | 'in_progress' | 'done';
 
@@ -17,11 +18,11 @@ export default function MeetingTasks({ tasks, filter, onFilterChange }: MeetingT
     const navigate = useNavigate();
 
     return (
-        <motion.div
+        <Card
             initial={{ opacity: 0, x: 20 }}
             animate={{ opacity: 1, x: 0 }}
             transition={{ duration: 0.4, delay: 0.5 }}
-            className="bg-white rounded-2xl p-6 border border-gray-100 shadow-sm"
+            className="p-6 border-gray-100 shadow-sm"
         >
             <div className="flex items-center justify-between mb-4">
                 <h3 className="text-lg font-bold text-gray-900 flex items-center gap-2">
@@ -36,25 +37,22 @@ export default function MeetingTasks({ tasks, filter, onFilterChange }: MeetingT
             {/* Task Filters */}
             <div className="flex gap-2 mb-4 overflow-x-auto pb-2 scrollbar-hide">
                 {(['all', 'not_started', 'in_progress', 'done'] as const).map((f) => (
-                    <button
+                    <Button
                         key={f}
                         onClick={() => onFilterChange(f)}
-                        className={`
-                            px-3 py-1.5 rounded-lg text-xs font-medium whitespace-nowrap transition-colors
-                            ${filter === f
-                                ? 'bg-[#2D5016] text-white'
-                                : 'bg-gray-100 text-gray-600 hover:bg-gray-200'}
-                        `}
+                        variant={filter === f ? 'primary' : 'secondary'}
+                        size="sm"
+                        className="whitespace-nowrap"
                     >
                         {f.split('_').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ')}
-                    </button>
+                    </Button>
                 ))}
             </div>
 
             <div className="space-y-3 max-h-[600px] overflow-y-auto pr-2 custom-scrollbar">
                 {tasks.length > 0 ? (
                     tasks.map((task) => (
-                        <motion.div
+                        <Card
                             key={task.id}
                             layout
                             initial={{ opacity: 0, y: 10 }}
@@ -98,7 +96,7 @@ export default function MeetingTasks({ tasks, filter, onFilterChange }: MeetingT
                                 </div>
                                 <ChevronRight className="w-4 h-4 text-gray-300 group-hover:text-blue-400 transition-colors" />
                             </div>
-                        </motion.div>
+                        </Card>
                     ))
                 ) : (
                     <div className="text-center py-8 text-gray-500 text-sm">
@@ -106,6 +104,6 @@ export default function MeetingTasks({ tasks, filter, onFilterChange }: MeetingT
                     </div>
                 )}
             </div>
-        </motion.div>
+        </Card>
     );
 }

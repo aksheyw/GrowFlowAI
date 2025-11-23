@@ -48,9 +48,10 @@ export default function SignupPage() {
             if (error) throw error;
             addToast('Account created successfully!', 'success');
             navigate('/dashboard');
-        } catch (error: any) {
+        } catch (error: unknown) {
             console.error('Error signing up:', error);
-            addToast(error.message || 'Failed to create account', 'error');
+            const message = error instanceof Error ? error.message : (error as { message?: string })?.message || 'Failed to create account';
+            addToast(message, 'error');
         } finally {
             setLoading(false);
         }

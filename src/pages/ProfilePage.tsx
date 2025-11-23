@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
 import {
@@ -30,13 +30,7 @@ export default function ProfilePage() {
         level: 1
     });
 
-    useEffect(() => {
-        if (user) {
-            loadStats();
-        }
-    }, [user]);
-
-    async function loadStats() {
+    const loadStats = useCallback(async () => {
         try {
             // Get task stats
             const { data: tasks, error } = await supabase
@@ -61,14 +55,20 @@ export default function ProfilePage() {
         } catch (error) {
             console.error('Error loading stats:', error);
         }
-    }
+    }, [user]);
+
+    useEffect(() => {
+        if (user) {
+            loadStats();
+        }
+    }, [user, loadStats]);
 
     const handleLogout = async () => {
         try {
             await signOut();
             navigate('/login');
             showToast({ type: 'success', title: 'Signed out', message: 'See you soon!' });
-        } catch (error) {
+        } catch {
             showToast({ type: 'error', title: 'Error', message: 'Failed to sign out' });
         }
     };

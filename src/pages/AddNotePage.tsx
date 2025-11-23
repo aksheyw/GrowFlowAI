@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef, useMemo } from 'react';
+import { useState, useEffect, useRef, useMemo, useCallback } from 'react';
 import { motion } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
 import {
@@ -139,46 +139,7 @@ export default function AddNotePage() {
     return () => clearInterval(interval);
   }, [showSuccess, navigate]);
 
-  // Keyboard shortcuts
-  useEffect(() => {
-    const handleKeyDown = (e: KeyboardEvent) => {
-      // Cmd/Ctrl + Enter to process
-      if ((e.metaKey || e.ctrlKey) && e.key === 'Enter') {
-        if (isValid && !isProcessing) {
-          handleProcess();
-        }
-      }
-
-      // Escape to cancel processing
-      if (e.key === 'Escape' && isProcessing && showCancel) {
-        handleCancel();
-      }
-    };
-
-    window.addEventListener('keydown', handleKeyDown);
-    return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [isValid, isProcessing, showCancel]);
-
-  const handleTextChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
-    setNoteText(e.target.value);
-  };
-
-  const handlePaste = () => {
-    // Show brief toast notification after paste
-    setTimeout(() => {
-      if (noteText.length > 100) {
-        addToast('Notes pasted! 📋 Review and click "Process with AI" when ready', 'success', 3000);
-      }
-    }, 100);
-  };
-
-  const loadExample = () => {
-    setNoteText(EXAMPLE_NOTES);
-    textareaRef.current?.focus();
-    addToast('Example notes loaded! Feel free to edit and try processing.', 'info', 3000);
-  };
-
-  const handleProcess = async () => {
+  const handleProcess = useCallback(async () => {
     if (!user || !isValid) return;
 
     setIsProcessing(true);
@@ -241,12 +202,51 @@ export default function AddNotePage() {
       setIsProcessing(false);
       addToast(`Failed to process notes: ${errorMessage}`, 'error', 5000);
     }
-  };
+  }, [user, isValid, noteText, addToast]);
 
-  const handleCancel = () => {
+  const handleCancel = useCallback(() => {
     setIsProcessing(false);
     setCurrentStep(0);
     addToast('Processing cancelled', 'info', 2000);
+  }, [addToast]);
+
+  // Keyboard shortcuts
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      // Cmd/Ctrl + Enter to process
+      if ((e.metaKey || e.ctrlKey) && e.key === 'Enter') {
+        if (isValid && !isProcessing) {
+          handleProcess();
+        }
+      }
+
+      // Escape to cancel processing
+      if (e.key === 'Escape' && isProcessing && showCancel) {
+        handleCancel();
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [isValid, isProcessing, showCancel, handleProcess, handleCancel]);
+
+  const handleTextChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
+    setNoteText(e.target.value);
+  };
+
+  const handlePaste = () => {
+    // Show brief toast notification after paste
+    setTimeout(() => {
+      if (noteText.length > 100) {
+        addToast('Notes pasted! 📋 Review and click "Process with AI" when ready', 'success', 3000);
+      }
+    }, 100);
+  };
+
+  const loadExample = () => {
+    setNoteText(EXAMPLE_NOTES);
+    textareaRef.current?.focus();
+    addToast('Example notes loaded! Feel free to edit and try processing.', 'info', 3000);
   };
 
   const handleRedirect = () => {

@@ -1,4 +1,4 @@
-import { Link, useLocation, matchPath } from 'react-router-dom';
+import { Link, useLocation } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { User } from 'lucide-react';
 import NotificationBell from '../NotificationBell';
@@ -8,6 +8,7 @@ import { useAuth } from '../../contexts/AuthContext';
 
 export default function Header() {
     const { user } = useAuth();
+    const location = useLocation();
     const isAuthPage = ['/login', '/signup', '/reset-password'].includes(location.pathname);
 
     if (isAuthPage) return null;

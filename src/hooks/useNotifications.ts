@@ -8,19 +8,7 @@ export function useNotifications() {
   const [unreadCount, setUnreadCount] = useState(0);
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    if (!user) return;
-
-    loadNotifications();
-    subscribeToNotifications();
-  }, [user]);
-
-  useEffect(() => {
-    const count = notifications.filter(n => !n.read).length;
-    setUnreadCount(count);
-  }, [notifications]);
-
-  async function loadNotifications() {
+  const loadNotifications = useCallback(async () => {
     if (!user) return;
 
     try {
@@ -41,9 +29,9 @@ export function useNotifications() {
     } finally {
       setLoading(false);
     }
-  }
+  }, [user]);
 
-  function subscribeToNotifications() {
+  const subscribeToNotifications = useCallback(() => {
     if (!user) return;
 
     const channel = supabase
@@ -81,7 +69,19 @@ export function useNotifications() {
     return () => {
       channel.unsubscribe();
     };
-  }
+  }, [user]);
+
+  useEffect(() => {
+    if (!user) return;
+
+    loadNotifications();
+    subscribeToNotifications();
+  }, [user, loadNotifications, subscribeToNotifications]);
+
+  useEffect(() => {
+    const count = notifications.filter(n => !n.read).length;
+    setUnreadCount(count);
+  }, [notifications]);
 
   const markAsRead = useCallback(async (notificationId: string) => {
     try {

@@ -27,9 +27,10 @@ export default function ForgotPasswordPage() {
             if (error) throw error;
             setSubmitted(true);
             addToast('Password reset email sent!', 'success');
-        } catch (error: any) {
+        } catch (error: unknown) {
             console.error('Error sending reset email:', error);
-            addToast(error.message || 'Failed to send reset email', 'error');
+            const message = error instanceof Error ? error.message : (error as { message?: string })?.message || 'Failed to send reset email';
+            addToast(message, 'error');
         } finally {
             setLoading(false);
         }

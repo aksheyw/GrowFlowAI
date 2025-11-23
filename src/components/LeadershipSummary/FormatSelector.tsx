@@ -1,5 +1,5 @@
 import { motion } from 'framer-motion';
-import { Mail, MessageSquare, FileText } from 'lucide-react';
+import { Mail, MessageSquare, FileText, LucideIcon } from 'lucide-react';
 
 type Format = 'email' | 'chat' | 'document';
 
@@ -9,7 +9,7 @@ interface FormatSelectorProps {
 }
 
 export default function FormatSelector({ currentFormat, onFormatChange }: FormatSelectorProps) {
-    const formats: { id: Format; label: string; icon: any }[] = [
+    const formats: { id: Format; label: string; icon: LucideIcon }[] = [
         { id: 'email', label: 'Email', icon: Mail },
         { id: 'chat', label: 'Chat', icon: MessageSquare },
         { id: 'document', label: 'Document', icon: FileText }

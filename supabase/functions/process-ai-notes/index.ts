@@ -82,7 +82,7 @@ function parseNotesBasic(noteText: string, defaultPriority: "Low" | "Medium" | "
           else if (/^[A-Z][a-z]+\s+\d{1,2}$/.test(dateStr)) {
             const [monthStr, day] = dateStr.split(' ');
             const year = new Date().getFullYear();
-            const monthMap: {[key: string]: number} = {
+            const monthMap: { [key: string]: number } = {
               'Jan': 0, 'Feb': 1, 'Mar': 2, 'Apr': 3, 'May': 4, 'Jun': 5,
               'Jul': 6, 'Aug': 7, 'Sep': 8, 'Oct': 9, 'Nov': 10, 'Dec': 11
             };
@@ -149,7 +149,7 @@ async function parseNotesWithOpenAI(noteText: string, openAiKey: string, default
         messages: [
           {
             role: 'system',
-            content: `You are a task extraction assistant. Extract actionable tasks from meeting notes and return them as a JSON array.\n\nToday's date is: ${today}\n\nEach task should have:\n- description (string, required): The task description\n- assignee_name (string, optional): Person's name if mentioned\n- priority (\"Low\" | \"Medium\" | \"High\", optional): Task priority, default ${defaultPriority}. Only override this if the note explicitly mentions a different priority.\n- status (\"Not Started\" | \"In Progress\" | \"Done\", optional): Default \"Not Started\"\n- deadline (string, optional): Date in YYYY-MM-DD format if mentioned. Convert relative dates like \"next Friday\", \"tomorrow\", \"in 2 weeks\" to absolute dates based on today's date.\n\nReturn ONLY a valid JSON array of tasks, nothing else. If no tasks found, return empty array [].`
+            content: `You are a task extraction assistant. Extract actionable tasks from meeting notes and return them as a JSON array.\n\nToday's date is: ${today}\n\nEach task should have:\n- description (string, required): The task description\n- assignee_name (string, optional): Person's name if mentioned\n- priority ("Low" | "Medium" | "High", optional): Task priority, default ${defaultPriority}. Only override this if the note explicitly mentions a different priority.\n- status ("Not Started" | "In Progress" | "Done", optional): Default "Not Started"\n- deadline (string, optional): Date in YYYY-MM-DD format if mentioned. Convert relative dates like "next Friday", "tomorrow", "in 2 weeks" to absolute dates based on today's date.\n\nReturn ONLY a valid JSON array of tasks, nothing else. If no tasks found, return empty array [].`
           },
           {
             role: 'user',
@@ -177,7 +177,7 @@ async function parseNotesWithOpenAI(noteText: string, openAiKey: string, default
     try {
       const cleanContent = content.replace(/```json\n?/g, '').replace(/```\n?/g, '').trim();
       tasks = JSON.parse(cleanContent);
-    } catch (parseError) {
+    } catch {
       console.error('Failed to parse OpenAI response:', content);
       return [];
     }
@@ -201,11 +201,11 @@ Deno.serve(async (req: Request) => {
     const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
     const supabaseServiceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
     const openAiKey = Deno.env.get("OPENAI_API_KEY");
-    
+
     const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
     const body: RequestBody = await req.json();
-    
+
     if (!body.user_id) {
       return new Response(
         JSON.stringify({ error: "user_id is required" }),
@@ -288,7 +288,7 @@ Deno.serve(async (req: Request) => {
 
           if (profiles) {
             assignee_id = profiles.id;
-            console.log(`Matched assignee \"${task.assignee_name}\" to profile: ${profiles.full_name}`);
+            console.log(`Matched assignee "${task.assignee_name}" to profile: ${profiles.full_name}`);
           } else {
             console.log(`No profile found for assignee: ${task.assignee_name}`);
           }
@@ -298,12 +298,22 @@ Deno.serve(async (req: Request) => {
         if (task.deadline) {
           try {
             deadline = new Date(task.deadline).toISOString().split('T')[0];
-          } catch (dateError) {
+          } catch {
             console.error(`Invalid deadline format: ${task.deadline}`);
           }
         }
 
-        const taskInsert: any = {
+        interface TaskInsert {
+          user_id: string;
+          assignee_id: string;
+          description: string;
+          priority: "Low" | "Medium" | "High";
+          status: "Not Started" | "In Progress" | "Done";
+          deadline: string | null;
+          note_id?: string;
+        }
+
+        const taskInsert: TaskInsert = {
           user_id: body.user_id,
           assignee_id: assignee_id || body.user_id,
           description: task.description,
@@ -373,7 +383,7 @@ Deno.serve(async (req: Request) => {
   } catch (error) {
     console.error("Unhandled error:", error);
     return new Response(
-      JSON.stringify({ 
+      JSON.stringify({
         error: String(error),
         details: error instanceof Error ? error.message : 'Unknown error',
       }),

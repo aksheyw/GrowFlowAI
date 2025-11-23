@@ -1,5 +1,6 @@
-import { motion } from 'framer-motion';
 import { Download, Share2, Trash2, ChevronRight } from 'lucide-react';
+import { Card } from '../ui/Card';
+import { Button } from '../ui/Button';
 
 interface MeetingActionsProps {
     onExport: () => void;
@@ -17,11 +18,11 @@ export default function MeetingActions({
     hasSummary = false
 }: MeetingActionsProps) {
     return (
-        <motion.div
+        <Card
             initial={{ opacity: 0, x: 20 }}
             animate={{ opacity: 1, x: 0 }}
             transition={{ duration: 0.4, delay: 0.4 }}
-            className="bg-white rounded-2xl p-6 border border-gray-100 shadow-sm"
+            className="p-6 border-gray-100 shadow-sm"
         >
             <h3 className="text-lg font-bold text-gray-900 mb-4">Actions</h3>
             <div className="space-y-3">
@@ -42,39 +43,42 @@ export default function MeetingActions({
                     <ChevronRight className="w-4 h-4 text-purple-400 group-hover:text-purple-600" />
                 </button>
 
-                <button
+                <Button
                     onClick={onExport}
-                    className="w-full flex items-center justify-between p-3 rounded-xl bg-gray-50 hover:bg-gray-100 text-gray-700 transition-colors group"
+                    variant="secondary"
+                    className="w-full justify-between p-3 h-auto"
                 >
                     <span className="flex items-center gap-3 font-medium">
                         <Download className="w-5 h-5 text-gray-500 group-hover:text-gray-700" />
                         Export Notes
                     </span>
                     <ChevronRight className="w-4 h-4 text-gray-400" />
-                </button>
+                </Button>
 
-                <button
+                <Button
                     onClick={onShare}
-                    className="w-full flex items-center justify-between p-3 rounded-xl bg-gray-50 hover:bg-gray-100 text-gray-700 transition-colors group"
+                    variant="secondary"
+                    className="w-full justify-between p-3 h-auto"
                 >
                     <span className="flex items-center gap-3 font-medium">
                         <Share2 className="w-5 h-5 text-gray-500 group-hover:text-gray-700" />
                         Share Meeting
                     </span>
                     <ChevronRight className="w-4 h-4 text-gray-400" />
-                </button>
+                </Button>
 
 
-                <button
+                <Button
                     onClick={onDelete}
-                    className="w-full flex items-center justify-between p-3 rounded-xl bg-red-50 hover:bg-red-100 text-red-700 transition-colors group mt-4"
+                    variant="danger"
+                    className="w-full justify-between p-3 h-auto mt-4 bg-red-50 hover:bg-red-100 text-red-700 border-0"
                 >
                     <span className="flex items-center gap-3 font-medium">
                         <Trash2 className="w-5 h-5" />
                         Delete Meeting
                     </span>
-                </button>
+                </Button>
             </div>
-        </motion.div>
+        </Card>
     );
 }

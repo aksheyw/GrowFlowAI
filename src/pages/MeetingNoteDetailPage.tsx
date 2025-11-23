@@ -5,7 +5,6 @@ import {
     ArrowLeft,
     ChevronRight,
     AlertTriangle,
-    Loader2,
     Trash2
 } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
@@ -21,6 +20,7 @@ import {
     calculateTaskStats,
 } from '../utils/meetingHelpers';
 import { SummaryModal } from '../components/LeadershipSummary';
+import { Button } from '../components/ui/Button';
 
 type TaskFilter = 'all' | 'not_started' | 'in_progress' | 'done';
 
@@ -306,12 +306,12 @@ ${tasks.map((task, i) => `${i + 1}. ${task.description} - ${task.assignee?.full_
                     <div className="text-6xl mb-4">📋</div>
                     <h2 className="text-2xl font-bold text-gray-900 mb-2">Note not found</h2>
                     <p className="text-gray-600 mb-6">This meeting note doesn't exist or you don't have access to it.</p>
-                    <button
+                    <Button
                         onClick={() => navigate('/dashboard?view=notes')}
-                        className="px-6 py-3 bg-[#2D5016] text-white rounded-xl font-medium hover:shadow-lg transition-all duration-200"
+                        className="px-6 py-3 rounded-xl font-medium hover:shadow-lg transition-all duration-200"
                     >
                         Back to Dashboard
-                    </button>
+                    </Button>
                 </div>
             </div>
         );
@@ -328,18 +328,19 @@ ${tasks.map((task, i) => `${i + 1}. ${task.description} - ${task.assignee?.full_
                     transition={{ duration: 0.3 }}
                     className="mb-6 flex items-center gap-2 text-sm"
                 >
-                    <button
+                    <Button
+                        variant="ghost"
                         onClick={() => navigate('/dashboard?view=notes')}
                         className="
               flex items-center gap-1.5
               text-gray-600 hover:text-gray-900
               transition-colors duration-200
-              group
+              group pl-0 hover:bg-transparent
             "
                     >
                         <ArrowLeft className="w-4 h-4 group-hover:-translate-x-1 transition-transform duration-200" />
                         <span className="font-medium">Dashboard</span>
-                    </button>
+                    </Button>
 
                     <ChevronRight className="w-4 h-4 text-gray-400" />
 
@@ -415,29 +416,23 @@ ${tasks.map((task, i) => `${i + 1}. ${task.description} - ${task.assignee?.full_
                                 Are you sure you want to delete this meeting note? This will also delete all <strong>{tasks.length} associated tasks</strong>. This action cannot be undone.
                             </p>
                             <div className="flex gap-3 justify-end">
-                                <button
+                                <Button
+                                    variant="secondary"
                                     onClick={() => setShowDeleteModal(false)}
-                                    className="px-4 py-2 text-gray-600 font-medium hover:bg-gray-100 rounded-lg transition-colors"
+                                    className="px-4 py-2 font-medium"
                                 >
                                     Cancel
-                                </button>
-                                <button
+                                </Button>
+                                <Button
+                                    variant="danger"
                                     onClick={handleDelete}
                                     disabled={isDeleting}
-                                    className="px-4 py-2 bg-red-600 text-white font-medium rounded-lg hover:bg-red-700 transition-colors flex items-center gap-2 disabled:opacity-50"
+                                    isLoading={isDeleting}
+                                    className="px-4 py-2 font-medium flex items-center gap-2"
                                 >
-                                    {isDeleting ? (
-                                        <>
-                                            <Loader2 className="w-4 h-4 animate-spin" />
-                                            Deleting...
-                                        </>
-                                    ) : (
-                                        <>
-                                            <Trash2 className="w-4 h-4" />
-                                            Delete Everything
-                                        </>
-                                    )}
-                                </button>
+                                    {!isDeleting && <Trash2 className="w-4 h-4" />}
+                                    Delete Everything
+                                </Button>
                             </div>
                         </motion.div>
                     </div>

@@ -101,3 +101,32 @@ export const STATUS_OPTIONS = [
     emoji: '🌳'
   }
 ];
+
+export function cleanSummary(text: string): string {
+  if (!text) return '';
+
+  // Strip markdown code fences
+  let cleaned = text.replace(/```json\n?/g, '').replace(/```\n?/g, '').trim();
+
+  // Try to parse as JSON
+  try {
+    const parsed = JSON.parse(cleaned);
+    // If it's an object, extract summary or tldr
+    if (typeof parsed === 'object' && parsed !== null) {
+      if (parsed.summary) {
+        cleaned = parsed.summary;
+      } else if (parsed.tldr) {
+        cleaned = parsed.tldr;
+      }
+    }
+  } catch {
+    // If parsing fails, use the cleaned text as-is
+  }
+
+  // Truncate to 120 characters
+  if (cleaned.length > 120) {
+    return cleaned.substring(0, 120) + '...';
+  }
+
+  return cleaned;
+}

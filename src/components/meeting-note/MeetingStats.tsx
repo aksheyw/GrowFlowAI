@@ -1,4 +1,4 @@
-import { motion } from 'framer-motion';
+import { Card } from '../ui/Card';
 
 interface MeetingStatsProps {
     stats: {
@@ -11,18 +11,13 @@ interface MeetingStatsProps {
 
 export default function MeetingStats({ stats }: MeetingStatsProps) {
     return (
-        <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.4, delay: 0.1 }}
-            className="grid grid-cols-2 sm:grid-cols-4 gap-4 mt-8"
-        >
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mt-8">
             {/* Total tasks */}
-            <motion.div
+            <Card
                 whileHover={{ scale: 1.02 }}
                 className="
-              bg-white rounded-2xl p-6
-              border border-gray-100
+              p-6
+              border-gray-100
               shadow-sm
               text-center
               transition-shadow duration-200
@@ -36,15 +31,15 @@ export default function MeetingStats({ stats }: MeetingStatsProps) {
                     Total Tasks
                 </div>
                 <div className="text-3xl mt-2">📋</div>
-            </motion.div>
+            </Card>
 
             {/* Completed */}
-            <motion.div
+            <Card
                 whileHover={{ scale: 1.02 }}
                 className="
               bg-gradient-to-br from-green-50 to-emerald-50
-              rounded-2xl p-6
-              border border-green-100
+              p-6
+              border-green-100
               shadow-sm
               text-center
               transition-shadow duration-200
@@ -58,15 +53,15 @@ export default function MeetingStats({ stats }: MeetingStatsProps) {
                     Completed
                 </div>
                 <div className="text-3xl mt-2">🌳</div>
-            </motion.div>
+            </Card>
 
             {/* In Progress */}
-            <motion.div
+            <Card
                 whileHover={{ scale: 1.02 }}
                 className="
               bg-gradient-to-br from-yellow-50 to-amber-50
-              rounded-2xl p-6
-              border border-yellow-100
+              p-6
+              border-yellow-100
               shadow-sm
               text-center
               transition-shadow duration-200
@@ -80,15 +75,15 @@ export default function MeetingStats({ stats }: MeetingStatsProps) {
                     In Progress
                 </div>
                 <div className="text-3xl mt-2">🪴</div>
-            </motion.div>
+            </Card>
 
             {/* Completion rate */}
-            <motion.div
+            <Card
                 whileHover={{ scale: 1.02 }}
                 className="
               bg-gradient-to-br from-blue-50 to-indigo-50
-              rounded-2xl p-6
-              border border-blue-100
+              p-6
+              border-blue-100
               shadow-sm
               text-center
               transition-shadow duration-200
@@ -102,7 +97,7 @@ export default function MeetingStats({ stats }: MeetingStatsProps) {
                     Completion
                 </div>
                 <div className="text-3xl mt-2">📊</div>
-            </motion.div>
-        </motion.div>
+            </Card>
+        </div>
     );
 }

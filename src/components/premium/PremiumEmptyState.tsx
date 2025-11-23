@@ -1,6 +1,7 @@
 import { motion } from 'framer-motion';
 import { Plus } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
+import { Button } from '../ui/Button';
 
 export default function PremiumEmptyState() {
   const navigate = useNavigate();
@@ -52,23 +53,22 @@ export default function PremiumEmptyState() {
         Watch them grow as you complete tasks!
       </p>
 
-      <motion.button
+      <Button
         whileHover={{ scale: 1.05 }}
         whileTap={{ scale: 0.95 }}
         onClick={() => navigate('/add-note')}
         className="
-          px-8 py-4
+          px-8 py-4 h-auto
           bg-gradient-to-r from-[#2D5016] to-[#6FA84C]
           text-white font-semibold rounded-2xl
           shadow-lg shadow-green-900/20
           hover:shadow-xl hover:shadow-green-900/30
-          transition-all duration-200
-          flex items-center gap-3
+          border-0
         "
+        icon={Plus}
       >
-        <Plus className="w-5 h-5" />
-        <span>Add Your First Note</span>
-      </motion.button>
+        Add Your First Note
+      </Button>
 
       <div className="mt-12 max-w-lg">
         <p className="text-sm text-gray-500 mb-3">Example meeting note:</p>

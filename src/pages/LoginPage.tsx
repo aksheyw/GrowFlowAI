@@ -27,9 +27,10 @@ export default function LoginPage() {
       const { error } = await signIn(email, password);
       if (error) throw error;
       navigate('/dashboard');
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Error signing in:', error);
-      addToast(error.message || 'Failed to sign in', 'error');
+      const message = error instanceof Error ? error.message : (error as { message?: string })?.message || 'Failed to sign in';
+      addToast(message, 'error');
     } finally {
       setLoading(false);
     }

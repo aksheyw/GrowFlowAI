@@ -1,8 +1,9 @@
-import { motion } from 'framer-motion';
 import { Calendar, FileText, CheckCircle2, Clock } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { Note } from '../../lib/supabase';
 import { formatDateShort } from '../../utils/meetingHelpers';
+import { Card } from '../ui/Card';
+import { Badge } from '../ui/Badge';
 
 interface MeetingNoteCardProps {
     note: Note;
@@ -42,10 +43,10 @@ export default function MeetingNoteCard({ note, taskCount = 0 }: MeetingNoteCard
 
     return (
         <Link to={`/note/${note.id}`} className="block h-full">
-            <motion.div
+            <Card
                 whileHover={{ scale: 1.02, y: -2 }}
                 whileTap={{ scale: 0.98 }}
-                className="bg-white rounded-xl p-5 border border-gray-100 shadow-sm hover:shadow-lg transition-all duration-200 h-full flex flex-col"
+                className="p-5 hover:shadow-lg transition-all duration-200 h-full flex flex-col rounded-xl border-gray-100"
             >
                 {/* Header: Icon + Date */}
                 <div className="flex items-center justify-between mb-4">
@@ -72,25 +73,25 @@ export default function MeetingNoteCard({ note, taskCount = 0 }: MeetingNoteCard
                 {/* Footer: Badges */}
                 <div className="flex items-center gap-2 mt-auto pt-4 border-t border-gray-50">
                     {/* Task Count Badge */}
-                    <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-green-50 text-green-700 text-xs font-medium">
+                    <Badge variant="success" className="rounded-full px-2.5 py-1 text-xs font-medium gap-1.5">
                         <CheckCircle2 className="w-3.5 h-3.5" />
                         {taskCount} Tasks
-                    </div>
+                    </Badge>
 
                     {/* Processed Status */}
                     {note.processed ? (
-                        <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-blue-50 text-blue-700 text-xs font-medium">
+                        <Badge variant="info" className="rounded-full px-2.5 py-1 text-xs font-medium gap-1.5">
                             <FileText className="w-3.5 h-3.5" />
                             Processed
-                        </div>
+                        </Badge>
                     ) : (
-                        <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-yellow-50 text-yellow-700 text-xs font-medium">
+                        <Badge variant="warning" className="rounded-full px-2.5 py-1 text-xs font-medium gap-1.5">
                             <Clock className="w-3.5 h-3.5" />
                             Processing
-                        </div>
+                        </Badge>
                     )}
                 </div>
-            </motion.div>
+            </Card>
         </Link>
     );
 }

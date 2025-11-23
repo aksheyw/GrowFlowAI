@@ -44,9 +44,10 @@ export default function ResetPasswordPage() {
 
       addToast('Password updated successfully!', 'success');
       navigate('/login');
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Error updating password:', error);
-      addToast(error.message || 'Failed to update password', 'error');
+      const message = error instanceof Error ? error.message : (error as { message?: string })?.message || 'Failed to update password';
+      addToast(message, 'error');
     } finally {
       setLoading(false);
     }

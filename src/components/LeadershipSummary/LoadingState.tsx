@@ -2,15 +2,15 @@ import { motion } from 'framer-motion';
 import { Loader2, CheckCircle2 } from 'lucide-react';
 import { useState, useEffect } from 'react';
 
+const steps = [
+    "Analyzing meeting notes...",
+    "Extracting key decisions...",
+    "Identifying action items...",
+    "Formatting for leadership..."
+];
+
 export default function LoadingState() {
     const [completedSteps, setCompletedSteps] = useState<number[]>([]);
-
-    const steps = [
-        "Analyzing meeting notes...",
-        "Extracting key decisions...",
-        "Identifying action items...",
-        "Formatting for leadership..."
-    ];
 
     useEffect(() => {
         const timeouts = steps.map((_, index) => {
