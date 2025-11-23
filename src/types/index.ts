@@ -1,9 +1,9 @@
-export type NotificationType = 'task_assigned' | 'task_updated' | 'deadline_soon' | 'meeting_summary' | 'system_alert';
+export type UpdateNotificationType = 'task_assigned' | 'task_updated' | 'deadline_soon' | 'meeting_summary' | 'system_alert';
 
-export interface Notification {
+export interface UpdateNotification {
     id: string;
     user_id: string;
-    type: NotificationType;
+    type: UpdateNotificationType;
     message: string;
     task_id?: string;
     read: boolean;

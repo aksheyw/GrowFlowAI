@@ -1,13 +1,13 @@
 import { motion } from 'framer-motion';
 import { User, Clock, FileText, Sparkles, Activity } from 'lucide-react';
-import { Notification, NotificationType } from '../../types';
+import { UpdateNotification, UpdateNotificationType } from '../../types';
 
 interface UpdateCardProps {
-    notification: Notification;
+    notification: UpdateNotification;
     onClick: (id: string) => void;
 }
 
-const getNotificationIcon = (type: NotificationType) => {
+const getNotificationIcon = (type: UpdateNotificationType) => {
     switch (type) {
         case 'task_assigned':
             return { Icon: User, bgColor: 'bg-green-500/10', iconColor: 'text-green-600' };

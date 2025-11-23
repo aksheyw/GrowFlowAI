@@ -1,8 +1,8 @@
 import { useState, useCallback, useMemo } from 'react';
-import { Notification } from '../types';
+import { UpdateNotification } from '../types';
 
 // Mock data for development
-const MOCK_NOTIFICATIONS: Notification[] = [
+const MOCK_NOTIFICATIONS: UpdateNotification[] = [
     {
         id: '1',
         user_id: 'user-1',
@@ -92,10 +92,10 @@ const MOCK_NOTIFICATIONS: Notification[] = [
 ];
 
 export interface GroupedNotifications {
-    [key: string]: Notification[];
+    [key: string]: UpdateNotification[];
 }
 
-export function groupNotificationsByDate(notifications: Notification[]): GroupedNotifications {
+export function groupNotificationsByDate(notifications: UpdateNotification[]): GroupedNotifications {
     const groups: GroupedNotifications = {};
     const now = new Date();
     const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
@@ -134,7 +134,7 @@ export function groupNotificationsByDate(notifications: Notification[]): Grouped
 }
 
 export function useUpdates() {
-    const [notifications, setNotifications] = useState<Notification[]>(MOCK_NOTIFICATIONS);
+    const [notifications, setNotifications] = useState<UpdateNotification[]>(MOCK_NOTIFICATIONS);
     const [isLoading] = useState(false);
 
     const unreadCount = useMemo(() => {

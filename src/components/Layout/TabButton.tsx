@@ -28,7 +28,7 @@ export default function TabButton({ tab, isActive, onClick }: TabButtonProps) {
         flex flex-col items-center justify-center
         min-w-[64px] h-full px-3
         transition-all duration-200
-        ${isActive ? 'text-[#2D5016]' : 'text-gray-500'}
+        ${isActive ? 'text-green-600' : 'text-gray-400'}
       `}
         >
             {/* Active background pill */}
