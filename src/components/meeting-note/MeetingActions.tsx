@@ -6,6 +6,7 @@ interface MeetingActionsProps {
     onShare: () => void;
     onReprocess: () => void;
     onDelete: () => void;
+    onGenerateSummary: () => void;
     isReprocessing: boolean;
 }
 
@@ -14,6 +15,7 @@ export default function MeetingActions({
     onShare,
     onReprocess,
     onDelete,
+    onGenerateSummary,
     isReprocessing
 }: MeetingActionsProps) {
     return (
@@ -25,6 +27,20 @@ export default function MeetingActions({
         >
             <h3 className="text-lg font-bold text-gray-900 mb-4">Actions</h3>
             <div className="space-y-3">
+                <button
+                    onClick={onGenerateSummary}
+                    className="w-full flex items-center justify-between p-3 rounded-xl bg-gradient-to-r from-purple-50 to-purple-100 border-2 border-purple-200 hover:border-purple-300 hover:shadow-md transition-all group transform hover:scale-[1.02]"
+                >
+                    <div className="flex flex-col items-start text-left">
+                        <span className="flex items-center gap-2 font-bold text-purple-900">
+                            <span className="text-xl">👔</span>
+                            Generate Summary
+                        </span>
+                        <span className="text-xs text-purple-700 ml-7">For leadership team</span>
+                    </div>
+                    <ChevronRight className="w-4 h-4 text-purple-400 group-hover:text-purple-600" />
+                </button>
+
                 <button
                     onClick={onExport}
                     className="w-full flex items-center justify-between p-3 rounded-xl bg-gray-50 hover:bg-gray-100 text-gray-700 transition-colors group"

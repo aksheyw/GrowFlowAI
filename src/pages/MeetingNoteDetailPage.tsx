@@ -23,6 +23,7 @@ import {
     calculateTaskStats,
 } from '../utils/meetingHelpers';
 import { getInitials } from '../utils/premiumHelpers';
+import { SummaryModal } from '../components/LeadershipSummary';
 
 type TaskFilter = 'all' | 'not_started' | 'in_progress' | 'done';
 
@@ -44,6 +45,7 @@ export default function MeetingNoteDetailPage() {
     const [isDeleting, setIsDeleting] = useState(false);
     const [isReprocessing, setIsReprocessing] = useState(false);
     const [copied, setCopied] = useState(false);
+    const [showSummaryModal, setShowSummaryModal] = useState(false);
 
     // Fetch meeting data
     useEffect(() => {
@@ -462,6 +464,7 @@ ${tasks.map((task, i) => `${i + 1}. ${task.description} - ${task.assignee?.full_
                             onShare={handleShare}
                             onReprocess={handleReprocess}
                             onDelete={() => setShowDeleteModal(true)}
+                            onGenerateSummary={() => setShowSummaryModal(true)}
                             isReprocessing={isReprocessing}
                         />
 
@@ -530,6 +533,16 @@ ${tasks.map((task, i) => `${i + 1}. ${task.description} - ${task.assignee?.full_
                     </div>
                 )}
             </AnimatePresence>
+
+            {/* Leadership Summary Modal */}
+            {note && (
+                <SummaryModal
+                    isOpen={showSummaryModal}
+                    onClose={() => setShowSummaryModal(false)}
+                    note={note}
+                    userId={user?.id}
+                />
+            )}
         </div>
     );
 }

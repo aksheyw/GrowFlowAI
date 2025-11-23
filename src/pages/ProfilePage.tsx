@@ -80,17 +80,20 @@ export default function ProfilePage() {
                 {
                     icon: User,
                     label: 'Edit Profile',
-                    action: () => showToast({ type: 'info', title: 'Coming Soon', message: 'Profile editing will be available shortly.' })
+                    action: () => showToast({ type: 'info', title: 'Coming Soon', message: 'Profile editing will be available shortly.' }),
+                    badge: 'Coming Soon'
                 },
                 {
                     icon: Bell,
                     label: 'Notifications',
-                    action: () => showToast({ type: 'info', title: 'Coming Soon', message: 'Notification settings coming in the next update.' })
+                    action: () => showToast({ type: 'info', title: 'Coming Soon', message: 'Notification settings coming in the next update.' }),
+                    badge: 'Coming Soon'
                 },
                 {
                     icon: Shield,
                     label: 'Privacy & Security',
-                    action: () => showToast({ type: 'info', title: 'Coming Soon', message: 'Privacy settings are locked for now.' })
+                    action: () => showToast({ type: 'info', title: 'Coming Soon', message: 'Privacy settings are locked for now.' }),
+                    badge: 'Coming Soon'
                 }
             ]
         },
@@ -147,8 +150,8 @@ export default function ProfilePage() {
                             onMouseLeave={() => setShowLevelTooltip(false)}
                             onClick={() => setShowLevelTooltip(!showLevelTooltip)}
                         >
-                            <div className="flex items-center gap-1 px-3 py-1 bg-white/90 backdrop-blur-sm rounded-full shadow-lg border border-white/50">
-                                <div className="w-4 h-4 rounded-full bg-gradient-to-br from-yellow-300 to-yellow-500 flex items-center justify-center shadow-sm">
+                            <div className="flex items-center gap-1 px-3 py-1 bg-white/90 backdrop-blur-sm rounded-full shadow-lg border border-white/50 whitespace-nowrap">
+                                <div className="w-4 h-4 rounded-full bg-gradient-to-br from-yellow-300 to-yellow-500 flex items-center justify-center shadow-sm flex-shrink-0">
                                     <span className="text-[10px] font-bold text-white">★</span>
                                 </div>
                                 <span className="text-xs font-semibold text-gray-700">Lvl {stats.level}</span>
