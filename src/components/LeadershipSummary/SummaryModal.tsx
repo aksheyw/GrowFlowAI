@@ -1,23 +1,32 @@
-import { useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { X, RefreshCw, Copy, Check } from 'lucide-react';
+import { X, Copy, Check, RefreshCw, AlertTriangle } from 'lucide-react';
+import { Note } from '../../lib/supabase';
 import { useSummaryGenerator } from './hooks/useSummaryGenerator';
 import FormatSelector from './FormatSelector';
-import SummaryPreview from './SummaryPreview';
 import LoadingState from './LoadingState';
+import SummaryPreview from './SummaryPreview';
 import { useToast } from '../../contexts/ToastContext';
-import { useState } from 'react';
-
-import { Note } from '../../lib/supabase';
 
 interface SummaryModalProps {
     isOpen: boolean;
     onClose: () => void;
     note: Note;
     userId?: string;
+    onSummaryGenerated?: (summary: {
+        tldr: string;
+        decisions: string[];
+        actionItems: string[];
+        emailFormat: string;
+        chatFormat: string;
+        documentFormat: string;
+    }) => void;
 }
 
-export default function SummaryModal({ isOpen, onClose, note, userId }: SummaryModalProps) {
+export default function SummaryModal({ isOpen, onClose, note, userId, onSummaryGenerated }: SummaryModalProps) {
+    const { showToast } = useToast();
+    const [showRegenerateConfirm, setShowRegenerateConfirm] = useState(false);
+
     const {
         isLoading,
         isRegenerating,
@@ -29,173 +38,205 @@ export default function SummaryModal({ isOpen, onClose, note, userId }: SummaryM
         setState
     } = useSummaryGenerator(note.id, {
         content: note.content,
-        title: note.meeting_title || 'Meeting Notes',
-        userId,
+        title: note.meeting_title || 'Untitled Meeting',
+        userId: userId,
         date: note.meeting_date || undefined
-    });
+    }, note.leadership_summary, onSummaryGenerated);
 
-    const { showToast } = useToast();
-    const [buttonText, setButtonText] = useState('Copy to Clipboard →');
-
-    // Generate summary when modal opens
     useEffect(() => {
-        if (isOpen && !summaryData && !isLoading) {
+        if (isOpen && !summaryData && !isLoading && !error) {
             generateSummary();
         }
-    }, [isOpen, summaryData, isLoading, generateSummary]);
+    }, [isOpen]);
 
     const handleCopy = async () => {
-        // Get the text content from the preview (re-generating it here for simplicity, 
-        // ideally we'd extract the logic from SummaryPreview or pass it up)
-        // For now, I'll just use a simple selector or ref if I could, but since I can't easily access the child state,
-        // I will duplicate the logic or move it to a shared helper. 
-        // Actually, let's just grab the text content from the DOM for now as a quick hack, 
-        // OR better, move the formatting logic to a helper file.
-        // I'll assume the user copies what they see.
-        // Wait, I should probably move the formatting logic to a helper to be clean.
-        // For this iteration, I will just rely on the user copying manually or implement the helper.
-        // Let's implement the helper logic inside handleCopy for now by importing the logic or duplicating it.
-        // I'll duplicate the logic for now to save time and avoid creating another file, but I should refactor later.
-
-        // Actually, I can just use the DOM textContent of the preview container if I attach a ref.
-        // But that's brittle.
-        // Let's just re-calculate it.
-
         if (!summaryData) return;
 
-        let text = '';
-        // ... (Logic from SummaryPreview) ...
-        // To avoid code duplication, I should have put it in a helper. 
-        // I'll do that in a future refactor. For now, I will just put a placeholder or try to implement it.
-
-        // Let's just re-implement the switch case here quickly.
-        const data = summaryData;
+        let textToCopy = '';
         switch (format) {
             case 'email':
-                text = `Subject: ${data.subject}\n\nHi [Recipient Name],\n\nHere's the executive summary of our meeting held on [Date]:\n\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n📊 TLDR\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n\n${data.tldr}\n\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n🎯 KEY DECISIONS\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n\n${data.keyDecisions.map(d => `• ${d}`).join('\n')}\n\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n✅ ACTION ITEMS & OWNERS\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n\n${data.actionItems.map(item => `• ${item.task} - Owner: ${item.owner} - Due: ${item.deadline}`).join('\n')}\n\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n💡 DISCUSSION HIGHLIGHTS\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n\n${data.highlights.map(h => `• ${h}`).join('\n')}\n\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n➡️ NEXT STEPS\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n\n${data.nextSteps.map(s => `• ${s}`).join('\n')}\n\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n\nView full meeting details: [Link to meeting note page]\n\nBest regards,\n[Your name]`;
+                textToCopy = summaryData.emailFormat;
                 break;
             case 'chat':
-                text = `📊 Meeting Summary\n\n**TLDR:** ${data.tldr}\n\n**Key Decisions:**\n${data.keyDecisions.map(d => `✓ ${d}`).join('\n')}\n\n**Action Items:**\n${data.actionItems.map(item => `• ${item.task} → @${item.owner} (Due: ${item.deadline})`).join('\n')}\n\n**Highlights:**\n${data.highlights.map(h => `• ${h}`).join('\n')}\n\n**Next Steps:**\n${data.nextSteps.map(s => `→ ${s}`).join('\n')}\n\n🔗 Full details: [Link]`;
+                textToCopy = summaryData.chatFormat;
                 break;
             case 'document':
-                text = `LEADERSHIP SUMMARY\n[Meeting Title]\n[Date] | [Participants count] participants\n\n─────────────────────────────────────\n\nEXECUTIVE SUMMARY\n\n${data.tldr}\n\n─────────────────────────────────────\n\nKEY DECISIONS MADE\n\n${data.keyDecisions.map((d, i) => `${i + 1}. ${d}`).join('\n\n')}\n\n─────────────────────────────────────\n\nACTION ITEMS & OWNERSHIP\n\n${data.actionItems.map(item => `${item.task.padEnd(30)} ${item.owner.padEnd(15)} ${item.deadline.padEnd(12)} ${item.priority}`).join('\n')}\n\n─────────────────────────────────────\n\nDISCUSSION HIGHLIGHTS\n\n${data.highlights.map(h => `• ${h}`).join('\n')}\n\n─────────────────────────────────────\n\nNEXT STEPS & TIMELINE\n\nImmediate (Next 24-48 hours):\n${data.nextSteps.slice(0, 2).map(s => `• ${s}`).join('\n')}\n\nShort-term (This week):\n${data.nextSteps.slice(2).map(s => `• ${s}`).join('\n')}`;
+                textToCopy = summaryData.documentFormat;
                 break;
         }
 
         try {
-            await navigator.clipboard.writeText(text);
+            await navigator.clipboard.writeText(textToCopy);
             showToast({
                 type: 'success',
-                title: 'Summary copied!',
-                message: 'Ready to paste into your email or chat',
-                duration: 3
+                title: 'Copied to clipboard',
+                message: 'Summary ready to paste',
+                duration: 2000
             });
             if (navigator.vibrate) navigator.vibrate(50);
-            setButtonText('Copied ✓');
-            setTimeout(() => setButtonText('Copy to Clipboard →'), 2000);
         } catch (err) {
+            console.error('Failed to copy:', err);
             showToast({
                 type: 'error',
                 title: 'Copy failed',
-                message: 'Please try again',
-                duration: 3
+                message: 'Please try again'
             });
         }
+    };
+
+    const handleRegenerateClick = () => {
+        setShowRegenerateConfirm(true);
+    };
+
+    const confirmRegenerate = () => {
+        setShowRegenerateConfirm(false);
+        regenerate();
     };
 
     return (
         <AnimatePresence>
             {isOpen && (
-                <motion.div
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 1 }}
-                    exit={{ opacity: 0 }}
-                    className="fixed inset-0 bg-black/50 backdrop-blur-sm z-[100] flex items-center justify-center p-4"
-                    onClick={onClose}
-                >
+                <div className="fixed inset-0 z-[60] flex items-end sm:items-center justify-center sm:p-4">
+                    {/* Backdrop */}
                     <motion.div
-                        initial={{ opacity: 0, scale: 0.95, y: 20 }}
-                        animate={{ opacity: 1, scale: 1, y: 0 }}
-                        exit={{ opacity: 0, scale: 0.95, y: 20 }}
-                        transition={{ type: 'spring', stiffness: 400, damping: 30 }}
-                        className="bg-white rounded-2xl shadow-2xl w-full max-w-4xl max-h-[90vh] flex flex-col overflow-hidden"
-                        onClick={(e) => e.stopPropagation()}
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        exit={{ opacity: 0 }}
+                        onClick={onClose}
+                        className="absolute inset-0 bg-black/30 backdrop-blur-sm"
+                    />
+
+                    {/* Modal */}
+                    <motion.div
+                        initial={{ y: '100%' }}
+                        animate={{ y: 0 }}
+                        exit={{ y: '100%' }}
+                        transition={{ type: 'spring', damping: 25, stiffness: 300 }}
+                        className="bg-white w-full max-w-2xl h-[85vh] sm:h-[800px] sm:rounded-2xl rounded-t-2xl shadow-2xl flex flex-col relative z-10 overflow-hidden"
                     >
                         {/* Header */}
-                        <div className="p-6 border-b border-gray-100 flex items-start justify-between bg-white z-10">
-                            <div>
-                                <h2 className="text-2xl font-bold text-gray-900 flex items-center gap-2">
-                                    Generate Leadership Summary
-                                    <span className="text-xs font-normal px-2 py-1 bg-purple-100 text-purple-700 rounded-full border border-purple-200">BETA</span>
-                                </h2>
-                                <p className="text-sm text-gray-500 mt-1">AI-powered executive summary for leadership team</p>
+                        <div className="flex items-center justify-between p-4 border-b border-gray-100">
+                            <div className="flex items-center gap-3">
+                                <div className="w-10 h-10 rounded-xl bg-purple-50 flex items-center justify-center text-xl">
+                                    👔
+                                </div>
+                                <div>
+                                    <h2 className="text-lg font-bold text-gray-900">Leadership Summary</h2>
+                                    <div className="flex items-center gap-2">
+                                        <span className="px-2 py-0.5 rounded-full bg-purple-100 text-purple-700 text-xs font-bold uppercase tracking-wider">
+                                            BETA
+                                        </span>
+                                        {summaryData && (
+                                            <span className="text-xs text-gray-500 flex items-center gap-1">
+                                                <Check className="w-3 h-3" />
+                                                Saved
+                                            </span>
+                                        )}
+                                    </div>
+                                </div>
                             </div>
                             <button
                                 onClick={onClose}
-                                className="p-2 hover:bg-gray-100 rounded-full transition-colors text-gray-400 hover:text-gray-600"
+                                className="p-2 hover:bg-gray-100 rounded-full transition-colors"
                             >
-                                <X className="w-5 h-5" />
+                                <X className="w-5 h-5 text-gray-500" />
                             </button>
                         </div>
 
                         {/* Content */}
-                        <div className="flex-1 overflow-y-auto p-6 bg-gray-50">
-                            {isLoading ? (
-                                <LoadingState />
-                            ) : error ? (
-                                <div className="flex flex-col items-center justify-center h-64 text-center">
-                                    <div className="w-16 h-16 bg-red-50 rounded-full flex items-center justify-center text-red-500 mb-4">
-                                        <X className="w-8 h-8" />
-                                    </div>
-                                    <h3 className="text-lg font-bold text-gray-900 mb-2">Failed to generate summary</h3>
-                                    <p className="text-gray-500 mb-6 max-w-md">{error}</p>
-                                    <button
-                                        onClick={() => generateSummary()}
-                                        className="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors font-medium"
-                                    >
-                                        Try Again
-                                    </button>
-                                </div>
-                            ) : summaryData ? (
-                                <div className="space-y-6">
-                                    <div className="max-w-md mx-auto">
-                                        <FormatSelector
-                                            currentFormat={format}
-                                            onFormatChange={(f) => setState(prev => ({ ...prev, format: f }))}
-                                        />
-                                    </div>
+                        <div className="flex-1 overflow-hidden flex flex-col relative">
+                            {/* Format Selector */}
+                            <div className="p-4 pb-0">
+                                <FormatSelector
+                                    currentFormat={format}
+                                    onFormatChange={(fmt) => setState(prev => ({ ...prev, format: fmt }))}
+                                />
+                            </div>
 
-                                    <SummaryPreview data={summaryData} format={format} />
-                                </div>
-                            ) : null}
+                            {/* Main Area */}
+                            <div className="flex-1 overflow-y-auto p-4">
+                                {isLoading || isRegenerating ? (
+                                    <LoadingState />
+                                ) : error ? (
+                                    <div className="h-full flex flex-col items-center justify-center text-center p-8">
+                                        <div className="w-12 h-12 bg-red-50 rounded-full flex items-center justify-center mb-4">
+                                            <AlertTriangle className="w-6 h-6 text-red-500" />
+                                        </div>
+                                        <p className="text-red-600 font-medium mb-2">{error}</p>
+                                        <button
+                                            onClick={() => regenerate()}
+                                            className="text-sm text-gray-500 underline hover:text-gray-700"
+                                        >
+                                            Try Again
+                                        </button>
+                                    </div>
+                                ) : summaryData ? (
+                                    <SummaryPreview
+                                        data={summaryData}
+                                        format={format}
+                                    />
+                                ) : null}
+                            </div>
                         </div>
 
                         {/* Footer */}
-                        {!isLoading && !error && summaryData && (
-                            <div className="p-6 border-t border-gray-100 bg-white flex items-center justify-between gap-4">
-                                <button
-                                    onClick={regenerate}
-                                    disabled={isRegenerating}
-                                    className="flex items-center gap-2 px-4 py-2.5 border border-gray-200 rounded-xl text-gray-600 font-medium hover:bg-gray-50 hover:text-gray-900 transition-colors disabled:opacity-50"
-                                >
-                                    <RefreshCw className={`w-4 h-4 ${isRegenerating ? 'animate-spin' : ''}`} />
-                                    {isRegenerating ? 'Regenerating...' : 'Regenerate'}
-                                </button>
+                        <div className="p-4 border-t border-gray-100 bg-gray-50/50 flex items-center justify-between gap-3">
+                            <button
+                                onClick={handleRegenerateClick}
+                                disabled={isLoading || isRegenerating}
+                                className="px-4 py-2.5 text-gray-600 font-medium hover:bg-gray-100 rounded-xl transition-colors flex items-center gap-2 disabled:opacity-50"
+                            >
+                                <RefreshCw className={`w-4 h-4 ${isRegenerating ? 'animate-spin' : ''}`} />
+                                Regenerate
+                            </button>
 
-                                <button
-                                    onClick={handleCopy}
-                                    className={`
-                                        flex items-center gap-2 px-6 py-2.5 rounded-xl font-bold text-white shadow-lg shadow-purple-200 transition-all transform active:scale-95
-                                        ${buttonText === 'Copied ✓' ? 'bg-green-600 hover:bg-green-700' : 'bg-gradient-to-r from-purple-600 to-purple-500 hover:from-purple-700 hover:to-purple-600'}
-                                    `}
+                            <button
+                                onClick={handleCopy}
+                                disabled={isLoading || isRegenerating || !summaryData}
+                                className="flex-1 sm:flex-none px-6 py-2.5 bg-[#2D5016] text-white font-medium rounded-xl hover:shadow-lg hover:scale-[1.02] transition-all flex items-center justify-center gap-2 disabled:opacity-50 disabled:hover:scale-100"
+                            >
+                                <Copy className="w-4 h-4" />
+                                Copy to Clipboard
+                            </button>
+                        </div>
+
+                        {/* Confirmation Overlay */}
+                        <AnimatePresence>
+                            {showRegenerateConfirm && (
+                                <motion.div
+                                    initial={{ opacity: 0 }}
+                                    animate={{ opacity: 1 }}
+                                    exit={{ opacity: 0 }}
+                                    className="absolute inset-0 z-20 bg-white/90 backdrop-blur-sm flex items-center justify-center p-6"
                                 >
-                                    {buttonText === 'Copied ✓' ? <Check className="w-4 h-4" /> : <Copy className="w-4 h-4" />}
-                                    {buttonText}
-                                </button>
-                            </div>
-                        )}
+                                    <div className="text-center max-w-xs">
+                                        <div className="w-12 h-12 bg-yellow-50 rounded-full flex items-center justify-center mx-auto mb-4">
+                                            <AlertTriangle className="w-6 h-6 text-yellow-600" />
+                                        </div>
+                                        <h3 className="text-lg font-bold text-gray-900 mb-2">Regenerate Summary?</h3>
+                                        <p className="text-sm text-gray-600 mb-6">
+                                            This will overwrite the existing summary with a new AI-generated version.
+                                        </p>
+                                        <div className="flex gap-3 justify-center">
+                                            <button
+                                                onClick={() => setShowRegenerateConfirm(false)}
+                                                className="px-4 py-2 text-gray-600 font-medium hover:bg-gray-100 rounded-lg"
+                                            >
+                                                Cancel
+                                            </button>
+                                            <button
+                                                onClick={confirmRegenerate}
+                                                className="px-4 py-2 bg-yellow-500 text-white font-medium rounded-lg hover:bg-yellow-600 shadow-sm"
+                                            >
+                                                Yes, Regenerate
+                                            </button>
+                                        </div>
+                                    </div>
+                                </motion.div>
+                            )}
+                        </AnimatePresence>
                     </motion.div>
-                </motion.div>
+                </div>
             )}
         </AnimatePresence>
     );

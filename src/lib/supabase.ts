@@ -28,6 +28,14 @@ export type Note = {
   meeting_participants: string[] | null;
   meeting_location: string | null;
   meeting_summary: string | null;
+  leadership_summary: {
+    tldr: string;
+    decisions: string[];
+    actionItems: string[];
+    emailFormat: string;
+    chatFormat: string;
+    documentFormat: string;
+  } | null;
   created_at: string;
   updated_at: string;
 };

@@ -5,14 +5,12 @@ import {
     ArrowLeft,
     ChevronRight,
     AlertTriangle,
-    LogOut,
     Loader2,
     Trash2
 } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 import { supabase, Note, Task } from '../lib/supabase';
 import { useToast } from '../contexts/ToastContext';
-import NotificationBell from '../components/NotificationBell';
 import MeetingHeader from '../components/meeting-note/MeetingHeader';
 import MeetingStats from '../components/meeting-note/MeetingStats';
 import MeetingContent from '../components/meeting-note/MeetingContent';
@@ -22,7 +20,6 @@ import {
     formatDateShort,
     calculateTaskStats,
 } from '../utils/meetingHelpers';
-import { getInitials } from '../utils/premiumHelpers';
 import { SummaryModal } from '../components/LeadershipSummary';
 
 type TaskFilter = 'all' | 'not_started' | 'in_progress' | 'done';
@@ -30,7 +27,7 @@ type TaskFilter = 'all' | 'not_started' | 'in_progress' | 'done';
 export default function MeetingNoteDetailPage() {
     const { noteId } = useParams<{ noteId: string }>();
     const navigate = useNavigate();
-    const { user, profile, signOut } = useAuth();
+    const { user } = useAuth();
     const { showToast } = useToast();
     const titleInputRef = useRef<HTMLInputElement>(null);
 
@@ -43,7 +40,6 @@ export default function MeetingNoteDetailPage() {
     const [taskFilter, setTaskFilter] = useState<TaskFilter>('all');
     const [showDeleteModal, setShowDeleteModal] = useState(false);
     const [isDeleting, setIsDeleting] = useState(false);
-    const [isReprocessing, setIsReprocessing] = useState(false);
     const [copied, setCopied] = useState(false);
     const [showSummaryModal, setShowSummaryModal] = useState(false);
 
@@ -55,10 +51,10 @@ export default function MeetingNoteDetailPage() {
             setIsLoading(true);
 
             try {
-                // Fetch note
+                // Fetch note with leadership_summary
                 const { data: noteData, error: noteError } = await supabase
                     .from('notes')
-                    .select('*')
+                    .select('*, leadership_summary')
                     .eq('id', noteId)
                     .single();
 
@@ -92,7 +88,7 @@ export default function MeetingNoteDetailPage() {
                     title: 'Failed to load meeting',
                     message: 'Please try again'
                 });
-                navigate('/dashboard');
+                navigate('/dashboard?view=notes');
             } finally {
                 setIsLoading(false);
             }
@@ -228,59 +224,20 @@ ${tasks.map((task, i) => `${i + 1}. ${task.description} - ${task.assignee?.full_
         });
     }
 
-    async function handleReprocess() {
-        console.log('Starting reprocess...', { noteId: note?.id, userId: user?.id });
-        if (!note || !user) {
-            console.error('Missing note or user', { note, user });
-            return;
-        }
-
-        setIsReprocessing(true);
-
-        try {
-            const response = await fetch('https://n8n.srv1134430.hstgr.cloud/webhook/reprocess-note', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({
-                    content: note.content,
-                    note_id: note.id,
-                    user_id: user.id
-                })
-            });
-
-            if (!response.ok) throw new Error('Failed to trigger reprocessing');
-
-            const data = await response.json();
-
-            if (data.success) {
-                showToast({
-                    type: 'success',
-                    title: 'Reprocessing started',
-                    message: 'AI is analyzing your notes. The summary will update shortly.',
-                    duration: 4000
-                });
-
-                // Reload notes to check for updates after a delay
-                setTimeout(() => {
-                    window.location.reload();
-                }, 5000);
-            } else {
-                throw new Error('Workflow returned failure');
-            }
-
-        } catch (error) {
-            console.error('Error reprocessing:', error);
-            showToast({
-                type: 'error',
-                title: 'Failed to reprocess',
-                message: 'Please try again later'
-            });
-        } finally {
-            setIsReprocessing(false);
+    function handleSummaryGenerated(summaryData: {
+        tldr: string;
+        decisions: string[];
+        actionItems: string[];
+        emailFormat: string;
+        chatFormat: string;
+        documentFormat: string;
+    }) {
+        // Update local note state with the new summary
+        if (note) {
+            setNote(prev => prev ? { ...prev, leadership_summary: summaryData } : null);
         }
     }
+
 
     async function handleDelete() {
         if (!note) return;
@@ -311,7 +268,7 @@ ${tasks.map((task, i) => `${i + 1}. ${task.description} - ${task.assignee?.full_
                 duration: 3000
             });
 
-            navigate('/dashboard');
+            navigate('/dashboard?view=notes');
 
         } catch (error) {
             console.error('Error deleting meeting:', error);
@@ -350,7 +307,7 @@ ${tasks.map((task, i) => `${i + 1}. ${task.description} - ${task.assignee?.full_
                     <h2 className="text-2xl font-bold text-gray-900 mb-2">Note not found</h2>
                     <p className="text-gray-600 mb-6">This meeting note doesn't exist or you don't have access to it.</p>
                     <button
-                        onClick={() => navigate('/dashboard')}
+                        onClick={() => navigate('/dashboard?view=notes')}
                         className="px-6 py-3 bg-[#2D5016] text-white rounded-xl font-medium hover:shadow-lg transition-all duration-200"
                     >
                         Back to Dashboard
@@ -362,52 +319,6 @@ ${tasks.map((task, i) => `${i + 1}. ${task.description} - ${task.assignee?.full_
 
     return (
         <div className="min-h-screen bg-gradient-to-br from-gray-50 to-blue-50/30">
-            {/* Premium Header */}
-            <header className="sticky top-0 z-50 bg-white/80 backdrop-blur-xl border-b border-gray-200/50 shadow-sm">
-                <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-                    <div className="flex items-center justify-between h-16">
-                        <motion.div
-                            className="flex items-center gap-3"
-                            initial={{ opacity: 0, x: -20 }}
-                            animate={{ opacity: 1, x: 0 }}
-                        >
-                            <motion.div
-                                className="text-3xl"
-                                whileHover={{ scale: 1.15, rotate: 5 }}
-                                whileTap={{ scale: 0.95 }}
-                            >
-                                🌱
-                            </motion.div>
-                            <h1 className="text-xl sm:text-2xl font-bold bg-gradient-to-r from-[#2D5016] to-[#6FA84C] bg-clip-text text-transparent">
-                                GrowFlow
-                            </h1>
-                        </motion.div>
-
-                        <div className="flex items-center gap-3">
-                            <NotificationBell />
-                            <motion.button
-                                onClick={signOut}
-                                className="p-2 rounded-xl hover:bg-gray-100 text-gray-600 transition-colors"
-                                whileHover={{ scale: 1.05 }}
-                                whileTap={{ scale: 0.95 }}
-                                title="Sign out"
-                            >
-                                <LogOut className="w-5 h-5" />
-                            </motion.button>
-                            <div className="hidden sm:flex items-center gap-3 pl-3 border-l border-gray-200">
-                                <div className="w-10 h-10 rounded-full bg-gradient-to-br from-[#6FA84C] to-[#A4D96C] flex items-center justify-center text-white font-semibold">
-                                    {getInitials(profile?.full_name)}
-                                </div>
-                                <div className="text-sm">
-                                    <p className="font-medium text-gray-900">{profile?.full_name}</p>
-                                    <p className="text-gray-500 text-xs">{profile?.email}</p>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </header>
-
             {/* Main Content */}
             <main className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
                 {/* Breadcrumb Navigation */}
@@ -418,7 +329,7 @@ ${tasks.map((task, i) => `${i + 1}. ${task.description} - ${task.assignee?.full_
                     className="mb-6 flex items-center gap-2 text-sm"
                 >
                     <button
-                        onClick={() => navigate('/dashboard')}
+                        onClick={() => navigate('/dashboard?view=notes')}
                         className="
               flex items-center gap-1.5
               text-gray-600 hover:text-gray-900
@@ -462,10 +373,9 @@ ${tasks.map((task, i) => `${i + 1}. ${task.description} - ${task.assignee?.full_
                         <MeetingActions
                             onExport={handleExport}
                             onShare={handleShare}
-                            onReprocess={handleReprocess}
                             onDelete={() => setShowDeleteModal(true)}
                             onGenerateSummary={() => setShowSummaryModal(true)}
-                            isReprocessing={isReprocessing}
+                            hasSummary={!!note.leadership_summary}
                         />
 
                         {/* Tasks List */}
@@ -541,6 +451,7 @@ ${tasks.map((task, i) => `${i + 1}. ${task.description} - ${task.assignee?.full_
                     onClose={() => setShowSummaryModal(false)}
                     note={note}
                     userId={user?.id}
+                    onSummaryGenerated={handleSummaryGenerated}
                 />
             )}
         </div>

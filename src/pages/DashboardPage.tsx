@@ -1,29 +1,44 @@
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { useLocation } from 'react-router-dom';
+import { useLocation, Link } from 'react-router-dom';
 
 import confetti from 'canvas-confetti';
 import { useAuth } from '../contexts/AuthContext';
-import { supabase, Task } from '../lib/supabase';
+import { supabase, Task, Note } from '../lib/supabase';
 import { getTimeOfDay, getFirstName } from '../utils/premiumHelpers';
 import PremiumTaskCard from '../components/premium/PremiumTaskCard';
 import PremiumFilterBar, { PremiumFilterType, SortOption } from '../components/premium/PremiumFilterBar';
 import PremiumEmptyState from '../components/premium/PremiumEmptyState';
+import MeetingNoteCard from '../components/premium/MeetingNoteCard';
 
 import { useToast } from '../contexts/ToastContext';
+
+type DashboardTab = 'tasks' | 'notes';
 
 export default function DashboardPage() {
   const { profile } = useAuth();
 
   const location = useLocation();
   const { addToast } = useToast();
+
+  // Read initial tab from URL query parameter
+  const urlParams = new URLSearchParams(location.search);
+  const initialTab = (urlParams.get('view') === 'notes' ? 'notes' : 'tasks') as DashboardTab;
+  const [activeTab, setActiveTab] = useState<DashboardTab>(initialTab);
+
+  // Tasks State
   const [tasks, setTasks] = useState<Task[]>([]);
-  const [loading, setLoading] = useState(true);
   const [activeFilter, setActiveFilter] = useState<PremiumFilterType>('all');
   const [sortBy, setSortBy] = useState<SortOption>('deadline');
 
+  // Notes State
+  const [notes, setNotes] = useState<Note[]>([]);
+  const [noteTaskCounts, setNoteTaskCounts] = useState<Record<string, number>>({});
+
+  const [loading, setLoading] = useState(true);
+
   useEffect(() => {
-    loadTasks();
+    loadData();
     const cleanup = subscribeToRealtime();
     return cleanup;
   }, []);
@@ -49,9 +64,12 @@ export default function DashboardPage() {
     }, 300);
   }, [location.state?.highlightTaskId, loading]);
 
-  async function loadTasks() {
+  async function loadData() {
     try {
-      const { data, error } = await supabase
+      setLoading(true);
+
+      // 1. Fetch Tasks
+      const { data: tasksData, error: tasksError } = await supabase
         .from('tasks')
         .select(`
           *,
@@ -60,11 +78,30 @@ export default function DashboardPage() {
         `)
         .order('created_at', { ascending: false });
 
-      if (error) throw error;
-      setTasks(data || []);
+      if (tasksError) throw tasksError;
+      setTasks(tasksData || []);
+
+      // 2. Fetch Notes
+      const { data: notesData, error: notesError } = await supabase
+        .from('notes')
+        .select('*')
+        .order('created_at', { ascending: false });
+
+      if (notesError) throw notesError;
+      setNotes(notesData || []);
+
+      // 3. Calculate task counts per note
+      const counts: Record<string, number> = {};
+      tasksData?.forEach(task => {
+        if (task.note_id) {
+          counts[task.note_id] = (counts[task.note_id] || 0) + 1;
+        }
+      });
+      setNoteTaskCounts(counts);
+
     } catch (error) {
-      console.error('Error loading tasks:', error);
-      addToast('Failed to fetch your tasks', 'error');
+      console.error('Error loading dashboard data:', error);
+      addToast('Failed to fetch your data', 'error');
     } finally {
       setLoading(false);
     }
@@ -72,10 +109,8 @@ export default function DashboardPage() {
 
   function subscribeToRealtime() {
     const channel = supabase
-      .channel('tasks-premium')
+      .channel('dashboard-premium')
       .on('postgres_changes', { event: '*', schema: 'public', table: 'tasks' }, (payload) => {
-        console.log('Task change:', payload);
-
         if (payload.eventType === 'UPDATE' && payload.new && (payload.new as Task).status === 'Done') {
           confetti({
             particleCount: 100,
@@ -89,7 +124,10 @@ export default function DashboardPage() {
           addToast('New task added!', 'success');
         }
 
-        loadTasks();
+        loadData();
+      })
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'notes' }, () => {
+        loadData();
       })
       .subscribe();
 
@@ -116,7 +154,7 @@ export default function DashboardPage() {
     } catch (error) {
       console.error('Error updating task:', error);
       // Revert by reloading from server to ensure consistency
-      loadTasks();
+      loadData();
       addToast('Failed to update task status', 'error');
     }
   }
@@ -167,7 +205,7 @@ export default function DashboardPage() {
           animate={{ opacity: 1, scale: 1 }}
         >
           <div className="text-8xl mb-4 animate-spin">🌱</div>
-          <p className="text-gray-600">Loading your tasks...</p>
+          <p className="text-gray-600">Loading your garden...</p>
         </motion.div>
       </div>
     );
@@ -177,88 +215,170 @@ export default function DashboardPage() {
     <div className="min-h-screen bg-gradient-to-br from-gray-50 to-green-50/30 pb-20 md:pb-0">
       {/* Main Content */}
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8">
-        {/* Greeting Section */}
-        <motion.div
-          className="mb-4 sm:mb-8"
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-        >
-          <h2 className="text-2xl sm:text-4xl font-bold text-gray-900 mb-1 sm:mb-2">{greeting}</h2>
-          <p className="text-gray-600 text-sm sm:text-base">
-            You have {tasks.length} {tasks.length === 1 ? 'task' : 'tasks'} to manage
-          </p>
-        </motion.div>
-
-        {/* Stats Cards */}
-        <div className="
-          flex overflow-x-auto pb-4 gap-4 snap-x snap-mandatory scrollbar-hide -mx-4 px-4
-          sm:grid sm:grid-cols-3 sm:gap-6 sm:pb-0 sm:mx-0 sm:px-0
-          mb-8 sm:mb-10
-        ">
-          {[
-            { label: 'Not Started', count: taskCounts['Not Started'], emoji: '🌱', color: 'from-gray-400 to-gray-500' },
-            { label: 'In Progress', count: taskCounts['In Progress'], emoji: '🌿', color: 'from-yellow-400 to-orange-500' },
-            { label: 'Completed', count: taskCounts['Done'], emoji: '🌳', color: 'from-green-400 to-emerald-500' },
-          ].map((stat, index) => (
-            <motion.div
-              key={stat.label}
-              className="
-                min-w-[240px] sm:min-w-0 flex-shrink-0 snap-center
-                bg-white rounded-2xl p-5 sm:p-6 
-                shadow-sm hover:shadow-xl transition-shadow duration-300 
-                border border-gray-200/50
-              "
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: index * 0.1 }}
-              whileHover={{ y: -4 }}
-            >
-              <div className="flex items-center justify-between mb-2">
-                <p className="text-gray-600 text-sm font-medium">{stat.label}</p>
-                <span className="text-3xl sm:text-4xl">{stat.emoji}</span>
-              </div>
-              <p className={`text-3xl font-bold bg-gradient-to-r ${stat.color} bg-clip-text text-transparent`}>
-                {stat.count}
-              </p>
-            </motion.div>
-          ))}
-        </div>
-
-        {/* Filter Bar */}
-        <div className="mb-6 sm:mb-8">
-          <PremiumFilterBar
-            filters={filters}
-            activeFilter={activeFilter}
-            onFilterChange={setActiveFilter}
-            sortBy={sortBy}
-            onSortChange={setSortBy}
-          />
-        </div>
-
-        {/* Tasks Grid */}
-        {filteredTasks.length === 0 ? (
-          <PremiumEmptyState />
-        ) : (
+        {/* Header Section */}
+        <div className="mb-8 sm:mb-10">
           <motion.div
-            className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6"
-            layout
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="flex flex-col md:flex-row md:items-end justify-between gap-6"
           >
-            <AnimatePresence mode="popLayout">
-              {filteredTasks.map((task, index) => (
-                <motion.div
-                  key={task.id}
-                  layout
-                  initial={{ opacity: 0, scale: 0.9 }}
-                  animate={{ opacity: 1, scale: 1 }}
-                  exit={{ opacity: 0, scale: 0.9 }}
-                  transition={{ delay: index * 0.05 }}
+            <div>
+              <h2 className="text-2xl sm:text-4xl font-bold text-gray-900 mb-1 sm:mb-2">{greeting}</h2>
+              <p className="text-gray-600 text-sm sm:text-base">
+                {activeTab === 'tasks'
+                  ? `You have ${tasks.length} ${tasks.length === 1 ? 'task' : 'tasks'} to manage`
+                  : `You have ${notes.length} meeting ${notes.length === 1 ? 'note' : 'notes'} recorded`
+                }
+              </p>
+            </div>
+
+            {/* Segmented Control */}
+            <div className="bg-white/50 backdrop-blur-sm p-1 rounded-xl border border-gray-200/50 flex items-center gap-1 w-full md:w-auto">
+              {(['tasks', 'notes'] as const).map((tab) => (
+                <button
+                  key={tab}
+                  onClick={() => setActiveTab(tab)}
+                  className={`
+                    relative flex-1 md:flex-none px-6 py-2.5 rounded-lg text-sm font-semibold transition-colors z-10
+                    ${activeTab === tab ? 'text-white' : 'text-gray-600 hover:text-gray-900'}
+                  `}
                 >
-                  <PremiumTaskCard task={task} onStatusChange={handleStatusChange} />
-                </motion.div>
+                  {activeTab === tab && (
+                    <motion.div
+                      layoutId="activeTab"
+                      className="absolute inset-0 bg-[#2D5016] rounded-lg -z-10 shadow-sm"
+                      transition={{ type: "spring", bounce: 0.2, duration: 0.6 }}
+                    />
+                  )}
+                  {tab === 'tasks' ? 'My Garden' : 'Meeting Notes'}
+                </button>
               ))}
-            </AnimatePresence>
+            </div>
           </motion.div>
-        )}
+        </div>
+
+        <AnimatePresence mode="wait">
+          {activeTab === 'tasks' ? (
+            <motion.div
+              key="tasks-view"
+              initial={{ opacity: 0, x: -20 }}
+              animate={{ opacity: 1, x: 0 }}
+              exit={{ opacity: 0, x: 20 }}
+              transition={{ duration: 0.3 }}
+            >
+              {/* Stats Cards */}
+              <div className="
+                flex overflow-x-auto pb-4 gap-4 snap-x snap-mandatory scrollbar-hide -mx-4 px-4
+                sm:grid sm:grid-cols-3 sm:gap-6 sm:pb-0 sm:mx-0 sm:px-0
+                mb-8 sm:mb-10
+              ">
+                {[
+                  { label: 'Not Started', count: taskCounts['Not Started'], emoji: '🌱', color: 'from-gray-400 to-gray-500' },
+                  { label: 'In Progress', count: taskCounts['In Progress'], emoji: '🌿', color: 'from-yellow-400 to-orange-500' },
+                  { label: 'Completed', count: taskCounts['Done'], emoji: '🌳', color: 'from-green-400 to-emerald-500' },
+                ].map((stat, index) => (
+                  <motion.div
+                    key={stat.label}
+                    className="
+                      min-w-[240px] sm:min-w-0 flex-shrink-0 snap-center
+                      bg-white rounded-2xl p-5 sm:p-6 
+                      shadow-sm hover:shadow-xl transition-shadow duration-300 
+                      border border-gray-200/50
+                    "
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: index * 0.1 }}
+                    whileHover={{ y: -4 }}
+                  >
+                    <div className="flex items-center justify-between mb-2">
+                      <p className="text-gray-600 text-sm font-medium">{stat.label}</p>
+                      <span className="text-3xl sm:text-4xl">{stat.emoji}</span>
+                    </div>
+                    <p className={`text-3xl font-bold bg-gradient-to-r ${stat.color} bg-clip-text text-transparent`}>
+                      {stat.count}
+                    </p>
+                  </motion.div>
+                ))}
+              </div>
+
+              {/* Filter Bar */}
+              <div className="mb-6 sm:mb-8">
+                <PremiumFilterBar
+                  filters={filters}
+                  activeFilter={activeFilter}
+                  onFilterChange={setActiveFilter}
+                  sortBy={sortBy}
+                  onSortChange={setSortBy}
+                />
+              </div>
+
+              {/* Tasks Grid */}
+              {filteredTasks.length === 0 ? (
+                <PremiumEmptyState />
+              ) : (
+                <motion.div
+                  className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6"
+                  layout
+                >
+                  <AnimatePresence mode="popLayout">
+                    {filteredTasks.map((task, index) => (
+                      <motion.div
+                        key={task.id}
+                        layout
+                        initial={{ opacity: 0, scale: 0.9 }}
+                        animate={{ opacity: 1, scale: 1 }}
+                        exit={{ opacity: 0, scale: 0.9 }}
+                        transition={{ delay: index * 0.05 }}
+                      >
+                        <PremiumTaskCard task={task} onStatusChange={handleStatusChange} />
+                      </motion.div>
+                    ))}
+                  </AnimatePresence>
+                </motion.div>
+              )}
+            </motion.div>
+          ) : (
+            <motion.div
+              key="notes-view"
+              initial={{ opacity: 0, x: 20 }}
+              animate={{ opacity: 1, x: 0 }}
+              exit={{ opacity: 0, x: -20 }}
+              transition={{ duration: 0.3 }}
+            >
+              {notes.length === 0 ? (
+                <div className="flex flex-col items-center justify-center py-20 text-center">
+                  <div className="text-6xl mb-6">📝</div>
+                  <h3 className="text-xl font-bold text-gray-900 mb-2">No notes yet</h3>
+                  <p className="text-gray-500 max-w-md mb-8">
+                    Paste your first meeting note to start growing your knowledge base.
+                  </p>
+                  <Link
+                    to="/add-note"
+                    className="px-6 py-3 bg-[#2D5016] text-white rounded-xl font-medium hover:shadow-lg hover:scale-105 transition-all duration-200"
+                  >
+                    Add First Note
+                  </Link>
+                </div>
+              ) : (
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                  {notes.map((note, index) => (
+                    <motion.div
+                      key={note.id}
+                      initial={{ opacity: 0, y: 20 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ delay: index * 0.05 }}
+                    >
+                      <MeetingNoteCard
+                        note={note}
+                        taskCount={noteTaskCounts[note.id] || 0}
+                      />
+                    </motion.div>
+                  ))}
+                </div>
+              )}
+            </motion.div>
+          )}
+        </AnimatePresence>
       </main>
     </div>
   );

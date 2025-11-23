@@ -1,22 +1,20 @@
 import { motion } from 'framer-motion';
-import { Download, Share2, RefreshCw, Trash2, Loader2, ChevronRight } from 'lucide-react';
+import { Download, Share2, Trash2, ChevronRight } from 'lucide-react';
 
 interface MeetingActionsProps {
     onExport: () => void;
     onShare: () => void;
-    onReprocess: () => void;
     onDelete: () => void;
     onGenerateSummary: () => void;
-    isReprocessing: boolean;
+    hasSummary?: boolean;
 }
 
 export default function MeetingActions({
     onExport,
     onShare,
-    onReprocess,
     onDelete,
     onGenerateSummary,
-    isReprocessing
+    hasSummary = false
 }: MeetingActionsProps) {
     return (
         <motion.div
@@ -29,12 +27,15 @@ export default function MeetingActions({
             <div className="space-y-3">
                 <button
                     onClick={onGenerateSummary}
-                    className="w-full flex items-center justify-between p-3 rounded-xl bg-gradient-to-r from-purple-50 to-purple-100 border-2 border-purple-200 hover:border-purple-300 hover:shadow-md transition-all group transform hover:scale-[1.02]"
+                    className={`w-full flex items-center justify-between p-3 rounded-xl border-2 transition-all group transform hover:scale-[1.02] ${hasSummary
+                        ? 'bg-white border-purple-200 hover:border-purple-300 hover:shadow-md'
+                        : 'bg-gradient-to-r from-purple-50 to-purple-100 border-purple-200 hover:border-purple-300 hover:shadow-md'
+                        }`}
                 >
                     <div className="flex flex-col items-start text-left">
                         <span className="flex items-center gap-2 font-bold text-purple-900">
                             <span className="text-xl">👔</span>
-                            Generate Summary
+                            {hasSummary ? 'Regenerate Summary' : 'Generate Summary'}
                         </span>
                         <span className="text-xs text-purple-700 ml-7">For leadership team</span>
                     </div>
@@ -63,21 +64,6 @@ export default function MeetingActions({
                     <ChevronRight className="w-4 h-4 text-gray-400" />
                 </button>
 
-                <button
-                    onClick={onReprocess}
-                    disabled={isReprocessing}
-                    className="w-full flex items-center justify-between p-3 rounded-xl bg-blue-50 hover:bg-blue-100 text-blue-700 transition-colors group disabled:opacity-50 disabled:cursor-not-allowed"
-                >
-                    <span className="flex items-center gap-3 font-medium">
-                        {isReprocessing ? (
-                            <Loader2 className="w-5 h-5 animate-spin" />
-                        ) : (
-                            <RefreshCw className="w-5 h-5" />
-                        )}
-                        Reprocess AI
-                    </span>
-                    {!isReprocessing && <ChevronRight className="w-4 h-4 text-blue-400" />}
-                </button>
 
                 <button
                     onClick={onDelete}

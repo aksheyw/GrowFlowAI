@@ -3,11 +3,10 @@ import {
     AlignLeft,
     Copy,
     Check,
-    FileText,
-    Sparkles,
-    MessageSquare
+    FileText
 } from 'lucide-react';
 import { Note } from '../../lib/supabase';
+import SummaryDisplay from './SummaryDisplay';
 
 interface MeetingContentProps {
     note: Note;
@@ -87,49 +86,13 @@ export default function MeetingContent({ note, copied, onCopyNotes }: MeetingCon
                 </div>
             </motion.div>
 
-            {/* Extracted Summary Card */}
+            {/* AI Summary Section */}
             <motion.div
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.4, delay: 0.3 }}
-                className="
-                bg-white rounded-2xl p-6 sm:p-8
-                border border-gray-100
-                shadow-sm
-              "
             >
-                <h2 className="text-xl font-bold text-gray-900 mb-6 flex items-center gap-2">
-                    <Sparkles className="w-5 h-5 text-[#6FA84C]" />
-                    AI Summary
-                </h2>
-
-                {note.meeting_summary ? (
-                    <div className="
-                  p-6 bg-gradient-to-br from-blue-50 to-indigo-50
-                  rounded-xl border border-blue-100
-                ">
-                        <p className="text-gray-800 leading-relaxed">
-                            {note.meeting_summary}
-                        </p>
-                    </div>
-                ) : (
-                    <div className="
-                  p-6 bg-gray-50 rounded-xl
-                  border border-gray-200
-                  text-center
-                ">
-                        <div className="
-                    w-12 h-12 mx-auto mb-3
-                    bg-gray-200 rounded-xl
-                    flex items-center justify-center
-                  ">
-                            <MessageSquare className="w-6 h-6 text-gray-400" />
-                        </div>
-                        <p className="text-sm text-gray-500 italic">
-                            No summary available
-                        </p>
-                    </div>
-                )}
+                <SummaryDisplay summary={note.leadership_summary} />
             </motion.div>
         </div>
     );

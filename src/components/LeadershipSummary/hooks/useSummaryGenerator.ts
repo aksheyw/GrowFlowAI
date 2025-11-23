@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { supabase } from '../../../lib/supabase';
 
 export interface SummaryData {
     tldr: string;
@@ -25,14 +26,16 @@ export const useSummaryGenerator = (
         title: string;
         userId?: string;
         date?: string;
-    }
+    },
+    initialSummary?: SummaryData | null,
+    onSuccess?: (data: SummaryData) => void
 ) => {
     const [state, setState] = useState<SummaryState>({
         isOpen: false,
         isLoading: false,
         isRegenerating: false,
         format: 'email',
-        summaryData: null,
+        summaryData: initialSummary || null,
         error: null
     });
 
@@ -63,11 +66,30 @@ export const useSummaryGenerator = (
             }
 
             if (result.status === 'success' && result.data) {
+                // Save to Supabase for persistence
+                const { error: dbError } = await supabase
+                    .from('notes')
+                    .update({
+                        leadership_summary: result.data,
+                        updated_at: new Date().toISOString()
+                    })
+                    .eq('id', noteId);
+
+                if (dbError) {
+                    console.error('Failed to save summary to database:', dbError);
+                    throw new Error('Failed to save summary');
+                }
+
                 setState(prev => ({
                     ...prev,
                     isLoading: false,
                     summaryData: result.data
                 }));
+
+                // Call onSuccess callback if provided
+                if (onSuccess) {
+                    onSuccess(result.data);
+                }
             } else {
                 throw new Error('Invalid response format');
             }
