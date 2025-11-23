@@ -173,27 +173,22 @@ export default function NotificationDropdown({
         )}
       </div>
 
-      {/* Footer */}
+      {/* Footer - Sticky "View All" Link */}
       {notifications.length > 0 && (
-        <div className="
-          px-6 py-3
-          border-t border-gray-100
-          bg-gray-50
-          text-center
-        ">
-          <button
-            onClick={() => {
-              onClose();
-              navigate('/notifications');
-            }}
-            className="
-              text-sm text-gray-600 hover:text-gray-900
-              font-medium transition-colors duration-200
-            "
-          >
-            View all notifications
-          </button>
-        </div>
+        <button
+          onClick={() => {
+            onClose();
+            navigate('/updates');
+          }}
+          className="
+            block w-full py-3 text-sm text-center font-medium
+            text-gray-500 hover:text-green-700 hover:bg-gray-50
+            transition-colors border-t border-gray-100 rounded-b-xl
+            sticky bottom-0 bg-white
+          "
+        >
+          View all notifications
+        </button>
       )}
     </motion.div>
   );
