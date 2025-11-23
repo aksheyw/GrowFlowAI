@@ -1,9 +1,16 @@
 import { Home, PlusCircle, Bell, User } from 'lucide-react';
 import { useNavigation } from '../../hooks/useNavigation';
+import { useAuth } from '../../contexts/AuthContext';
 import TabButton from './TabButton';
 
 export default function MobileTabBar() {
     const { currentPath, navigate } = useNavigation();
+    const { user } = useAuth();
+
+    // Don't show tab bar if user is not authenticated
+    if (!user) {
+        return null;
+    }
 
     // TODO: Get actual unread count from notifications context
     const unreadCount = 0;
