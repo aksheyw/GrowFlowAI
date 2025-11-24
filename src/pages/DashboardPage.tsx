@@ -217,7 +217,7 @@ export default function DashboardPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-50 to-green-50/30 pb-20 md:pb-0">
+    <div className="min-h-screen bg-gradient-to-br from-gray-50 to-green-50/30 pb-32 md:pb-0">
       {/* Main Content */}
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8">
         {/* Header Section */}

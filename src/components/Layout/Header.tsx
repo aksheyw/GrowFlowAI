@@ -56,14 +56,11 @@ export default function Header() {
           shadow-sm
         "
             >
-                <div className={`px-4 h-16 flex items-center ${user ? 'justify-between' : 'justify-center'}`}>
+                <div className={`px-4 h-16 flex items-center justify-center`}>
                     {/* Logo only */}
                     <Link to="/dashboard">
                         <Logo size="sm" />
                     </Link>
-
-                    {/* Right: Notifications only */}
-                    {user && <NotificationBell />}
                 </div>
             </header>
         </>

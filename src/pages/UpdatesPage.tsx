@@ -1,7 +1,5 @@
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { useNavigate } from 'react-router-dom';
-import { ArrowLeft, ChevronLeft } from 'lucide-react';
 import { useUpdates } from '../hooks/useUpdates';
 import UpdateCard from '../components/updates/UpdateCard';
 
@@ -10,7 +8,6 @@ type FilterType = 'All' | 'Alerts' | 'Tasks' | 'Mentions';
 const FILTERS: FilterType[] = ['All', 'Alerts', 'Tasks', 'Mentions'];
 
 export default function UpdatesPage() {
-    const navigate = useNavigate();
     const { groupedNotifications, unreadCount, markRead, markAllRead, isLoading } = useUpdates();
     const [activeFilter, setActiveFilter] = useState<FilterType>('All');
 
@@ -25,29 +22,12 @@ export default function UpdatesPage() {
     const sectionOrder = ['Today', 'Yesterday', 'This Week', 'Earlier'];
 
     return (
-        <div className="min-h-screen bg-gradient-to-br from-gray-50 to-green-50/30 pb-24 md:pb-8">
+        <div className="min-h-screen bg-gradient-to-br from-gray-50 to-green-50/30 pb-32 md:pb-8">
             {/* Header */}
             <header className="sticky top-0 z-40 bg-white/80 backdrop-blur-xl border-b border-gray-200/50 shadow-sm">
                 <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
                     <div className="flex items-center justify-between h-16">
-                        {/* Back Button (Mobile) */}
-                        <button
-                            onClick={() => navigate('/dashboard')}
-                            className="md:hidden flex items-center gap-2 text-gray-600 hover:text-gray-900 transition-colors"
-                        >
-                            <ArrowLeft className="w-5 h-5" />
-                        </button>
-
-                        {/* Back to Dashboard (Desktop) */}
-                        <button
-                            onClick={() => navigate('/dashboard')}
-                            className="hidden md:flex items-center gap-1.5 text-sm text-gray-600 hover:text-gray-900 transition-colors font-medium"
-                        >
-                            <ChevronLeft className="w-4 h-4" />
-                            Back to Dashboard
-                        </button>
-
-                        {/* Title */}
+                        {/* Title - Centered on mobile effectively due to flex justify-between and empty divs if needed, but here we want it left aligned or just simple */}
                         <h1 className="text-2xl font-bold text-gray-900">Updates</h1>
 
                         {/* Mark All Read Button */}
@@ -59,7 +39,6 @@ export default function UpdatesPage() {
                                 Mark all read
                             </button>
                         )}
-                        {unreadCount === 0 && <div className="w-20" />}
                     </div>
 
                     {/* Filter Tabs */}
