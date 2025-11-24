@@ -318,6 +318,7 @@ export default function AddNotePage() {
           className={`
             bg-white rounded-3xl overflow-hidden
             border-2 transition-all duration-300
+            flex-1 flex flex-col
             ${isFocused
               ? 'border-[#6FA84C] shadow-xl shadow-green-500/10'
               : 'border-gray-100 shadow-lg'
@@ -348,7 +349,8 @@ Jordan is working on the dashboard redesign, mockups due Nov 15th.
 I need to schedule a code review session with the team, probably by end of week."
             className="
               w-full p-6 sm:p-8
-              min-h-[300px] sm:min-h-[400px] lg:min-h-[500px]
+              flex-1
+              min-h-[200px]
               text-base sm:text-lg leading-relaxed
               text-gray-900 placeholder:text-gray-400
               resize-none
@@ -465,64 +467,67 @@ I need to schedule a code review session with the team, probably by end of week.
           </div>
         </motion.div>
 
-        {/* Tips Section */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.4, delay: 0.3 }}
-          className="mt-8"
-        >
-          <div className="
-            p-6 sm:p-8
-            bg-gradient-to-br from-blue-50 to-indigo-50
-            rounded-2xl border border-blue-100
-          ">
-            {/* Header */}
-            <div className="flex items-start gap-3 mb-4">
-              <div className="
-                w-10 h-10 rounded-xl
-                bg-gradient-to-br from-blue-500 to-indigo-600
-                flex items-center justify-center
-                flex-shrink-0
-              ">
-                <Lightbulb className="w-5 h-5 text-white" />
-              </div>
-              <div>
-                <h3 className="text-lg font-semibold text-gray-900 mb-1">
-                  Tips for better results
-                </h3>
-                <p className="text-sm text-gray-600">
-                  Help our AI extract tasks more accurately
-                </p>
-              </div>
-            </div>
-
-            {/* Tips list */}
-            <div className="space-y-3 ml-0 sm:ml-13">
-              {TIPS.map((tip, index) => (
-                <motion.div
-                  key={index}
-                  initial={{ opacity: 0, x: -20 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  transition={{ duration: 0.3, delay: 0.4 + (index * 0.1) }}
-                  className="flex items-start gap-3"
-                >
-                  <div className="
-                    w-6 h-6 rounded-full
-                    bg-gradient-to-br from-green-400 to-emerald-500
-                    flex items-center justify-center
-                    flex-shrink-0 mt-0.5
-                  ">
-                    <Check className="w-4 h-4 text-white" />
-                  </div>
-                  <p className="text-sm text-gray-700 leading-relaxed">
-                    {tip}
+        {/* Tips Section - Hidden when focused */}
+        {!isFocused && (
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, height: 0 }}
+            transition={{ duration: 0.3 }}
+            className="mt-8"
+          >
+            <div className="
+              p-6 sm:p-8
+              bg-gradient-to-br from-blue-50 to-indigo-50
+              rounded-2xl border border-blue-100
+            ">
+              {/* Header */}
+              <div className="flex items-start gap-3 mb-4">
+                <div className="
+                  w-10 h-10 rounded-xl
+                  bg-gradient-to-br from-blue-500 to-indigo-600
+                  flex items-center justify-center
+                  flex-shrink-0
+                ">
+                  <Lightbulb className="w-5 h-5 text-white" />
+                </div>
+                <div>
+                  <h3 className="text-lg font-semibold text-gray-900 mb-1">
+                    Tips for better results
+                  </h3>
+                  <p className="text-sm text-gray-600">
+                    Help our AI extract tasks more accurately
                   </p>
-                </motion.div>
-              ))}
+                </div>
+              </div>
+
+              {/* Tips list */}
+              <div className="space-y-3 ml-0 sm:ml-13">
+                {TIPS.map((tip, index) => (
+                  <motion.div
+                    key={index}
+                    initial={{ opacity: 0, x: -20 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    transition={{ duration: 0.3, delay: 0.4 + (index * 0.1) }}
+                    className="flex items-start gap-3"
+                  >
+                    <div className="
+                      w-6 h-6 rounded-full
+                      bg-gradient-to-br from-green-400 to-emerald-500
+                      flex items-center justify-center
+                      flex-shrink-0 mt-0.5
+                    ">
+                      <Check className="w-4 h-4 text-white" />
+                    </div>
+                    <p className="text-sm text-gray-700 leading-relaxed">
+                      {tip}
+                    </p>
+                  </motion.div>
+                ))}
+              </div>
             </div>
-          </div>
-        </motion.div>
+          </motion.div>
+        )}
       </main>
 
       {/* Processing Overlay */}

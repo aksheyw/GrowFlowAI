@@ -95,6 +95,17 @@ export default function UpdatesPage() {
                             const notifications = groupedNotifications[section];
                             if (!notifications || notifications.length === 0) return null;
 
+                            // Filter notifications based on activeFilter
+                            const filteredNotifications = notifications.filter(notification => {
+                                if (activeFilter === 'All') return true;
+                                if (activeFilter === 'Alerts') return notification.type === 'system_alert';
+                                if (activeFilter === 'Tasks') return notification.type === 'task_updated' || notification.type === 'deadline_soon';
+                                if (activeFilter === 'Mentions') return notification.type === 'meeting_summary'; // Mapping meeting summaries to mentions/updates for now
+                                return true;
+                            });
+
+                            if (filteredNotifications.length === 0) return null;
+
                             return (
                                 <div key={section}>
                                     {/* Section Header */}
@@ -106,7 +117,7 @@ export default function UpdatesPage() {
 
                                     {/* Notification List */}
                                     <AnimatePresence mode="popLayout">
-                                        {notifications.map((notification, index) => (
+                                        {filteredNotifications.map((notification, index) => (
                                             <motion.div
                                                 key={notification.id}
                                                 initial={{ opacity: 0, y: 20 }}

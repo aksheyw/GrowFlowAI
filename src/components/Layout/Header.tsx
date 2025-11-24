@@ -54,7 +54,6 @@ export default function Header() {
           bg-white/90 backdrop-blur-xl
           border-b border-gray-100
           shadow-sm
-          pt-[env(safe-area-inset-top)]
         "
             >
                 <div className={`px-4 h-16 flex items-center ${user ? 'justify-between' : 'justify-center'}`}>

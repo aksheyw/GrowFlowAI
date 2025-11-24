@@ -45,9 +45,13 @@ const pageVariants = {
 
 function AnimatedRoutes() {
   const location = useLocation();
+  
+  // Define top-level tabs where transitions should be disabled
+  const topLevelRoutes = ['/dashboard', '/updates', '/profile', '/add-note'];
+  const isTopLevel = topLevelRoutes.includes(location.pathname);
 
   return (
-    <AnimatePresence mode="wait">
+    <AnimatePresence mode="wait" initial={false}>
       <Routes location={location} key={location.pathname}>
         <Route path="/login" element={<LoginPage />} />
         <Route path="/signup" element={<SignupPage />} />
@@ -57,10 +61,11 @@ function AnimatedRoutes() {
           element={
             <ProtectedRoute>
               <motion.div
-                variants={pageVariants}
-                initial="initial"
-                animate="animate"
-                exit="exit"
+                variants={isTopLevel ? {} : pageVariants}
+                initial={isTopLevel ? "initial" : "initial"}
+                animate={isTopLevel ? "animate" : "animate"}
+                exit={isTopLevel ? undefined : "exit"}
+                transition={isTopLevel ? { duration: 0 } : undefined}
               >
                 <DashboardPage />
               </motion.div>
@@ -72,10 +77,11 @@ function AnimatedRoutes() {
           element={
             <ProtectedRoute>
               <motion.div
-                variants={pageVariants}
-                initial="initial"
-                animate="animate"
-                exit="exit"
+                variants={isTopLevel ? {} : pageVariants}
+                initial={isTopLevel ? "initial" : "initial"}
+                animate={isTopLevel ? "animate" : "animate"}
+                exit={isTopLevel ? undefined : "exit"}
+                transition={isTopLevel ? { duration: 0 } : undefined}
               >
                 <AddNotePage />
               </motion.div>
@@ -147,10 +153,11 @@ function AnimatedRoutes() {
           element={
             <ProtectedRoute>
               <motion.div
-                variants={pageVariants}
-                initial="initial"
-                animate="animate"
-                exit="exit"
+                variants={isTopLevel ? {} : pageVariants}
+                initial={isTopLevel ? "initial" : "initial"}
+                animate={isTopLevel ? "animate" : "animate"}
+                exit={isTopLevel ? undefined : "exit"}
+                transition={isTopLevel ? { duration: 0 } : undefined}
               >
                 <ProfilePage />
               </motion.div>
@@ -162,10 +169,11 @@ function AnimatedRoutes() {
           element={
             <ProtectedRoute>
               <motion.div
-                variants={pageVariants}
-                initial="initial"
-                animate="animate"
-                exit="exit"
+                variants={isTopLevel ? {} : pageVariants}
+                initial={isTopLevel ? "initial" : "initial"}
+                animate={isTopLevel ? "animate" : "animate"}
+                exit={isTopLevel ? undefined : "exit"}
+                transition={isTopLevel ? { duration: 0 } : undefined}
               >
                 <UpdatesPage />
               </motion.div>
@@ -183,7 +191,7 @@ function App() {
     <BrowserRouter>
       <AuthProvider>
         <ToastProvider>
-          <div className="min-h-screen">
+          <div className="min-h-screen pt-[env(safe-area-inset-top)] pb-[calc(4rem+env(safe-area-inset-bottom))]">
             <Header />
             <ToastContainer />
             <AnimatedRoutes />
