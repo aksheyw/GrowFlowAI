@@ -28,7 +28,7 @@ export type Note = {
   meeting_participants: string[] | null;
   meeting_location: string | null;
   meeting_summary: string | null;
-  leadership_summary: {
+  leadership_brief: {
     tldr: string;
     decisions: string[];
     actionItems: string[];

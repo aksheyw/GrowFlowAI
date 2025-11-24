@@ -92,26 +92,30 @@ export default function MeetingHeader({
                         autoFocus
                     />
                 ) : (
-                    <h1
-                        onClick={() => setIsEditingTitle(true)}
-                        className="
-                  text-3xl sm:text-4xl font-bold text-gray-900
-                  text-center mb-4
-                  cursor-pointer
-                  hover:text-blue-600
-                  transition-colors duration-200
-                  group
-                "
-                    >
-                        {note.meeting_title || 'Meeting Notes'}
-                        <Edit2 className="
-                  inline-block w-6 h-6 ml-3 
-                  text-gray-400 opacity-0 
-                  group-hover:opacity-100
-                  transition-opacity duration-200
-                " />
-                    </h1>
-                )}
+                    <div className="flex justify-center mb-4">
+                        <h1
+                            onClick={() => setIsEditingTitle(true)}
+                            className="
+                                text-3xl sm:text-4xl font-bold text-gray-900
+                                cursor-pointer
+                                hover:text-blue-600
+                                transition-colors duration-200
+                                group
+                                relative
+                                inline-flex items-center gap-3
+                            "
+                        >
+                            {note.meeting_title || 'Meeting Notes'}
+                            <Edit2 className="
+                                w-6 h-6
+                                text-gray-400 opacity-0
+                                group-hover:opacity-100
+                                transition-opacity duration-200
+                            " />
+                        </h1>
+                    </div>
+                )
+                }
 
                 {/* Metadata row */}
                 <div className="
@@ -156,32 +160,34 @@ export default function MeetingHeader({
                 </div>
 
                 {/* Participants list */}
-                {note.meeting_participants && note.meeting_participants.length > 0 && (
-                    <div className="
+                {
+                    note.meeting_participants && note.meeting_participants.length > 0 && (
+                        <div className="
                 flex flex-wrap items-center justify-center gap-3
               ">
-                        {note.meeting_participants.map((participant, index) => (
-                            <Badge
-                                key={index}
-                                variant="neutral"
-                                className="px-4 py-2 bg-white/80 backdrop-blur-sm border-blue-200 gap-2"
-                            >
-                                <div className="
+                            {note.meeting_participants.map((participant, index) => (
+                                <Badge
+                                    key={index}
+                                    variant="neutral"
+                                    className="px-4 py-2 bg-white/80 backdrop-blur-sm border-blue-200 gap-2"
+                                >
+                                    <div className="
                       w-8 h-8 rounded-full
                       bg-gradient-to-br from-blue-400 to-indigo-500
                       flex items-center justify-center
                       text-white font-semibold text-sm
                     ">
-                                    {participant.charAt(0).toUpperCase()}
-                                </div>
-                                <span className="text-sm font-medium text-gray-900">
-                                    {participant}
-                                </span>
-                            </Badge>
-                        ))}
-                    </div>
-                )}
-            </div>
-        </Card>
+                                        {participant.charAt(0).toUpperCase()}
+                                    </div>
+                                    <span className="text-sm font-medium text-gray-900">
+                                        {participant}
+                                    </span>
+                                </Badge>
+                            ))}
+                        </div>
+                    )
+                }
+            </div >
+        </Card >
     );
 }

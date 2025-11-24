@@ -9,7 +9,8 @@ import {
   CheckCircle2,
   Check,
   Lightbulb,
-  Loader2
+  Loader2,
+  Briefcase
 } from 'lucide-react';
 import confetti from 'canvas-confetti';
 import { useAuth } from '../contexts/AuthContext';
@@ -63,6 +64,7 @@ export default function AddNotePage() {
   const [taskCount, setTaskCount] = useState(0);
   const [countdown, setCountdown] = useState(3);
   const [showCancel, setShowCancel] = useState(false);
+  const [processingMode, setProcessingMode] = useState<'tasks' | 'brief'>('tasks');
 
   // Computed values
   const characterCount = useMemo(() => getCharacterCount(noteText), [noteText]);
@@ -161,6 +163,29 @@ export default function AddNotePage() {
         throw new Error(`Failed to save note: ${noteError?.message || 'Unknown error'}`);
       }
 
+      // BRANCHING LOGIC
+      if (processingMode === 'brief') {
+        // PATH B: Leadership Brief
+
+        // Trigger n8n webhook
+        const webhookUrl = 'https://n8n.srv1134430.hstgr.cloud/webhook/generate-summary';
+
+        // We don't await this fetch to keep it non-blocking, or we can await if we want to ensure it started
+        // For better UX, we'll fire and forget or await with a short timeout, but here we'll just fire it.
+        // Actually, let's await it to catch immediate errors, but we won't wait for the full generation.
+        fetch(webhookUrl, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ note_id: noteData.id })
+        }).catch(err => console.error('Webhook trigger failed:', err));
+
+        // Redirect immediately
+        addToast('Drafting Leadership Brief...', 'success', 3000);
+        navigate(`/note/${noteData.id}`);
+        return;
+      }
+
+      // PATH A: Grow Tasks (Existing Logic)
       // Process with edge function
       const edgeFunctionUrl = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/process-ai-notes`;
 
@@ -202,7 +227,7 @@ export default function AddNotePage() {
       setIsProcessing(false);
       addToast(`Failed to process notes: ${errorMessage}`, 'error', 5000);
     }
-  }, [user, isValid, noteText, addToast]);
+  }, [user, isValid, noteText, addToast, processingMode, navigate]);
 
   const handleCancel = useCallback(() => {
     setIsProcessing(false);
@@ -431,6 +456,38 @@ I need to schedule a code review session with the team, probably by end of week.
               </button>
             </div>
 
+            {/* Mode Switcher */}
+            <div className="flex flex-col sm:flex-row gap-3 w-full sm:w-auto">
+              <div className="bg-gray-100 p-1 rounded-xl flex gap-1">
+                <button
+                  onClick={() => setProcessingMode('tasks')}
+                  className={`
+                    flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-all
+                    ${processingMode === 'tasks'
+                      ? 'bg-white text-[#2D5016] shadow-sm'
+                      : 'text-gray-500 hover:text-gray-700'
+                    }
+                  `}
+                >
+                  <Sparkles className="w-4 h-4" />
+                  Grow Tasks
+                </button>
+                <button
+                  onClick={() => setProcessingMode('brief')}
+                  className={`
+                    flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-all
+                    ${processingMode === 'brief'
+                      ? 'bg-slate-800 text-white shadow-sm'
+                      : 'text-gray-500 hover:text-gray-700'
+                    }
+                  `}
+                >
+                  <Briefcase className="w-4 h-4" />
+                  Leadership Brief
+                </button>
+              </div>
+            </div>
+
             {/* Process button */}
             <motion.button
               whileHover={{ scale: isValid ? 1.02 : 1 }}
@@ -444,7 +501,9 @@ I need to schedule a code review session with the team, probably by end of week.
                 flex items-center gap-2.5
                 whitespace-nowrap
                 ${isValid
-                  ? 'bg-gradient-to-r from-[#2D5016] to-[#6FA84C] text-white shadow-lg shadow-green-900/30 hover:shadow-xl hover:shadow-green-900/40'
+                  ? processingMode === 'tasks'
+                    ? 'bg-gradient-to-r from-[#2D5016] to-[#6FA84C] text-white shadow-lg shadow-green-900/30 hover:shadow-xl hover:shadow-green-900/40'
+                    : 'bg-slate-800 text-white shadow-lg shadow-slate-900/30 hover:shadow-xl hover:shadow-slate-900/40'
                   : 'bg-gray-200 text-gray-500 cursor-not-allowed'
                 }
               `}
@@ -456,8 +515,8 @@ I need to schedule a code review session with the team, probably by end of week.
                 </>
               ) : (
                 <>
-                  <Sparkles className="w-5 h-5" />
-                  <span>Process with AI</span>
+                  {processingMode === 'tasks' ? <Sparkles className="w-5 h-5" /> : <Briefcase className="w-5 h-5" />}
+                  <span>{processingMode === 'tasks' ? 'Process Note & Tasks' : 'Generate Brief Only'}</span>
                   <span className="hidden lg:inline text-xs opacity-75 ml-1">
                     (⌘↵)
                   </span>

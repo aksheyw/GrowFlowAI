@@ -5,7 +5,9 @@ import {
     ArrowLeft,
     ChevronRight,
     AlertTriangle,
-    Trash2
+    Trash2,
+    Loader2,
+    Briefcase
 } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 import { supabase, Note, Task } from '../lib/supabase';
@@ -20,6 +22,8 @@ import {
     calculateTaskStats,
 } from '../utils/meetingHelpers';
 import { SummaryModal } from '../components/LeadershipSummary';
+import LeadershipSummaryDisplay from '../components/meeting-note/LeadershipSummaryDisplay';
+import LeadershipGenerationProgress from '../components/meeting-note/LeadershipGenerationProgress';
 import { Button } from '../components/ui/Button';
 
 type TaskFilter = 'all' | 'not_started' | 'in_progress' | 'done';
@@ -51,10 +55,10 @@ export default function MeetingNoteDetailPage() {
             setIsLoading(true);
 
             try {
-                // Fetch note with leadership_summary
+                // Fetch note with leadership_brief
                 const { data: noteData, error: noteError } = await supabase
                     .from('notes')
-                    .select('*, leadership_summary')
+                    .select('*, leadership_brief')
                     .eq('id', noteId)
                     .single();
 
@@ -95,6 +99,43 @@ export default function MeetingNoteDetailPage() {
         }
 
         fetchMeetingData();
+
+        // Real-time subscription for note updates
+        if (!noteId) return;
+
+        const subscription = supabase
+            .channel(`note-${noteId}`)
+            .on(
+                'postgres_changes',
+                {
+                    event: 'UPDATE',
+                    schema: 'public',
+                    table: 'notes',
+                    filter: `id=eq.${noteId}`
+                },
+                (payload) => {
+                    console.log('Real-time update received:', payload);
+                    const updatedNote = payload.new as Note;
+
+                    // Update local state if we have a new leadership brief or processed status changes
+                    setNote(prev => {
+                        if (!prev) return updatedNote;
+                        // Merge the new data
+                        return { ...prev, ...updatedNote };
+                    });
+
+                    // If tasks were generated (processed became true), we might want to refetch tasks
+                    if (updatedNote.processed && !note?.processed) {
+                        // Ideally we'd fetch tasks here, but for now just updating the note status is key
+                        // We can trigger a task refetch if needed, but let's stick to the note update first
+                    }
+                }
+            )
+            .subscribe();
+
+        return () => {
+            subscription.unsubscribe();
+        };
     }, [noteId, navigate, showToast]);
 
     // Focus title input when editing
@@ -234,7 +275,7 @@ ${tasks.map((task, i) => `${i + 1}. ${task.description} - ${task.assignee?.full_
     }) {
         // Update local note state with the new summary
         if (note) {
-            setNote(prev => prev ? { ...prev, leadership_summary: summaryData } : null);
+            setNote(prev => prev ? { ...prev, leadership_brief: summaryData } : null);
         }
     }
 
@@ -326,7 +367,7 @@ ${tasks.map((task, i) => `${i + 1}. ${task.description} - ${task.assignee?.full_
                     initial={{ opacity: 0, x: -20 }}
                     animate={{ opacity: 1, x: 0 }}
                     transition={{ duration: 0.3 }}
-                    className="mb-6 flex items-center gap-2 text-sm"
+                    className="mb-6 flex items-center justify-center gap-2 text-sm"
                 >
                     <Button
                         variant="ghost"
@@ -370,21 +411,40 @@ ${tasks.map((task, i) => `${i + 1}. ${task.description} - ${task.assignee?.full_
 
                     {/* Right Column (1/3 width) - Tasks & Actions */}
                     <div className="space-y-8">
+                        {/* Leadership Summary Section (Visible if processed=false OR brief exists) */}
+                        {(!note.processed || note.leadership_brief) && (
+                            <>
+                                {note.leadership_brief ? (
+                                    <LeadershipSummaryDisplay summary={note.leadership_brief} />
+                                ) : (
+                                    <LeadershipGenerationProgress />
+                                )}
+                            </>
+                        )}
+
                         {/* Quick Actions */}
                         <MeetingActions
                             onExport={handleExport}
                             onShare={handleShare}
                             onDelete={() => setShowDeleteModal(true)}
                             onGenerateSummary={() => setShowSummaryModal(true)}
-                            hasSummary={!!note.leadership_summary}
+                            hasSummary={!!note.leadership_brief}
                         />
 
-                        {/* Tasks List */}
-                        <MeetingTasks
-                            tasks={filteredTasks}
-                            filter={taskFilter}
-                            onFilterChange={setTaskFilter}
-                        />
+                        {/* Tasks List - Only show if processed=true */}
+                        {note.processed ? (
+                            <MeetingTasks
+                                tasks={filteredTasks}
+                                filter={taskFilter}
+                                onFilterChange={setTaskFilter}
+                            />
+                        ) : (
+                            <div className="bg-gray-50 rounded-2xl p-6 text-center border border-gray-100 border-dashed">
+                                <p className="text-sm text-gray-500">
+                                    Tasks were not generated for this note.
+                                </p>
+                            </div>
+                        )}
                     </div>
                 </div>
             </main>
