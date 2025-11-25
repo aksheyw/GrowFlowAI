@@ -2,21 +2,33 @@
 @tailwind components;
 @tailwind utilities;
 
-/* Mobile Optimizations */
+/* Mobile Optimizations & Native App Behavior */
 * {
   -webkit-tap-highlight-color: transparent;
 }
 
-html, body {
+html,
+body {
   overscroll-behavior-y: none;
 }
 
 body {
   user-select: none;
   -webkit-user-select: none;
+  -webkit-touch-callout: none;
 }
 
-/* Re-enable text selection for specific areas */
+/* Smart Text Selection - Allow highlighting where it matters */
+p,
+h1,
+h2,
+h3,
+h4,
+h5,
+h6,
+input,
+textarea,
+.allow-select,
 .note-detail-text,
 .summary-text {
   user-select: text;
@@ -203,6 +215,15 @@ body {
 
   .scrollbar-hide::-webkit-scrollbar {
     display: none;
+  }
+
+  .no-scrollbar::-webkit-scrollbar {
+    display: none;
+  }
+
+  .no-scrollbar {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
   }
 
   .backdrop-blur-frosted {
