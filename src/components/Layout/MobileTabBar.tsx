@@ -46,10 +46,10 @@ export default function MobileTabBar() {
         <nav
             className="
         md:hidden
-        fixed bottom-0 left-0 right-0 z-40
+        fixed bottom-0 left-0 right-0 z-50
         bg-white backdrop-blur-md
         border-t border-gray-200
-        shadow-[0_-2px_10px_rgba(0,0,0,0.08)]
+        shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.1)]
         pb-[calc(env(safe-area-inset-bottom)+0.5rem)]
       "
         >

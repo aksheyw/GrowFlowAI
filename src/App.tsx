@@ -45,7 +45,7 @@ const pageVariants = {
 
 function AnimatedRoutes() {
   const location = useLocation();
-  
+
   // Define top-level tabs where transitions should be disabled
   const topLevelRoutes = ['/dashboard', '/updates', '/profile', '/add-note'];
   const isTopLevel = topLevelRoutes.includes(location.pathname);
@@ -191,7 +191,7 @@ function App() {
     <BrowserRouter>
       <AuthProvider>
         <ToastProvider>
-          <div className="min-h-screen pt-[env(safe-area-inset-top)] pb-[calc(4rem+env(safe-area-inset-bottom))]">
+          <div className="min-h-screen bg-gray-50 pt-[env(safe-area-inset-top)] pb-[calc(4rem+env(safe-area-inset-bottom))]">
             <Header />
             <ToastContainer />
             <AnimatedRoutes />
