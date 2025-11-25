@@ -41,6 +41,14 @@ export default function MeetingNoteCard({ note, taskCount = 0 }: MeetingNoteCard
         return cleaned;
     };
 
+    const displayTitle = note.meeting_title && note.meeting_title.trim() !== ''
+        ? note.meeting_title
+        : 'Meeting Notes';
+
+    const displayDate = note.meeting_date
+        ? note.meeting_date
+        : note.created_at;
+
     return (
         <Link to={`/note/${note.id}`} className="block h-full">
             <Card
@@ -54,14 +62,14 @@ export default function MeetingNoteCard({ note, taskCount = 0 }: MeetingNoteCard
                         <Calendar className="w-5 h-5" />
                     </div>
                     <span className="text-xs font-medium text-gray-500 bg-gray-50 px-2 py-1 rounded-md">
-                        {formatDateShort(note.meeting_date || note.created_at)}
+                        {formatDateShort(displayDate)}
                     </span>
                 </div>
 
                 {/* Content: Title */}
                 <div className="flex-1 mb-4">
                     <h3 className="text-lg font-bold text-gray-900 line-clamp-2 leading-tight group-hover:text-blue-700 transition-colors">
-                        {note.meeting_title || 'Untitled Meeting'}
+                        {displayTitle}
                     </h3>
                     {note.meeting_summary && (
                         <p className="text-sm text-gray-500 mt-2 line-clamp-2">
