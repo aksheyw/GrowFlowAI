@@ -181,7 +181,7 @@ export default function AddNotePage() {
 
         // Redirect immediately
         addToast('Drafting Leadership Brief...', 'success', 3000);
-        navigate(`/note/${noteData.id}`);
+        navigate(`/note/${noteData.id}`, { state: { isSynthesizing: true } });
         return;
       }
 
@@ -399,16 +399,16 @@ I need to schedule a code review session with the team, probably by end of week.
             px-6 sm:px-8 py-5 sm:py-6
             bg-gradient-to-br from-gray-50 to-green-50/30
             border-t border-gray-100
-            flex flex-col sm:flex-row items-start sm:items-center justify-between
-            gap-4
+            flex flex-col lg:flex-row items-start lg:items-center justify-between
+            gap-6
           ">
-            {/* Metadata */}
-            <div className="flex flex-wrap items-center gap-3 sm:gap-4 text-sm text-gray-600">
+            {/* Group A: Metadata */}
+            <div className="flex flex-wrap items-center gap-3 sm:gap-4 text-sm text-gray-600 whitespace-nowrap">
               {/* Character count */}
               <motion.div
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
-                className="flex items-center gap-1.5"
+                className="flex items-center gap-1.5 whitespace-nowrap"
               >
                 <FileText className="w-4 h-4" />
                 <span className={characterCount === 0 ? 'text-gray-400' : ''}>
@@ -421,7 +421,7 @@ I need to schedule a code review session with the team, probably by end of week.
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
                 transition={{ delay: 0.1 }}
-                className="flex items-center gap-1.5"
+                className="flex items-center gap-1.5 whitespace-nowrap"
               >
                 <AlignLeft className="w-4 h-4" />
                 <span className={wordCount === 0 ? 'text-gray-400' : ''}>
@@ -449,6 +449,7 @@ I need to schedule a code review session with the team, probably by end of week.
                   text-sm text-[#6FA84C] hover:text-[#2D5016]
                   font-medium transition-colors
                   flex items-center gap-1
+                  whitespace-nowrap
                 "
               >
                 <Lightbulb className="w-4 h-4" />
@@ -456,73 +457,74 @@ I need to schedule a code review session with the team, probably by end of week.
               </button>
             </div>
 
-            {/* Mode Switcher */}
-            <div className="flex flex-col sm:flex-row gap-3 w-full sm:w-auto">
-              <div className="bg-gray-100 p-1 rounded-xl flex gap-1">
-                <button
-                  onClick={() => setProcessingMode('tasks')}
-                  className={`
-                    flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-all
+            {/* Group B: Actions */}
+            <div className="flex flex-col sm:flex-row items-center gap-4 w-full lg:w-auto">
+              {/* Mode Switcher */}
+              <div className="w-full sm:w-auto min-w-[320px]">
+                <div className="bg-gray-100 p-1 rounded-xl grid grid-cols-2 gap-1">
+                  <button
+                    onClick={() => setProcessingMode('tasks')}
+                    className={`
+                    flex items-center justify-center gap-2 px-4 py-3 rounded-lg text-sm font-medium transition-all duration-200 w-full
                     ${processingMode === 'tasks'
-                      ? 'bg-white text-[#2D5016] shadow-sm'
-                      : 'text-gray-500 hover:text-gray-700'
-                    }
+                        ? 'bg-gradient-to-br from-[#355E1F] to-[#6FA84C] text-white shadow-md'
+                        : 'bg-transparent text-gray-600 hover:bg-gray-200'
+                      }
                   `}
-                >
-                  <Sparkles className="w-4 h-4" />
-                  Grow Tasks
-                </button>
-                <button
-                  onClick={() => setProcessingMode('brief')}
-                  className={`
-                    flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-all
+                  >
+                    <Sparkles className={`w-4 h-4 ${processingMode === 'tasks' ? 'text-white' : 'text-gray-500'}`} />
+                    Grow Tasks
+                  </button>
+                  <button
+                    onClick={() => setProcessingMode('brief')}
+                    className={`
+                    flex items-center justify-center gap-2 px-4 py-3 rounded-lg text-sm font-medium transition-all duration-200 w-full
                     ${processingMode === 'brief'
-                      ? 'bg-slate-800 text-white shadow-sm'
-                      : 'text-gray-500 hover:text-gray-700'
-                    }
+                        ? 'bg-gradient-to-br from-[#355E1F] to-[#6FA84C] text-white shadow-md'
+                        : 'bg-transparent text-gray-600 hover:bg-gray-200'
+                      }
                   `}
-                >
-                  <Briefcase className="w-4 h-4" />
-                  Leadership Brief
-                </button>
+                  >
+                    <Briefcase className={`w-4 h-4 ${processingMode === 'brief' ? 'text-white' : 'text-gray-500'}`} />
+                    Leadership Brief
+                  </button>
+                </div>
               </div>
-            </div>
 
-            {/* Process button */}
-            <motion.button
-              whileHover={{ scale: isValid ? 1.02 : 1 }}
-              whileTap={{ scale: isValid ? 0.98 : 1 }}
-              disabled={!isValid || isProcessing}
-              onClick={handleProcess}
-              className={`
+              {/* Process button */}
+              <motion.button
+                whileHover={{ scale: isValid ? 1.02 : 1 }}
+                whileTap={{ scale: isValid ? 0.98 : 1 }}
+                disabled={!isValid || isProcessing}
+                onClick={handleProcess}
+                className={`
                 px-6 sm:px-8 py-3 sm:py-4 rounded-2xl
                 font-semibold text-base
                 transition-all duration-200
                 flex items-center gap-2.5
                 whitespace-nowrap
                 ${isValid
-                  ? processingMode === 'tasks'
-                    ? 'bg-gradient-to-r from-[#2D5016] to-[#6FA84C] text-white shadow-lg shadow-green-900/30 hover:shadow-xl hover:shadow-green-900/40'
-                    : 'bg-slate-800 text-white shadow-lg shadow-slate-900/30 hover:shadow-xl hover:shadow-slate-900/40'
-                  : 'bg-gray-200 text-gray-500 cursor-not-allowed'
-                }
+                    ? 'bg-gradient-to-br from-[#355E1F] to-[#6FA84C] hover:shadow-lg hover:shadow-green-900/20 hover:scale-[1.02] text-white font-semibold'
+                    : 'bg-gray-200 text-gray-500 cursor-not-allowed'
+                  }
               `}
-            >
-              {isProcessing ? (
-                <>
-                  <Loader2 className="w-5 h-5 animate-spin" />
-                  <span>Processing...</span>
-                </>
-              ) : (
-                <>
-                  {processingMode === 'tasks' ? <Sparkles className="w-5 h-5" /> : <Briefcase className="w-5 h-5" />}
-                  <span>{processingMode === 'tasks' ? 'Process Note & Tasks' : 'Generate Brief Only'}</span>
-                  <span className="hidden lg:inline text-xs opacity-75 ml-1">
-                    (⌘↵)
-                  </span>
-                </>
-              )}
-            </motion.button>
+              >
+                {isProcessing ? (
+                  <>
+                    <Loader2 className="w-5 h-5 animate-spin" />
+                    <span>Processing...</span>
+                  </>
+                ) : (
+                  <>
+                    {processingMode === 'tasks' ? <Sparkles className="w-5 h-5" /> : <Briefcase className="w-5 h-5" />}
+                    <span>{processingMode === 'tasks' ? 'Process Note & Tasks' : 'Generate Brief Only'}</span>
+                    <span className="hidden lg:inline text-xs opacity-75 ml-1">
+                      (⌘↵)
+                    </span>
+                  </>
+                )}
+              </motion.button>
+            </div>
           </div>
         </motion.div>
 

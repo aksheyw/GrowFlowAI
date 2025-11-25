@@ -55,12 +55,12 @@ export default function MeetingHeader({
                     animate={{ scale: 1 }}
                     transition={{ type: "spring", stiffness: 200, damping: 15 }}
                     className="
-                w-20 h-20 mx-auto mb-6
-                bg-gradient-to-br from-blue-500 to-indigo-600
-                rounded-3xl
-                flex items-center justify-center
-                shadow-lg shadow-blue-500/30
-              "
+                    w-20 h-20 mb-6
+                    bg-gradient-to-br from-blue-500 to-indigo-600
+                    rounded-3xl
+                    flex items-center justify-center
+                    shadow-lg shadow-blue-500/30
+                "
                 >
                     <FileText className="w-10 h-10 text-white" />
                 </motion.div>
@@ -83,16 +83,18 @@ export default function MeetingHeader({
                         className="
                   w-full
                   text-3xl sm:text-4xl font-bold
-                  text-gray-900 text-center
+                  text-gray-900 text-left
                   border-2 border-blue-500
-                  rounded-xl px-4 py-2
-                  focus:outline-none focus:ring-2 focus:ring-blue-500/20
+                  rounded-xl px-2 py-1
+                  bg-transparent
+                  focus:outline-none focus:ring-0
                   transition-all duration-200
+                  -ml-2
                 "
                         autoFocus
                     />
                 ) : (
-                    <div className="flex justify-center mb-4">
+                    <div className="flex justify-start mb-4">
                         <h1
                             onClick={() => setIsEditingTitle(true)}
                             className="
@@ -103,6 +105,8 @@ export default function MeetingHeader({
                                 group
                                 relative
                                 inline-flex items-center gap-3
+                                px-2 py-1
+                                -ml-2 rounded-xl hover:bg-blue-50/50
                             "
                         >
                             {note.meeting_title || 'Meeting Notes'}
@@ -119,7 +123,7 @@ export default function MeetingHeader({
 
                 {/* Metadata row */}
                 <div className="
-              flex flex-wrap items-center justify-center gap-6
+              flex flex-wrap items-center justify-start gap-6
               text-base text-gray-600 mb-6
             ">
                     {/* Date */}
@@ -163,7 +167,7 @@ export default function MeetingHeader({
                 {
                     note.meeting_participants && note.meeting_participants.length > 0 && (
                         <div className="
-                flex flex-wrap items-center justify-center gap-3
+                flex flex-wrap items-center justify-start gap-3
               ">
                             {note.meeting_participants.map((participant, index) => (
                                 <Badge

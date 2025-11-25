@@ -1,5 +1,5 @@
-import { useState, useEffect, useRef, useMemo } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useState, useEffect, useRef, useMemo, useCallback } from 'react';
+import { useParams, useNavigate, useLocation } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
     ArrowLeft,
@@ -7,7 +7,9 @@ import {
     AlertTriangle,
     Trash2,
     Loader2,
-    Briefcase
+    Briefcase,
+    Sparkles,
+    Sprout
 } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 import { supabase, Note, Task } from '../lib/supabase';
@@ -31,6 +33,7 @@ type TaskFilter = 'all' | 'not_started' | 'in_progress' | 'done';
 export default function MeetingNoteDetailPage() {
     const { noteId } = useParams<{ noteId: string }>();
     const navigate = useNavigate();
+    const location = useLocation();
     const { user } = useAuth();
     const { showToast } = useToast();
     const titleInputRef = useRef<HTMLInputElement>(null);
@@ -46,6 +49,17 @@ export default function MeetingNoteDetailPage() {
     const [isDeleting, setIsDeleting] = useState(false);
     const [copied, setCopied] = useState(false);
     const [showSummaryModal, setShowSummaryModal] = useState(false);
+
+    // Logic Refactor: Explicit Synthesizing State
+    const [isSynthesizing, setIsSynthesizing] = useState(false);
+    const [isProcessingTasks, setIsProcessingTasks] = useState(false);
+
+    // Initialize synthesizing state from location if available
+    useEffect(() => {
+        if (location.state?.isSynthesizing) {
+            setIsSynthesizing(true);
+        }
+    }, [location.state]);
 
     // Fetch meeting data
     useEffect(() => {
@@ -70,6 +84,16 @@ export default function MeetingNoteDetailPage() {
 
                 setNote(noteData);
                 setEditedTitle(noteData.meeting_title || 'Meeting Notes');
+
+                // If note has a brief, we are definitely not synthesizing anymore
+                if (noteData.leadership_brief) {
+                    setIsSynthesizing(false);
+                } else if (location.state?.isSynthesizing) {
+                    // Keep it true
+                } else {
+                    // If no brief and no flag, we are just in "empty" state
+                    setIsSynthesizing(false);
+                }
 
                 // Fetch related tasks
                 const { data: tasksData, error: tasksError } = await supabase
@@ -117,17 +141,21 @@ export default function MeetingNoteDetailPage() {
                     console.log('Real-time update received:', payload);
                     const updatedNote = payload.new as Note;
 
-                    // Update local state if we have a new leadership brief or processed status changes
+                    // Update local state
                     setNote(prev => {
                         if (!prev) return updatedNote;
-                        // Merge the new data
                         return { ...prev, ...updatedNote };
                     });
 
-                    // If tasks were generated (processed became true), we might want to refetch tasks
+                    // Check for leadership brief arrival
+                    if (updatedNote.leadership_brief) {
+                        setNote(prev => prev ? { ...prev, leadership_brief: updatedNote.leadership_brief } : null);
+                        setIsSynthesizing(false);
+                    }
+
+                    // Check for task processing completion
                     if (updatedNote.processed && !note?.processed) {
-                        // Ideally we'd fetch tasks here, but for now just updating the note status is key
-                        // We can trigger a task refetch if needed, but let's stick to the note update first
+                        fetchTasksOnly();
                     }
                 }
             )
@@ -136,7 +164,18 @@ export default function MeetingNoteDetailPage() {
         return () => {
             subscription.unsubscribe();
         };
-    }, [noteId, navigate, showToast]);
+    }, [noteId, navigate, showToast, location.state]);
+
+    async function fetchTasksOnly() {
+        if (!noteId) return;
+        const { data: tasksData } = await supabase
+            .from('tasks')
+            .select(`*, assignee:assignee_id(id, full_name, email, avatar_url)`)
+            .eq('note_id', noteId)
+            .order('created_at', { ascending: true });
+
+        if (tasksData) setTasks(tasksData);
+    }
 
     // Focus title input when editing
     useEffect(() => {
@@ -151,7 +190,6 @@ export default function MeetingNoteDetailPage() {
 
     const filteredTasks = useMemo(() => {
         if (taskFilter === 'all') return tasks;
-        // Map filter values to task status values
         const statusMap: Record<string, string> = {
             'not_started': 'Not Started',
             'in_progress': 'In Progress',
@@ -161,6 +199,10 @@ export default function MeetingNoteDetailPage() {
     }, [tasks, taskFilter]);
 
     // Handlers
+    const handleAnimationComplete = useCallback(() => {
+        setIsSynthesizing(false);
+    }, []);
+
     async function handleTitleSave() {
         if (!note || editedTitle === note.meeting_title) {
             setIsEditingTitle(false);
@@ -273,12 +315,61 @@ ${tasks.map((task, i) => `${i + 1}. ${task.description} - ${task.assignee?.full_
         chatFormat: string;
         documentFormat: string;
     }) {
-        // Update local note state with the new summary
         if (note) {
             setNote(prev => prev ? { ...prev, leadership_brief: summaryData } : null);
+            setIsSynthesizing(false);
         }
     }
 
+    async function handleProcessTasks() {
+        if (!note || !user) return;
+
+        setIsProcessingTasks(true);
+
+        try {
+            const edgeFunctionUrl = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/process-ai-notes`;
+
+            const response = await fetch(edgeFunctionUrl, {
+                method: 'POST',
+                headers: {
+                    'Authorization': `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY}`,
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    user_id: user.id,
+                    note_text: note.content,
+                    note_id: note.id,
+                    default_priority: 'Medium'
+                })
+            });
+
+            if (!response.ok) {
+                throw new Error(`Processing failed: ${response.status}`);
+            }
+
+            const result = await response.json();
+            console.log('Task processing result:', result);
+
+            await fetchTasksOnly();
+
+            showToast({
+                type: 'success',
+                title: 'Tasks Generated',
+                message: `Successfully created ${result.created || 0} tasks`,
+                duration: 3000
+            });
+
+        } catch (error) {
+            console.error('Error processing tasks:', error);
+            showToast({
+                type: 'error',
+                title: 'Failed to generate tasks',
+                message: 'Please try again'
+            });
+        } finally {
+            setIsProcessingTasks(false);
+        }
+    }
 
     async function handleDelete() {
         if (!note) return;
@@ -286,7 +377,6 @@ ${tasks.map((task, i) => `${i + 1}. ${task.description} - ${task.assignee?.full_
         setIsDeleting(true);
 
         try {
-            // Delete all tasks first
             const { error: tasksError } = await supabase
                 .from('tasks')
                 .delete()
@@ -294,7 +384,6 @@ ${tasks.map((task, i) => `${i + 1}. ${task.description} - ${task.assignee?.full_
 
             if (tasksError) throw tasksError;
 
-            // Delete the note
             const { error: noteError } = await supabase
                 .from('notes')
                 .delete()
@@ -323,7 +412,6 @@ ${tasks.map((task, i) => `${i + 1}. ${task.description} - ${task.assignee?.full_
         }
     }
 
-    // Loading state
     if (isLoading) {
         return (
             <div className="min-h-screen bg-gradient-to-br from-gray-50 to-green-50/20 pb-20 md:pb-0">
@@ -360,14 +448,12 @@ ${tasks.map((task, i) => `${i + 1}. ${task.description} - ${task.assignee?.full_
 
     return (
         <div className="min-h-screen bg-gradient-to-br from-gray-50 to-blue-50/30">
-            {/* Main Content */}
             <main className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-                {/* Breadcrumb Navigation */}
                 <motion.div
                     initial={{ opacity: 0, x: -20 }}
                     animate={{ opacity: 1, x: 0 }}
                     transition={{ duration: 0.3 }}
-                    className="mb-6 flex items-center justify-center gap-2 text-sm"
+                    className="mb-6 flex items-center justify-start gap-2 text-sm"
                 >
                     <Button
                         variant="ghost"
@@ -401,7 +487,6 @@ ${tasks.map((task, i) => `${i + 1}. ${task.description} - ${task.assignee?.full_
 
                 <MeetingStats stats={stats} />
 
-                {/* Main Content Grid */}
                 <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 mt-8">
                     <MeetingContent
                         note={note}
@@ -409,20 +494,36 @@ ${tasks.map((task, i) => `${i + 1}. ${task.description} - ${task.assignee?.full_
                         onCopyNotes={handleCopyNotes}
                     />
 
-                    {/* Right Column (1/3 width) - Tasks & Actions */}
+
                     <div className="space-y-8">
-                        {/* Leadership Summary Section (Visible if processed=false OR brief exists) */}
-                        {(!note.processed || note.leadership_brief) && (
-                            <>
-                                {note.leadership_brief ? (
-                                    <LeadershipSummaryDisplay summary={note.leadership_brief} />
-                                ) : (
-                                    <LeadershipGenerationProgress />
-                                )}
-                            </>
+                        {/* 1. Leadership Summary Section (Strict Priority Rendering) */}
+                        {isSynthesizing ? (
+                            <LeadershipGenerationProgress
+                                onComplete={handleAnimationComplete}
+                                hasData={!!note.leadership_brief}
+                            />
+                        ) : note.leadership_brief ? (
+                            <LeadershipSummaryDisplay summary={note.leadership_brief} />
+                        ) : (
+                            <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100 text-center">
+                                <div className="w-12 h-12 rounded-xl bg-blue-50 flex items-center justify-center mx-auto mb-4">
+                                    <Briefcase className="w-6 h-6 text-blue-600" />
+                                </div>
+                                <h3 className="text-lg font-semibold text-gray-900 mb-2">Leadership Brief</h3>
+                                <p className="text-sm text-gray-500 mb-4">
+                                    Generate a concise executive summary, decisions, and action items from this meeting.
+                                </p>
+                                <Button
+                                    onClick={() => {
+                                        setShowSummaryModal(true);
+                                    }}
+                                    className="w-full justify-center bg-gradient-to-br from-[#355E1F] to-[#6FA84C] hover:shadow-lg hover:shadow-green-900/20 hover:scale-[1.02] text-white font-semibold transition-all duration-300"
+                                >
+                                    Generate Summary
+                                </Button>
+                            </div>
                         )}
 
-                        {/* Quick Actions */}
                         <MeetingActions
                             onExport={handleExport}
                             onShare={handleShare}
@@ -431,25 +532,45 @@ ${tasks.map((task, i) => `${i + 1}. ${task.description} - ${task.assignee?.full_
                             hasSummary={!!note.leadership_brief}
                         />
 
-                        {/* Tasks List - Only show if processed=true */}
-                        {note.processed ? (
+                        {tasks.length > 0 ? (
                             <MeetingTasks
                                 tasks={filteredTasks}
                                 filter={taskFilter}
                                 onFilterChange={setTaskFilter}
                             />
-                        ) : (
-                            <div className="bg-gray-50 rounded-2xl p-6 text-center border border-gray-100 border-dashed">
-                                <p className="text-sm text-gray-500">
-                                    Tasks were not generated for this note.
+                        ) : note.leadership_brief ? (
+                            <div className="bg-white rounded-2xl p-6 shadow-sm border border-green-100 text-center relative overflow-hidden">
+                                <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-green-400 to-emerald-500" />
+                                <div className="w-12 h-12 rounded-xl bg-green-50 flex items-center justify-center mx-auto mb-4">
+                                    <Sprout className="w-6 h-6 text-green-600" />
+                                </div>
+                                <h3 className="text-lg font-semibold text-gray-900 mb-2">Plant Your Seeds</h3>
+                                <p className="text-sm text-gray-500 mb-6">
+                                    You have a summary, but no trackable tasks yet. Let AI extract actionable tasks from your notes.
                                 </p>
+                                <Button
+                                    onClick={handleProcessTasks}
+                                    disabled={isProcessingTasks}
+                                    className="w-full justify-center bg-gradient-to-br from-[#355E1F] to-[#6FA84C] hover:shadow-lg hover:shadow-green-900/20 hover:scale-[1.02] text-white font-semibold transition-all duration-300"
+                                >
+                                    {isProcessingTasks ? (
+                                        <>
+                                            <Loader2 className="w-4 h-4 animate-spin mr-2" />
+                                            Growing Tasks...
+                                        </>
+                                    ) : (
+                                        <>
+                                            <Sparkles className="w-4 h-4 mr-2" />
+                                            Process Tasks from Note
+                                        </>
+                                    )}
+                                </Button>
                             </div>
-                        )}
+                        ) : null}
                     </div>
                 </div>
             </main>
 
-            {/* Delete Confirmation Modal */}
             <AnimatePresence>
                 {showDeleteModal && (
                     <div className="fixed inset-0 z-[60] flex items-center justify-center p-4">
@@ -499,7 +620,6 @@ ${tasks.map((task, i) => `${i + 1}. ${task.description} - ${task.assignee?.full_
                 )}
             </AnimatePresence>
 
-            {/* Leadership Summary Modal */}
             {note && (
                 <SummaryModal
                     isOpen={showSummaryModal}
