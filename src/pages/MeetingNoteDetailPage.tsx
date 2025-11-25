@@ -310,4 +310,109 @@ export default function MeetingNoteDetailPage() {
                                     <div className="w-16 h-16 rounded-2xl bg-blue-50 flex items-center justify-center mx-auto mb-6">
                                         <Briefcase className="w-8 h-8 text-blue-600" />
                                     </div>
-                                    <h3 className="text-xl font-bold text-gray-900 mb-
+                                    <h3 className="text-xl font-bold text-gray-900 mb-3">No summary available</h3>
+                                    <p className="text-gray-500 mb-8 max-w-md mx-auto">
+                                        Generate a concise executive summary, decisions, and action items from this meeting.
+                                    </p>
+                                    <Button
+                                        onClick={() => setShowSummaryModal(true)}
+                                        className="px-8 py-3 bg-gradient-to-br from-[#355E1F] to-[#6FA84C] text-white font-semibold rounded-xl hover:shadow-lg transition-all"
+                                    >
+                                        <Sparkles className="w-5 h-5 mr-2" />
+                                        Generate Summary
+                                    </Button>
+                                </div>
+                            )}
+                        </div>
+                    </div>
+
+                    {/* RIGHT COLUMN: ACTIONS */}
+                    <div className="space-y-6">
+                        <div className="sticky top-6 space-y-6">
+
+                            <MeetingActions
+                                onExport={handleExport}
+                                onShare={handleShare}
+                                onDelete={() => setShowDeleteModal(true)}
+                                onGenerateSummary={() => setShowSummaryModal(true)}
+                                hasSummary={!!note.leadership_brief}
+                            />
+
+                            {/* Plant Your Seeds Card */}
+                            {tasks.length === 0 && note.leadership_brief && (
+                                <div className="bg-white rounded-2xl p-6 shadow-sm border border-green-100 text-center relative overflow-hidden">
+                                    <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-green-400 to-emerald-500" />
+                                    <div className="w-12 h-12 rounded-xl bg-green-50 flex items-center justify-center mx-auto mb-4">
+                                        <Sprout className="w-6 h-6 text-green-600" />
+                                    </div>
+                                    <h3 className="text-lg font-semibold text-gray-900 mb-2">Plant Your Seeds</h3>
+                                    <p className="text-sm text-gray-500 mb-6">
+                                        You have a summary, but no trackable tasks yet. Let AI extract actionable tasks from your notes.
+                                    </p>
+                                    <Button
+                                        onClick={handleProcessTasks}
+                                        disabled={isProcessingTasks}
+                                        className="w-full justify-center bg-gradient-to-br from-[#355E1F] to-[#6FA84C] hover:shadow-lg hover:shadow-green-900/20 hover:scale-[1.02] text-white font-semibold transition-all duration-300"
+                                    >
+                                        {isProcessingTasks ? (
+                                            <>
+                                                <Loader2 className="w-4 h-4 animate-spin mr-2" />
+                                                Growing Tasks...
+                                            </>
+                                        ) : (
+                                            <>
+                                                <Sparkles className="w-4 h-4 mr-2" />
+                                                Process Tasks from Note
+                                            </>
+                                        )}
+                                    </Button>
+                                </div>
+                            )}
+
+                            {/* Tasks List */}
+                            {tasks.length > 0 && (
+                                <MeetingTasks
+                                    tasks={filteredTasks}
+                                    filter={taskFilter}
+                                    onFilterChange={setTaskFilter}
+                                />
+                            )}
+                        </div>
+                    </div>
+                </div>
+            </main>
+
+            {/* Modals */}
+            <AnimatePresence>
+                {showDeleteModal && (
+                    <div className="fixed inset-0 z-[60] flex items-center justify-center p-4">
+                        <div className="absolute inset-0 bg-black/20 backdrop-blur-sm" onClick={() => setShowDeleteModal(false)} />
+                        <motion.div
+                            initial={{ opacity: 0, scale: 0.95 }}
+                            animate={{ opacity: 1, scale: 1 }}
+                            exit={{ opacity: 0, scale: 0.95 }}
+                            className="bg-white rounded-2xl p-6 w-full max-w-md shadow-xl relative z-10"
+                        >
+                            <h3 className="text-lg font-bold text-gray-900 mb-2">Delete Meeting?</h3>
+                            <p className="text-gray-600 mb-6">This cannot be undone.</p>
+                            <div className="flex gap-3 justify-end">
+                                <Button variant="secondary" onClick={() => setShowDeleteModal(false)}>Cancel</Button>
+                                <Button variant="danger" onClick={handleDelete} disabled={isDeleting}>Delete</Button>
+                            </div>
+                        </motion.div>
+                    </div>
+                )}
+            </AnimatePresence>
+
+            {note && (
+                <SummaryModal
+                    isOpen={showSummaryModal}
+                    onClose={() => setShowSummaryModal(false)}
+                    note={note}
+                    userId={user?.id}
+                    onSummaryGenerated={handleSummaryGenerated}
+                />
+            )}
+        </div>
+    );
+}
