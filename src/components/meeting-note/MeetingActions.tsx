@@ -29,18 +29,18 @@ export default function MeetingActions({
                 <button
                     onClick={onGenerateSummary}
                     className={`w-full flex items-center justify-between p-3 rounded-xl border-2 transition-all group transform hover:scale-[1.02] ${hasSummary
-                        ? 'bg-white border-purple-200 hover:border-purple-300 hover:shadow-md'
+                        ? 'bg-gradient-to-br from-[#355E1F] to-[#6FA84C] border-transparent shadow-md text-white'
                         : 'bg-gradient-to-r from-purple-50 to-purple-100 border-purple-200 hover:border-purple-300 hover:shadow-md'
                         }`}
                 >
                     <div className="flex flex-col items-start text-left">
-                        <span className="flex items-center gap-2 font-bold text-purple-900">
+                        <span className={`flex items-center gap-2 font-bold ${hasSummary ? 'text-white' : 'text-purple-900'}`}>
                             <span className="text-xl">👔</span>
                             {hasSummary ? 'Regenerate Summary' : 'Generate Summary'}
                         </span>
-                        <span className="text-xs text-purple-700 ml-7">For leadership team</span>
+                        <span className={`text-xs ml-7 ${hasSummary ? 'text-green-100' : 'text-purple-700'}`}>For leadership team</span>
                     </div>
-                    <ChevronRight className="w-4 h-4 text-purple-400 group-hover:text-purple-600" />
+                    <ChevronRight className={`w-4 h-4 ${hasSummary ? 'text-white/70 group-hover:text-white' : 'text-purple-400 group-hover:text-purple-600'}`} />
                 </button>
 
                 <Button

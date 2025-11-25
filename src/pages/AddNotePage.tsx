@@ -33,7 +33,7 @@ const TIPS = [
   "Include meeting context (who was present, what was discussed)"
 ];
 
-const EXAMPLE_NOTES = `Team standup meeting - Nov 19, 2024
+const EXAMPLE_NOTES = `Team standup meeting - Nov 19
 Attendees: Alex, Jordan, and myself
 
 Key discussion points:
@@ -467,7 +467,7 @@ I need to schedule a code review session with the team, probably by end of week.
                     className={`
                     flex items-center justify-center gap-2 px-4 py-3 rounded-lg text-sm font-medium transition-all duration-200 w-full
                     ${processingMode === 'tasks'
-                        ? 'bg-gradient-to-br from-[#355E1F] to-[#6FA84C] text-white shadow-md'
+                        ? 'bg-[#1A3510] text-white shadow-md'
                         : 'bg-transparent text-gray-600 hover:bg-gray-200'
                       }
                   `}
@@ -480,7 +480,7 @@ I need to schedule a code review session with the team, probably by end of week.
                     className={`
                     flex items-center justify-center gap-2 px-4 py-3 rounded-lg text-sm font-medium transition-all duration-200 w-full
                     ${processingMode === 'brief'
-                        ? 'bg-gradient-to-br from-[#355E1F] to-[#6FA84C] text-white shadow-md'
+                        ? 'bg-[#1A3510] text-white shadow-md'
                         : 'bg-transparent text-gray-600 hover:bg-gray-200'
                       }
                   `}
