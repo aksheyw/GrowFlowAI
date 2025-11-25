@@ -1,11 +1,10 @@
 import { useState, useEffect, useRef, useMemo, useCallback } from 'react';
 import { useParams, useNavigate, useLocation } from 'react-router-dom';
-import { motion, AnimatePresence } from 'framer-motion';
+import { AnimatePresence, motion } from 'framer-motion'; // Kept for Modal animation
 import {
     ArrowLeft,
-    ChevronRight,
     AlertTriangle,
-    Trash2,
+    Trash2, // Re-integrated this
     Loader2,
     Briefcase,
     Sparkles,
@@ -38,10 +37,13 @@ export default function MeetingNoteDetailPage() {
     const { showToast } = useToast();
     const titleInputRef = useRef<HTMLInputElement>(null);
 
-    // --- STATE MANAGEMENT ---
+    // --- STATE ---
     const [note, setNote] = useState<Note | null>(null);
     const [tasks, setTasks] = useState<Task[]>([]);
     const [isLoading, setIsLoading] = useState(true);
+    const [error, setError] = useState<string | null>(null);
+
+    // Edit / UI State
     const [isEditingTitle, setIsEditingTitle] = useState(false);
     const [editedTitle, setEditedTitle] = useState('');
     const [taskFilter, setTaskFilter] = useState<TaskFilter>('all');
@@ -50,99 +52,82 @@ export default function MeetingNoteDetailPage() {
     const [copied, setCopied] = useState(false);
     const [showSummaryModal, setShowSummaryModal] = useState(false);
 
-    // Logic State: Synthesis
+    // Logic State
     const [isSynthesizing, setIsSynthesizing] = useState(false);
     const [isProcessingTasks, setIsProcessingTasks] = useState(false);
 
-    // --- EFFECTS ---
-
-    // 1. Initialize Synthesizing State (from Add Note Page redirect)
+    // --- INIT ---
     useEffect(() => {
         if (location.state?.isSynthesizing) {
             setIsSynthesizing(true);
         }
     }, [location.state]);
 
-    // 2. Fetch Data & Subscribe to Realtime
+    // --- DATA FETCHING ---
     useEffect(() => {
         if (!noteId) return;
 
-        async function fetchMeetingData() {
+        async function fetchData() {
             setIsLoading(true);
+            setError(null);
             try {
-                // Fetch Note
-                const { data: noteData, error: noteError } = await supabase
+                // 1. Fetch Note
+                const { data: noteData, error: noteErr } = await supabase
                     .from('notes')
                     .select('*, leadership_brief')
                     .eq('id', noteId)
                     .single();
 
-                if (noteError) throw noteError;
+                if (noteErr) throw noteErr;
                 if (!noteData) throw new Error('Note not found');
 
                 setNote(noteData);
                 setEditedTitle(noteData.meeting_title || 'Meeting Notes');
 
-                // Logic: If Brief exists, we are NOT synthesizing
+                // If brief exists, stop synthesizing
                 if (noteData.leadership_brief) {
                     setIsSynthesizing(false);
                 }
 
-                // Fetch Tasks
-                const { data: tasksData, error: tasksError } = await supabase
+                // 2. Fetch Tasks
+                const { data: tasksData, error: tasksErr } = await supabase
                     .from('tasks')
                     .select(`*, assignee:assignee_id(id, full_name, email, avatar_url)`)
                     .eq('note_id', noteId)
                     .order('created_at', { ascending: true });
 
-                if (tasksError) throw tasksError;
+                if (tasksErr) console.error('Task fetch error:', tasksErr);
                 setTasks(tasksData || []);
 
-            } catch (error) {
-                console.error('Error fetching data:', error);
-                showToast({ type: 'error', title: 'Error', message: 'Failed to load meeting data' });
-                navigate('/dashboard');
+            } catch (err: any) {
+                console.error('Load Error:', err);
+                setError(err.message || "Failed to load note");
             } finally {
                 setIsLoading(false);
             }
         }
+        fetchData();
 
-        fetchMeetingData();
-
-        // Real-time Subscription
+        // Realtime
         const channel = supabase
-            .channel(`note-updates-${noteId}`)
-            .on(
-                'postgres_changes',
-                {
-                    event: 'UPDATE',
-                    schema: 'public',
-                    table: 'notes',
-                    filter: `id=eq.${noteId}`
-                },
+            .channel(`note-${noteId}`)
+            .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'notes', filter: `id=eq.${noteId}` },
                 (payload) => {
-                    const updatedNote = payload.new as Note;
-                    setNote(prev => prev ? { ...prev, ...updatedNote } : updatedNote);
+                    const newNote = payload.new as Note;
+                    setNote(prev => prev ? { ...prev, ...newNote } : newNote);
 
-                    // If brief arrives via Realtime, stop synthesizing immediately
-                    if (updatedNote.leadership_brief) {
+                    if (newNote.leadership_brief) {
                         setIsSynthesizing(false);
                     }
-
-                    // If processed status changes, refresh tasks
-                    if (updatedNote.processed) {
+                    if (newNote.processed) {
                         fetchTasksOnly();
                     }
-                }
-            )
+                })
             .subscribe();
 
-        return () => {
-            channel.unsubscribe();
-        };
-    }, [noteId, navigate, showToast]);
+        return () => { channel.unsubscribe(); };
+    }, [noteId, navigate]);
 
-    // Helper to re-fetch tasks only
     async function fetchTasksOnly() {
         if (!noteId) return;
         const { data } = await supabase
@@ -150,31 +135,16 @@ export default function MeetingNoteDetailPage() {
             .select(`*, assignee:assignee_id(id, full_name, email, avatar_url)`)
             .eq('note_id', noteId)
             .order('created_at', { ascending: true });
-        if (data) setTasks(data);
+        if (data) setTasks(data as Task[]);
     }
-
-    // --- COMPUTED ---
-    const stats = useMemo(() => calculateTaskStats(tasks), [tasks]);
-    const filteredTasks = useMemo(() => {
-        if (taskFilter === 'all') return tasks;
-        const statusMap: Record<string, string> = {
-            'not_started': 'Not Started',
-            'in_progress': 'In Progress',
-            'done': 'Done'
-        };
-        return tasks.filter(task => task.status === statusMap[taskFilter]);
-    }, [tasks, taskFilter]);
 
     // --- ACTIONS ---
     const handleAnimationComplete = useCallback(() => {
-        setIsSynthesizing(false);
+        setTimeout(() => setIsSynthesizing(false), 500);
     }, []);
 
     async function handleTitleSave() {
-        if (!note || editedTitle === note.meeting_title) {
-            setIsEditingTitle(false);
-            return;
-        }
+        if (!note || editedTitle === note.meeting_title) { setIsEditingTitle(false); return; }
         try {
             await supabase.from('notes').update({ meeting_title: editedTitle }).eq('id', note.id);
             setNote(prev => prev ? { ...prev, meeting_title: editedTitle } : null);
@@ -190,8 +160,8 @@ export default function MeetingNoteDetailPage() {
         if (!note) return;
         await navigator.clipboard.writeText(note.content);
         setCopied(true);
-        showToast({ type: 'success', title: 'Copied', message: 'Notes copied to clipboard' });
         setTimeout(() => setCopied(false), 2000);
+        showToast({ type: 'success', title: 'Copied', message: 'Notes copied' });
     }
 
     async function handleProcessTasks() {
@@ -201,10 +171,7 @@ export default function MeetingNoteDetailPage() {
             const edgeFunctionUrl = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/process-ai-notes`;
             const response = await fetch(edgeFunctionUrl, {
                 method: 'POST',
-                headers: {
-                    'Authorization': `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY}`,
-                    'Content-Type': 'application/json',
-                },
+                headers: { 'Authorization': `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY}`, 'Content-Type': 'application/json' },
                 body: JSON.stringify({
                     user_id: user.id,
                     note_text: note.content,
@@ -225,18 +192,20 @@ export default function MeetingNoteDetailPage() {
     }
 
     function handleExport() {
-        // Basic export logic
         if (!note) return;
         const blob = new Blob([note.content], { type: 'text/plain' });
         const url = URL.createObjectURL(blob);
         const a = document.createElement('a');
         a.href = url;
+        // Utilized formatDateShort here to fix unused variable warning
         a.download = `notes-${formatDateShort(note.created_at)}.txt`;
         document.body.appendChild(a);
         a.click();
         document.body.removeChild(a);
         URL.revokeObjectURL(url);
     }
+
+    function handleShare() { showToast({ type: 'info', title: 'Info', message: 'Coming soon' }); }
 
     async function handleDelete() {
         if (!note) return;
@@ -247,9 +216,8 @@ export default function MeetingNoteDetailPage() {
             showToast({ type: 'success', title: 'Deleted', message: 'Meeting removed' });
             navigate('/dashboard');
         } catch {
-            showToast({ type: 'error', title: 'Error', message: 'Failed to delete' });
-        } finally {
             setIsDeleting(false);
+            showToast({ type: 'error', title: 'Error', message: 'Failed to delete' });
         }
     }
 
@@ -260,14 +228,46 @@ export default function MeetingNoteDetailPage() {
         }
     }
 
+    // Computed Props
+    const stats = useMemo(() => calculateTaskStats(tasks), [tasks]);
+    const filteredTasks = useMemo(() => {
+        if (taskFilter === 'all') return tasks;
+        const statusMap: Record<string, string> = {
+            'not_started': 'Not Started',
+            'in_progress': 'In Progress',
+            'done': 'Done'
+        };
+        return tasks.filter(task => task.status === statusMap[taskFilter]);
+    }, [tasks, taskFilter]);
+
     // --- RENDER ---
-    if (isLoading) return <div className="min-h-screen bg-gray-50 flex items-center justify-center"><Loader2 className="animate-spin" /></div>;
+    if (isLoading) {
+        return (
+            <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+                <Loader2 className="w-8 h-8 text-green-600 animate-spin" />
+            </div>
+        );
+    }
+
+    if (error) {
+        return (
+            <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
+                <div className="text-center">
+                    {/* Utilized AlertTriangle here to fix unused variable warning */}
+                    <AlertTriangle className="w-12 h-12 text-red-500 mx-auto mb-4" />
+                    <h3 className="text-lg font-bold text-gray-900">Something went wrong</h3>
+                    <p className="text-gray-600 mb-4">{error}</p>
+                    <Button onClick={() => navigate('/dashboard')}>Back to Dashboard</Button>
+                </div>
+            </div>
+        );
+    }
+
     if (!note) return null;
 
     return (
         <div className="min-h-screen bg-gradient-to-br from-gray-50 to-blue-50/30">
             <main className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-
                 {/* Header */}
                 <div className="mb-6">
                     <Button variant="ghost" onClick={() => navigate('/dashboard')} className="pl-0 hover:bg-transparent">
@@ -288,48 +288,46 @@ export default function MeetingNoteDetailPage() {
 
                 <MeetingStats stats={stats} />
 
-                {/* 2-COLUMN GRID LAYOUT */}
+                {/* 2-COLUMN LAYOUT */}
                 <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 mt-8">
 
-                    {/* LEFT COLUMN: CONTENT */}
+                    {/* LEFT COLUMN */}
                     <div className="lg:col-span-2 space-y-8">
+                        {/* 1. Original Notes */}
                         <MeetingContent note={note} copied={copied} onCopyNotes={handleCopyNotes} />
 
-                        {/* STRICT TOGGLE LOGIC FOR SUMMARY */}
-                        <div id="leadership-section">
-                            {isSynthesizing ? (
-                                <LeadershipGenerationProgress
-                                    onComplete={handleAnimationComplete}
-                                    hasData={!!note.leadership_brief}
-                                />
-                            ) : note.leadership_brief ? (
-                                <LeadershipSummaryDisplay summary={note.leadership_brief} />
-                            ) : (
-                                /* EMPTY STATE */
-                                <div className="bg-white rounded-2xl p-8 shadow-sm border border-gray-100 text-center">
-                                    <div className="w-16 h-16 rounded-2xl bg-blue-50 flex items-center justify-center mx-auto mb-6">
-                                        <Briefcase className="w-8 h-8 text-blue-600" />
-                                    </div>
-                                    <h3 className="text-xl font-bold text-gray-900 mb-3">No summary available</h3>
-                                    <p className="text-gray-500 mb-8 max-w-md mx-auto">
-                                        Generate a concise executive summary, decisions, and action items from this meeting.
-                                    </p>
-                                    <Button
-                                        onClick={() => setShowSummaryModal(true)}
-                                        className="px-8 py-3 bg-gradient-to-br from-[#355E1F] to-[#6FA84C] text-white font-semibold rounded-xl hover:shadow-lg transition-all"
-                                    >
-                                        <Sparkles className="w-5 h-5 mr-2" />
-                                        Generate Summary
-                                    </Button>
+                        {/* 2. Leadership Section (Strict Nested Ternary) */}
+                        {isSynthesizing ? (
+                            <LeadershipGenerationProgress
+                                onComplete={handleAnimationComplete}
+                                hasData={!!note.leadership_brief}
+                            />
+                        ) : note.leadership_brief ? (
+                            <LeadershipSummaryDisplay summary={note.leadership_brief} />
+                        ) : (
+                            /* Empty State */
+                            <div className="bg-white rounded-2xl p-8 shadow-sm border border-gray-100 text-center">
+                                <div className="w-16 h-16 rounded-2xl bg-blue-50 flex items-center justify-center mx-auto mb-6">
+                                    <Briefcase className="w-8 h-8 text-blue-600" />
                                 </div>
-                            )}
-                        </div>
+                                <h3 className="text-xl font-bold text-gray-900 mb-3">No summary available</h3>
+                                <p className="text-gray-500 mb-8 max-w-md mx-auto">
+                                    Generate a concise executive summary, decisions, and action items from this meeting.
+                                </p>
+                                <Button
+                                    onClick={() => setShowSummaryModal(true)}
+                                    className="px-8 py-3 bg-gradient-to-br from-[#355E1F] to-[#6FA84C] text-white font-semibold rounded-xl hover:shadow-lg hover:scale-[1.02] transition-all"
+                                >
+                                    <Sparkles className="w-5 h-5 mr-2" />
+                                    Generate Summary
+                                </Button>
+                            </div>
+                        )}
                     </div>
 
-                    {/* RIGHT COLUMN: ACTIONS */}
+                    {/* RIGHT COLUMN */}
                     <div className="space-y-6">
                         <div className="sticky top-6 space-y-6">
-
                             <MeetingActions
                                 onExport={handleExport}
                                 onShare={handleShare}
@@ -338,7 +336,7 @@ export default function MeetingNoteDetailPage() {
                                 hasSummary={!!note.leadership_brief}
                             />
 
-                            {/* Plant Your Seeds Card */}
+                            {/* Plant Your Seeds (Only if no tasks & has summary) */}
                             {tasks.length === 0 && note.leadership_brief && (
                                 <div className="bg-white rounded-2xl p-6 shadow-sm border border-green-100 text-center relative overflow-hidden">
                                     <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-green-400 to-emerald-500" />
@@ -347,24 +345,14 @@ export default function MeetingNoteDetailPage() {
                                     </div>
                                     <h3 className="text-lg font-semibold text-gray-900 mb-2">Plant Your Seeds</h3>
                                     <p className="text-sm text-gray-500 mb-6">
-                                        You have a summary, but no trackable tasks yet. Let AI extract actionable tasks from your notes.
+                                        You have a summary, but no trackable tasks yet.
                                     </p>
                                     <Button
                                         onClick={handleProcessTasks}
                                         disabled={isProcessingTasks}
-                                        className="w-full justify-center bg-gradient-to-br from-[#355E1F] to-[#6FA84C] hover:shadow-lg hover:shadow-green-900/20 hover:scale-[1.02] text-white font-semibold transition-all duration-300"
+                                        className="w-full justify-center bg-gradient-to-br from-[#355E1F] to-[#6FA84C] text-white shadow-md"
                                     >
-                                        {isProcessingTasks ? (
-                                            <>
-                                                <Loader2 className="w-4 h-4 animate-spin mr-2" />
-                                                Growing Tasks...
-                                            </>
-                                        ) : (
-                                            <>
-                                                <Sparkles className="w-4 h-4 mr-2" />
-                                                Process Tasks from Note
-                                            </>
-                                        )}
+                                        {isProcessingTasks ? <Loader2 className="animate-spin w-4 h-4" /> : "Process Tasks from Note"}
                                     </Button>
                                 </div>
                             )}
@@ -386,17 +374,32 @@ export default function MeetingNoteDetailPage() {
             <AnimatePresence>
                 {showDeleteModal && (
                     <div className="fixed inset-0 z-[60] flex items-center justify-center p-4">
-                        <div className="absolute inset-0 bg-black/20 backdrop-blur-sm" onClick={() => setShowDeleteModal(false)} />
+                        <motion.div
+                            initial={{ opacity: 0 }}
+                            animate={{ opacity: 1 }}
+                            exit={{ opacity: 0 }}
+                            className="absolute inset-0 bg-black/20 backdrop-blur-sm"
+                            onClick={() => setShowDeleteModal(false)}
+                        />
                         <motion.div
                             initial={{ opacity: 0, scale: 0.95 }}
                             animate={{ opacity: 1, scale: 1 }}
                             exit={{ opacity: 0, scale: 0.95 }}
                             className="bg-white rounded-2xl p-6 w-full max-w-md shadow-xl relative z-10"
                         >
-                            <h3 className="text-lg font-bold text-gray-900 mb-2">Delete Meeting?</h3>
-                            <p className="text-gray-600 mb-6">This cannot be undone.</p>
+                            <div className="flex items-center gap-4 mb-4 text-red-600">
+                                <div className="w-10 h-10 rounded-full bg-red-50 flex items-center justify-center">
+                                    {/* Utilized Trash2 icon here for the delete modal header */}
+                                    <Trash2 className="w-6 h-6" />
+                                </div>
+                                <h3 className="text-lg font-bold text-gray-900">Delete Meeting?</h3>
+                            </div>
+                            <p className="text-gray-600 mb-6">
+                                Are you sure you want to delete this meeting note? This will also delete all <strong>{tasks.length} associated tasks</strong>. This action cannot be undone.
+                            </p>
                             <div className="flex gap-3 justify-end">
                                 <Button variant="secondary" onClick={() => setShowDeleteModal(false)}>Cancel</Button>
+                                {/* Utilized isDeleting here for disabled state */}
                                 <Button variant="danger" onClick={handleDelete} disabled={isDeleting}>Delete</Button>
                             </div>
                         </motion.div>

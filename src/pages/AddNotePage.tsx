@@ -33,7 +33,7 @@ const TIPS = [
   "Include meeting context (who was present, what was discussed)"
 ];
 
-const EXAMPLE_NOTES = `Team standup meeting - Nov 19
+const EXAMPLE_NOTES = `Team standup meeting - Nov 19  
 Attendees: Alex, Jordan, and myself
 
 Key discussion points:
@@ -299,15 +299,7 @@ export default function AddNotePage() {
               <span className="text-sm font-medium">Back to Dashboard</span>
             </motion.button>
 
-            <div className="flex items-center gap-2">
-              <motion.div
-                className="text-2xl"
-                whileHover={{ scale: 1.15, rotate: 5 }}
-              >
-                🌱
-              </motion.div>
-              <span className="font-semibold text-gray-900 hidden sm:block">GrowFlow</span>
-            </div>
+
           </div>
         </div>
       </header>
@@ -399,8 +391,8 @@ I need to schedule a code review session with the team, probably by end of week.
             px-6 sm:px-8 py-5 sm:py-6
             bg-gradient-to-br from-gray-50 to-green-50/30
             border-t border-gray-100
-            flex flex-col lg:flex-row items-start lg:items-center justify-between
-            gap-6
+            flex flex-col lg:flex-row lg:items-center justify-between flex-wrap
+            gap-6 h-auto
           ">
             {/* Group A: Metadata */}
             <div className="flex flex-wrap items-center gap-3 sm:gap-4 text-sm text-gray-600 whitespace-nowrap">
