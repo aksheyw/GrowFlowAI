@@ -108,25 +108,47 @@ export default function MeetingNoteDetailPage() {
         }
         fetchData();
 
-        // Realtime
+        // Realtime - Robust (Listen to all, filter locally)
         const channel = supabase
             .channel(`note-${noteId}`)
-            .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'notes', filter: `id=eq.${noteId}` },
+            .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'notes' },
                 (payload) => {
                     const newNote = payload.new as Note;
-                    setNote(prev => prev ? { ...prev, ...newNote } : newNote);
+                    if (newNote.id === noteId) {
+                        setNote(prev => prev ? { ...prev, ...newNote } : newNote);
 
-                    if (newNote.leadership_brief) {
-                        setIsSynthesizing(false);
-                    }
-                    if (newNote.processed) {
-                        fetchTasksOnly();
+                        if (newNote.leadership_brief) {
+                            setIsSynthesizing(false);
+                        }
+                        if (newNote.processed) {
+                            fetchTasksOnly();
+                        }
                     }
                 })
             .subscribe();
 
         return () => { channel.unsubscribe(); };
     }, [noteId, navigate]);
+
+    // --- POLLING FALLBACK ---
+    useEffect(() => {
+        if (!isSynthesizing || !noteId) return;
+
+        const interval = setInterval(async () => {
+            const { data, error } = await supabase
+                .from('notes')
+                .select('leadership_brief')
+                .eq('id', noteId)
+                .single();
+
+            if (!error && data?.leadership_brief) {
+                setNote(prev => prev ? { ...prev, leadership_brief: data.leadership_brief } : null);
+                setIsSynthesizing(false);
+            }
+        }, 3000);
+
+        return () => clearInterval(interval);
+    }, [isSynthesizing, noteId]);
 
     async function fetchTasksOnly() {
         if (!noteId) return;
@@ -228,6 +250,33 @@ export default function MeetingNoteDetailPage() {
         }
     }
 
+    async function handleRegenerate() {
+        if (!note) return;
+
+        // 1. Optimistic Clear: Force the UI to "forget" the old summary immediately
+        setNote(prev => prev ? { ...prev, leadership_brief: null } : null);
+
+        // 2. Start Loading State
+        setIsSynthesizing(true);
+
+        // 3. Trigger Webhook (Fire & Forget)
+        try {
+            // Add a toast to confirm action
+            showToast({ type: 'info', title: 'Regenerating...', message: 'AI is rewriting the brief.' });
+
+            await fetch('https://n8n.srv1134430.hstgr.cloud/webhook/generate-summary', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ note_id: note.id })
+            });
+        } catch (err) {
+            console.error(err);
+            // If fail, revert state (optional, or just show error)
+            setIsSynthesizing(false);
+            showToast({ type: 'error', title: 'Error', message: 'Failed to trigger regeneration.' });
+        }
+    }
+
     // Computed Props
     const stats = useMemo(() => calculateTaskStats(tasks), [tasks]);
     const filteredTasks = useMemo(() => {
@@ -315,7 +364,7 @@ export default function MeetingNoteDetailPage() {
                                     Generate a concise executive summary, decisions, and action items from this meeting.
                                 </p>
                                 <Button
-                                    onClick={() => setShowSummaryModal(true)}
+                                    onClick={handleRegenerate}
                                     className="px-8 py-3 bg-gradient-to-br from-[#355E1F] to-[#6FA84C] text-white font-semibold rounded-xl hover:shadow-lg hover:scale-[1.02] transition-all"
                                 >
                                     <Sparkles className="w-5 h-5 mr-2" />
@@ -332,7 +381,7 @@ export default function MeetingNoteDetailPage() {
                                 onExport={handleExport}
                                 onShare={handleShare}
                                 onDelete={() => setShowDeleteModal(true)}
-                                onGenerateSummary={() => setShowSummaryModal(true)}
+                                onGenerateSummary={handleRegenerate}
                                 hasSummary={!!note.leadership_brief}
                             />
 

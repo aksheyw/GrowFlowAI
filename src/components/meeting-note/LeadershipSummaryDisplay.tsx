@@ -34,6 +34,38 @@ export default function LeadershipSummaryDisplay({ summary }: LeadershipSummaryD
 
     if (!summary) return null; // Safety check
 
+    // Helper: Parse Markdown to HTML
+    const parseMarkdownToHtml = (text: string): string => {
+        if (!text) return '';
+        let html = text;
+
+        // 1. Headers (## Text -> <h3>Text</h3>)
+        html = html.replace(/^## (.*$)/gm, '<h3 style="font-size: 1.1em; font-weight: bold; margin-top: 1em; margin-bottom: 0.5em;">$1</h3>');
+
+        // 2. Bold (**Text** -> <strong>Text</strong>)
+        html = html.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
+
+        // 3. Lists (- Item or * Item -> <li>Item</li>, wrapped in <ul>)
+        // Find blocks of list items
+        html = html.replace(/(?:^|\n)((?:[*-] .*(?:\n|$))+)/g, (_, listBlock) => {
+            const items = listBlock
+                .trim()
+                .split('\n')
+                .map((line: string) => `<li>${line.replace(/^[*-] /, '')}</li>`)
+                .join('');
+            return `<ul style="padding-left: 20px; margin-bottom: 1em;">${items}</ul>`;
+        });
+
+        // 4. Newlines -> <br> (Handle remaining newlines that aren't part of HTML tags)
+        // We replace \n with <br> only if it's not immediately following a closing tag like </h3> or </ul>
+        html = html.replace(/(\n)/g, '<br>');
+
+        // Clean up extra <br> after block elements if any
+        html = html.replace(/(<\/h3>|<\/ul>)<br>/g, '$1');
+
+        return html;
+    };
+
     const handleCopy = async () => {
         let contentToCopy = '';
         switch (activeTab) {
@@ -58,7 +90,26 @@ export default function LeadershipSummaryDisplay({ summary }: LeadershipSummaryD
         }
 
         try {
-            await navigator.clipboard.writeText(contentToCopy);
+            if (activeTab === 'chat') {
+                // Chat is usually plain text
+                await navigator.clipboard.writeText(contentToCopy);
+            } else {
+                // Email and Document support Rich Text
+                const htmlContent = parseMarkdownToHtml(contentToCopy);
+
+                // Create Blob for HTML and Plain Text
+                const htmlBlob = new Blob([htmlContent], { type: "text/html" });
+                const textBlob = new Blob([contentToCopy], { type: "text/plain" });
+
+                // Write to clipboard
+                await navigator.clipboard.write([
+                    new ClipboardItem({
+                        "text/html": htmlBlob,
+                        "text/plain": textBlob,
+                    }),
+                ]);
+            }
+
             setCopied(true);
             showToast({
                 type: 'success',
@@ -69,11 +120,19 @@ export default function LeadershipSummaryDisplay({ summary }: LeadershipSummaryD
             setTimeout(() => setCopied(false), 2000);
         } catch (err) {
             console.error('Failed to copy:', err);
-            showToast({
-                type: 'error',
-                title: 'Copy failed',
-                message: 'Please try again.',
-            });
+            // Fallback to plain text if rich copy fails
+            try {
+                await navigator.clipboard.writeText(contentToCopy);
+                setCopied(true);
+                showToast({ type: 'success', title: 'Copied (Plain Text)', message: 'Copied as plain text.' });
+                setTimeout(() => setCopied(false), 2000);
+            } catch (fallbackErr) {
+                showToast({
+                    type: 'error',
+                    title: 'Copy failed',
+                    message: 'Please try again.',
+                });
+            }
         }
     };
 
@@ -178,9 +237,10 @@ export default function LeadershipSummaryDisplay({ summary }: LeadershipSummaryD
                             transition={{ duration: 0.2 }}
                         >
                             {activeTab === 'email' && (
-                                <div className="font-mono text-sm text-gray-700 whitespace-pre-wrap bg-gray-50 p-5 rounded-xl border border-gray-100 leading-relaxed">
-                                    {summary.emailFormat || "No email format available."}
-                                </div>
+                                <div
+                                    className="font-sans text-sm text-gray-700 bg-gray-50 p-5 rounded-xl border border-gray-100 leading-relaxed"
+                                    dangerouslySetInnerHTML={{ __html: parseMarkdownToHtml(summary.emailFormat || "No email format available.") }}
+                                />
                             )}
                             {activeTab === 'chat' && (
                                 <div className="bg-blue-50/50 p-5 rounded-2xl rounded-tl-none inline-block max-w-full text-sm text-slate-800 whitespace-pre-wrap leading-relaxed border border-blue-100/50">
@@ -188,9 +248,10 @@ export default function LeadershipSummaryDisplay({ summary }: LeadershipSummaryD
                                 </div>
                             )}
                             {activeTab === 'document' && (
-                                <div className="prose prose-sm max-w-none text-gray-700 whitespace-pre-wrap p-2">
-                                    {summary.documentFormat || "No document format available."}
-                                </div>
+                                <div
+                                    className="prose prose-sm max-w-none text-gray-700 p-2"
+                                    dangerouslySetInnerHTML={{ __html: parseMarkdownToHtml(summary.documentFormat || "No document format available.") }}
+                                />
                             )}
                         </motion.div>
                     </AnimatePresence>
