@@ -186,17 +186,24 @@ function AnimatedRoutes() {
   );
 }
 
+import ScrollToTop from './components/ScrollToTop';
+import ScrollToTopOnMount from './components/ScrollToTopOnMount';
+
+// ... (existing imports)
+
 function App() {
   return (
     <BrowserRouter>
       <AuthProvider>
         <ToastProvider>
           <div className="min-h-screen bg-gray-50 pt-[env(safe-area-inset-top)] pb-[calc(4rem+env(safe-area-inset-bottom))]">
+            <ScrollToTopOnMount />
             <Header />
             <ToastContainer />
             <AnimatedRoutes />
             <MobileTabBar />
             <FloatingActionButton />
+            <ScrollToTop />
           </div>
         </ToastProvider>
       </AuthProvider>

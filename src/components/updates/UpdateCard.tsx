@@ -4,7 +4,7 @@ import { UpdateNotification, UpdateNotificationType } from '../../types';
 
 interface UpdateCardProps {
     notification: UpdateNotification;
-    onClick: (id: string) => void;
+    onClick: (notification: UpdateNotification) => void;
 }
 
 const getNotificationIcon = (type: UpdateNotificationType) => {
@@ -19,6 +19,10 @@ const getNotificationIcon = (type: UpdateNotificationType) => {
             return { Icon: Sparkles, bgColor: 'bg-purple-500/10', iconColor: 'text-purple-600' };
         case 'task_updated':
             return { Icon: Activity, bgColor: 'bg-orange-500/10', iconColor: 'text-orange-600' };
+        case 'note_created':
+            return { Icon: FileText, bgColor: 'bg-emerald-500/10', iconColor: 'text-emerald-600' };
+        default:
+            return { Icon: Sparkles, bgColor: 'bg-gray-100', iconColor: 'text-gray-600' };
     }
 };
 
@@ -45,7 +49,7 @@ export default function UpdateCard({ notification, onClick }: UpdateCardProps) {
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -10 }}
             transition={{ duration: 0.2 }}
-            onClick={() => onClick(notification.id)}
+            onClick={() => onClick(notification)}
             className={`
         p-4 border-b border-gray-100 cursor-pointer
         hover:bg-gray-50 transition-colors

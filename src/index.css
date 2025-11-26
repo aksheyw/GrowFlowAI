@@ -242,4 +242,9 @@ textarea,
   .button-press:active {
     transform: scale(0.96);
   }
+
+  .safe-paddings {
+    padding-top: env(safe-area-inset-top);
+    padding-bottom: env(safe-area-inset-bottom);
+  }
 }

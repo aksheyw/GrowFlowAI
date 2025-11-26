@@ -130,3 +130,29 @@ export function cleanSummary(text: string): string {
 
   return cleaned;
 }
+
+export function getPriorityColor(priority: Task['priority']): string {
+  switch (priority) {
+    case 'High':
+      return 'bg-red-100 text-red-700';
+    case 'Medium':
+      return 'bg-yellow-100 text-yellow-700';
+    case 'Low':
+      return 'bg-green-100 text-green-700';
+    default:
+      return 'bg-gray-100 text-gray-700';
+  }
+}
+
+export function getStatusColor(status: Task['status']): string {
+  switch (status) {
+    case 'Done':
+      return 'bg-green-100 text-green-700';
+    case 'In Progress':
+      return 'bg-blue-100 text-blue-700';
+    case 'Not Started':
+      return 'bg-gray-100 text-gray-700';
+    default:
+      return 'bg-gray-100 text-gray-700';
+  }
+}

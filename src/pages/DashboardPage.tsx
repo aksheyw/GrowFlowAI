@@ -12,6 +12,7 @@ import PremiumEmptyState from '../components/premium/PremiumEmptyState';
 import MeetingNoteCard from '../components/premium/MeetingNoteCard';
 import { Card } from '../components/ui/Card';
 import { Button } from '../components/ui/Button';
+import TaskDetailModal from '../components/TaskDetailModal';
 
 import { useToast } from '../contexts/ToastContext';
 
@@ -33,6 +34,7 @@ export default function DashboardPage() {
   const [tasks, setTasks] = useState<Task[]>([]);
   const [activeFilter, setActiveFilter] = useState<PremiumFilterType>('all');
   const [sortBy, setSortBy] = useState<SortOption>('deadline');
+  const [selectedTask, setSelectedTask] = useState<Task | null>(null);
 
   // Notes State
   const [notes, setNotes] = useState<Note[]>([]);
@@ -117,6 +119,20 @@ export default function DashboardPage() {
     const cleanup = subscribeToRealtime();
     return cleanup;
   }, [loadData, subscribeToRealtime]);
+
+  // Handle deep linking for tasks
+  useEffect(() => {
+    const taskId = urlParams.get('task_id');
+    if (taskId && !loading && tasks.length > 0) {
+      const task = tasks.find(t => t.id === taskId);
+      if (task) {
+        setSelectedTask(task);
+        // Clean up URL without refreshing
+        const newUrl = window.location.pathname + window.location.search.replace(/[\?&]task_id=[^&]+/, '').replace(/^&/, '?');
+        window.history.replaceState({}, '', newUrl);
+      }
+    }
+  }, [loading, tasks, location.search]);
 
   // Handle task highlighting from notifications
   useEffect(() => {
@@ -384,6 +400,20 @@ export default function DashboardPage() {
           )}
         </AnimatePresence>
       </main>
+
+      {/* Task Detail Modal */}
+      <AnimatePresence>
+        {selectedTask && (
+          <TaskDetailModal
+            task={selectedTask}
+            onClose={() => setSelectedTask(null)}
+            onUpdate={(updatedTask) => {
+              setTasks(prev => prev.map(t => t.id === updatedTask.id ? updatedTask : t));
+              setSelectedTask(null);
+            }}
+          />
+        )}
+      </AnimatePresence>
     </div>
   );
 }

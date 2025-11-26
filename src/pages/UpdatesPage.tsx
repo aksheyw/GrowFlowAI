@@ -1,19 +1,40 @@
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { useNavigate } from 'react-router-dom';
 import { useUpdates } from '../hooks/useUpdates';
+import { useToast } from '../contexts/ToastContext';
 import UpdateCard from '../components/updates/UpdateCard';
+import { UpdateNotification } from '../types';
 
 type FilterType = 'All' | 'Alerts' | 'Tasks' | 'Mentions';
 
 const FILTERS: FilterType[] = ['All', 'Alerts', 'Tasks', 'Mentions'];
 
 export default function UpdatesPage() {
+    const navigate = useNavigate();
+    const { addToast } = useToast();
     const { groupedNotifications, unreadCount, markRead, markAllRead, isLoading } = useUpdates();
     const [activeFilter, setActiveFilter] = useState<FilterType>('All');
 
-    const handleNotificationClick = (id: string) => {
-        markRead(id);
-        // TODO: Navigate to relevant task/meeting if task_id exists
+    const handleNotificationClick = (notification: UpdateNotification) => {
+        markRead(notification.id);
+
+        // Prioritize navigation if IDs are present, regardless of type
+        if (notification.task_id) {
+            navigate(`/task/${notification.task_id}`);
+            return;
+        }
+
+        const noteId = notification.note_id;
+        if (noteId) {
+            navigate(`/note/${noteId}`);
+            return;
+        }
+
+        // Fallback for system alerts without IDs
+        if (notification.type === 'system_alert') {
+            addToast(notification.message, 'info', 4000);
+        }
     };
 
     const hasNotifications = Object.keys(groupedNotifications).length > 0;
@@ -106,6 +127,7 @@ export default function UpdatesPage() {
                                                     duration: 0.3,
                                                     delay: index * 0.05,
                                                 }}
+                                                className="cursor-pointer hover:bg-gray-50 active:scale-[0.99] transition-all rounded-xl"
                                             >
                                                 <UpdateCard
                                                     notification={notification}

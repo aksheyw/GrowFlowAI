@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
 import { ArrowUp } from 'lucide-react';
 
 export default function ScrollToTop() {
@@ -6,7 +7,7 @@ export default function ScrollToTop() {
 
   useEffect(() => {
     const toggleVisibility = () => {
-      if (window.scrollY > 300) {
+      if (window.scrollY > 400) {
         setIsVisible(true);
       } else {
         setIsVisible(false);
@@ -14,6 +15,7 @@ export default function ScrollToTop() {
     };
 
     window.addEventListener('scroll', toggleVisibility);
+
     return () => window.removeEventListener('scroll', toggleVisibility);
   }, []);
 
@@ -24,18 +26,20 @@ export default function ScrollToTop() {
     });
   };
 
-  if (!isVisible) return null;
-
   return (
-    <button
-      onClick={scrollToTop}
-      className="fixed bottom-24 right-6 lg:bottom-8 lg:right-8 w-12 h-12 bg-white border-2 border-gray-200 hover:border-green-700 text-gray-700 hover:text-green-700 rounded-full shadow-lg hover:shadow-xl flex items-center justify-center transition-all duration-300 z-40 backdrop-blur-sm hover:scale-110 active:scale-95"
-      aria-label="Scroll to top"
-      style={{
-        animation: 'fadeInUp 0.3s ease-out',
-      }}
-    >
-      <ArrowUp className="w-5 h-5" />
-    </button>
+    <AnimatePresence>
+      {isVisible && (
+        <motion.button
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          exit={{ opacity: 0, y: 20 }}
+          onClick={scrollToTop}
+          className="fixed bottom-24 right-5 md:bottom-8 md:right-8 z-50 p-0 w-11 h-11 rounded-full bg-white/90 backdrop-blur-md shadow-xl border border-gray-200/50 text-gray-600 hover:text-[#2D5016] hover:scale-110 transition-all flex items-center justify-center group"
+          aria-label="Scroll to top"
+        >
+          <ArrowUp className="w-5 h-5 group-hover:-translate-y-0.5 transition-transform" />
+        </motion.button>
+      )}
+    </AnimatePresence>
   );
 }
