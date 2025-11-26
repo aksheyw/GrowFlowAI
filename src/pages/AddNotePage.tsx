@@ -11,7 +11,10 @@ import {
   Lightbulb,
   Loader2,
   Briefcase,
-  Mic
+  Mic,
+  Camera,
+  Type,
+  UploadCloud
 } from 'lucide-react';
 import confetti from 'canvas-confetti';
 import { useAuth } from '../contexts/AuthContext';
@@ -73,6 +76,7 @@ export default function AddNotePage() {
   const [countdown, setCountdown] = useState(3);
   const [showCancel, setShowCancel] = useState(false);
   const [processingMode, setProcessingMode] = useState<'tasks' | 'brief'>('tasks');
+  const [inputMode, setInputMode] = useState<'text' | 'audio' | 'record' | 'photo'>('text');
 
   // Audio upload state
   const [isTranscribing, setIsTranscribing] = useState(false);
@@ -472,25 +476,61 @@ export default function AddNotePage() {
             bg-white rounded-3xl overflow-hidden
             border-2 transition-all duration-300
             flex-1 flex flex-col
-            ${isFocused
+            ${isFocused && inputMode === 'text'
               ? 'border-[#6FA84C] shadow-xl shadow-green-500/10'
               : 'border-gray-100 shadow-lg'
             }
           `}
         >
-          {/* Textarea */}
-          <label htmlFor="meeting-notes" className="sr-only">
-            Meeting notes
-          </label>
-          <textarea
-            ref={textareaRef}
-            id="meeting-notes"
-            value={noteText}
-            onChange={handleTextChange}
-            onFocus={() => setIsFocused(true)}
-            onBlur={() => setIsFocused(false)}
-            onPaste={handlePaste}
-            placeholder="Paste your meeting notes here...
+          {/* Input Method Toolbar */}
+          <div className="
+            flex items-center gap-1 p-2
+            border-b border-gray-100
+            bg-gray-50/50
+            overflow-x-auto no-scrollbar
+          ">
+            {[
+              { id: 'text', icon: Type, label: 'Text' },
+              { id: 'audio', icon: UploadCloud, label: 'Upload Audio' },
+              { id: 'record', icon: Mic, label: 'Record' },
+              { id: 'photo', icon: Camera, label: 'Photo' }
+            ].map((mode) => (
+              <button
+                key={mode.id}
+                onClick={() => setInputMode(mode.id as any)}
+                className={`
+                  flex items-center gap-2 px-4 py-2 rounded-xl
+                  text-sm font-medium whitespace-nowrap
+                  transition-all duration-200
+                  ${inputMode === mode.id
+                    ? 'bg-white text-[#2D5016] shadow-sm ring-1 ring-black/5'
+                    : 'text-gray-500 hover:text-gray-700 hover:bg-gray-100'
+                  }
+                `}
+              >
+                <mode.icon className="w-4 h-4" />
+                {mode.label}
+              </button>
+            ))}
+          </div>
+
+          {/* Content Area */}
+          <div className="flex-1 flex flex-col min-h-[300px] relative">
+
+            {/* Text Mode */}
+            <div className={`flex-1 flex flex-col ${inputMode === 'text' ? 'block' : 'hidden'}`}>
+              <label htmlFor="meeting-notes" className="sr-only">
+                Meeting notes
+              </label>
+              <textarea
+                ref={textareaRef}
+                id="meeting-notes"
+                value={noteText}
+                onChange={handleTextChange}
+                onFocus={() => setIsFocused(true)}
+                onBlur={() => setIsFocused(false)}
+                onPaste={handlePaste}
+                placeholder="Paste your meeting notes here...
 
 Example:
 Team standup with Alex and Jordan. Discussed sprint priorities for this week.
@@ -500,193 +540,211 @@ Alex will complete the user authentication module by Nov 12th - this is urgent.
 Jordan is working on the dashboard redesign, mockups due Nov 15th.
 
 I need to schedule a code review session with the team, probably by end of week."
-            className="
-              w-full p-6 sm:p-8
-              flex-1
-              min-h-[200px]
-              text-base sm:text-lg leading-relaxed
-              text-gray-900 placeholder:text-gray-400
-              resize-none
-              focus:outline-none
-              font-normal
-            "
-            style={{
-              fontFamily: '-apple-system, BlinkMacSystemFont, "SF Pro Display", "Inter", sans-serif'
-            }}
-            aria-label="Enter your meeting notes"
-            aria-describedby="notes-description"
-          />
+                className="
+                  w-full p-6 sm:p-8
+                  flex-1
+                  text-base sm:text-lg leading-relaxed
+                  text-gray-900 placeholder:text-gray-400
+                  resize-none
+                  focus:outline-none
+                  font-normal
+                  bg-transparent
+                "
+                style={{
+                  fontFamily: '-apple-system, BlinkMacSystemFont, "SF Pro Display", "Inter", sans-serif'
+                }}
+              />
+            </div>
 
-          {/* Hidden file input for audio upload */}
-          <input
-            type="file"
-            ref={fileInputRef}
-            onChange={handleAudioUpload}
-            accept=".mp3,.m4a,.wav,.webm,.mp4,audio/*"
-            className="hidden"
-            aria-label="Upload audio file for transcription"
-          />
+            {/* Audio Upload Mode */}
+            {inputMode === 'audio' && (
+              <div className="flex-1 flex flex-col items-center justify-center p-8 text-center bg-gray-50/30">
+                <div
+                  onClick={() => fileInputRef.current?.click()}
+                  className={`
+                    w-full max-w-md aspect-video rounded-3xl
+                    border-3 border-dashed
+                    flex flex-col items-center justify-center gap-4
+                    cursor-pointer transition-all duration-300
+                    group
+                    ${isTranscribing
+                      ? 'border-[#6FA84C] bg-green-50/50'
+                      : 'border-gray-200 hover:border-[#6FA84C] hover:bg-white'
+                    }
+                  `}
+                >
+                  {isTranscribing ? (
+                    <>
+                      <div className="w-16 h-16 rounded-full bg-green-100 flex items-center justify-center">
+                        <Loader2 className="w-8 h-8 text-[#6FA84C] animate-spin" />
+                      </div>
+                      <div>
+                        <h3 className="text-lg font-semibold text-[#2D5016]">Transcribing Audio...</h3>
+                        <p className="text-sm text-gray-500 mt-1">This may take a moment</p>
+                      </div>
+                    </>
+                  ) : (
+                    <>
+                      <div className="
+                        w-16 h-16 rounded-full bg-white shadow-sm 
+                        flex items-center justify-center
+                        group-hover:scale-110 transition-transform duration-300
+                      ">
+                        <UploadCloud className="w-8 h-8 text-[#6FA84C]" />
+                      </div>
+                      <div>
+                        <h3 className="text-lg font-semibold text-gray-900">Click to Upload Audio</h3>
+                        <p className="text-sm text-gray-500 mt-1">MP3, M4A, WAV (up to 2 hours)</p>
+                      </div>
+                      <button className="
+                        mt-2 px-4 py-2 rounded-full
+                        bg-[#6FA84C] text-white text-sm font-medium
+                        opacity-0 group-hover:opacity-100 transition-opacity duration-200
+                        translate-y-2 group-hover:translate-y-0
+                      ">
+                        Select File
+                      </button>
+                    </>
+                  )}
+                </div>
+              </div>
+            )}
 
-          <div id="notes-description" className="sr-only">
-            Paste your meeting notes here. Include names, deadlines, and action items
-            for best results. Minimum 50 characters required.
+            {/* Placeholder Modes */}
+            {(inputMode === 'record' || inputMode === 'photo') && (
+              <div className="flex-1 flex flex-col items-center justify-center p-8 text-center bg-gray-50/30">
+                <div className="w-16 h-16 rounded-2xl bg-gray-100 flex items-center justify-center mb-4">
+                  {inputMode === 'record' ? (
+                    <Mic className="w-8 h-8 text-gray-400" />
+                  ) : (
+                    <Camera className="w-8 h-8 text-gray-400" />
+                  )}
+                </div>
+                <h3 className="text-lg font-semibold text-gray-900">Coming Soon</h3>
+                <p className="text-gray-500 max-w-xs mx-auto mt-2">
+                  {inputMode === 'record'
+                    ? 'Voice recording will be available in the next update.'
+                    : 'Photo capture and OCR will be available in the next update.'
+                  }
+                </p>
+              </div>
+            )}
+
+            {/* Hidden file input */}
+            <input
+              type="file"
+              ref={fileInputRef}
+              onChange={handleAudioUpload}
+              accept=".mp3,.m4a,.wav,.webm,.mp4,audio/*"
+              className="hidden"
+            />
           </div>
 
           {/* Footer */}
           <div className="
-            px-6 sm:px-8 py-5 sm:py-6
-            bg-gradient-to-br from-gray-50 to-green-50/30
-            border-t border-gray-100
-            flex flex-col lg:flex-row lg:items-center justify-between flex-wrap
-            gap-6 h-auto
+            px-6 sm:px-8 py-5
+            bg-white border-t border-gray-100
+            flex flex-col lg:flex-row lg:items-center justify-between
+            gap-6
           ">
-            {/* Group A: Metadata */}
-            <div className="flex flex-wrap items-center gap-3 sm:gap-4 text-sm text-gray-600 whitespace-nowrap">
-              {/* Character count */}
-              <motion.div
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                className="flex items-center gap-1.5 whitespace-nowrap"
-              >
+            {/* Left Side: Metadata */}
+            <div className="flex flex-wrap items-center gap-4 text-sm text-gray-500 w-full lg:w-auto">
+              <div className="flex items-center gap-1.5">
                 <FileText className="w-4 h-4" />
-                <span className={characterCount === 0 ? 'text-gray-400' : ''}>
-                  {characterCount.toLocaleString()} characters
-                </span>
-              </motion.div>
-
-              {/* Word count */}
-              <motion.div
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                transition={{ delay: 0.1 }}
-                className="flex items-center gap-1.5 whitespace-nowrap"
-              >
+                <span>{characterCount.toLocaleString()} chars</span>
+              </div>
+              <div className="w-1 h-1 rounded-full bg-gray-300" />
+              <div className="flex items-center gap-1.5">
                 <AlignLeft className="w-4 h-4" />
-                <span className={wordCount === 0 ? 'text-gray-400' : ''}>
-                  {wordCount.toLocaleString()} words
-                </span>
-              </motion.div>
+                <span>{wordCount.toLocaleString()} words</span>
+              </div>
 
-              {/* Estimated tasks */}
+              {/* Estimated tasks badge */}
               {characterCount > 50 && estimatedTasks > 0 && (
-                <motion.div
-                  initial={{ opacity: 0, scale: 0.9 }}
-                  animate={{ opacity: 1, scale: 1 }}
-                  transition={{ delay: 0.2 }}
-                  className="flex items-center gap-1.5 px-3 py-1 bg-green-100 text-green-700 rounded-lg font-medium"
-                >
-                  <CheckCircle2 className="w-4 h-4" />
-                  <span>~{estimatedTasks} tasks detected</span>
-                </motion.div>
+                <>
+                  <div className="hidden sm:block w-1 h-1 rounded-full bg-gray-300" />
+                  <div className="flex items-center gap-1.5 px-2.5 py-0.5 bg-green-50 text-green-700 rounded-full font-medium text-xs">
+                    <CheckCircle2 className="w-3.5 h-3.5" />
+                    <span>~{estimatedTasks} tasks</span>
+                  </div>
+                </>
               )}
 
-              {/* Example button */}
               <button
                 onClick={loadExample}
                 className="
-                  text-sm text-[#6FA84C] hover:text-[#2D5016]
+                  ml-auto lg:ml-6
+                  text-green-600 hover:text-green-700
                   font-medium transition-colors
-                  flex items-center gap-1
-                  whitespace-nowrap
+                  flex items-center gap-1.5
+                  px-3 py-1.5 rounded-lg hover:bg-green-50
                 "
               >
                 <Lightbulb className="w-4 h-4" />
-                Try an example
+                <span>Try Example</span>
               </button>
             </div>
 
-            {/* Group B: Actions */}
-            <div className="flex flex-wrap items-center justify-end gap-3 w-full lg:w-auto">
+            {/* Right Side: Actions */}
+            <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 w-full lg:w-auto">
 
-              {/* Upload Audio Button - make it more compact */}
-              <motion.button
-                whileHover={{ scale: isTranscribing ? 1 : 1.02 }}
-                whileTap={{ scale: isTranscribing ? 1 : 0.98 }}
-                onClick={() => fileInputRef.current?.click()}
-                disabled={isTranscribing || isProcessing}
-                className={`
-                  flex items-center gap-2 px-3 py-2.5 rounded-xl
-                  border-2 border-dashed transition-all duration-200
-                  whitespace-nowrap text-sm
-                  ${isTranscribing
-                    ? 'border-[#6FA84C] bg-green-50 text-[#2D5016] cursor-wait'
-                    : 'border-gray-300 hover:border-[#6FA84C] hover:bg-green-50/50 text-gray-600 hover:text-[#2D5016]'
-                  }
-                  ${isProcessing ? 'opacity-50 cursor-not-allowed' : ''}
-                `}
-              >
-                {isTranscribing ? (
-                  <>
-                    <Loader2 className="w-4 h-4 animate-spin text-[#6FA84C]" />
-                    <span className="font-medium">Transcribing...</span>
-                  </>
-                ) : (
-                  <>
-                    <Mic className="w-4 h-4" />
-                    <span className="font-medium">Upload Audio</span>
-                  </>
-                )}
-              </motion.button>
-
-              {/* Mode Switcher - reduce min-width */}
-              <div className="w-auto min-w-[240px]">
-                <div className="bg-gray-100 p-1 rounded-xl grid grid-cols-2 gap-1">
-                  <button
-                    onClick={() => setProcessingMode('tasks')}
-                    className={`
-                      flex items-center justify-center gap-1.5 px-3 py-2.5 rounded-lg text-sm font-medium transition-all duration-200
-                      ${processingMode === 'tasks'
-                        ? 'bg-[#1A3510] text-white shadow-md'
-                        : 'bg-transparent text-gray-600 hover:bg-gray-200'
-                      }
-                    `}
-                  >
-                    <Sparkles className={`w-4 h-4 ${processingMode === 'tasks' ? 'text-white' : 'text-gray-500'}`} />
-                    <span>Tasks</span>
-                  </button>
-                  <button
-                    onClick={() => setProcessingMode('brief')}
-                    className={`
-                      flex items-center justify-center gap-1.5 px-3 py-2.5 rounded-lg text-sm font-medium transition-all duration-200
-                      ${processingMode === 'brief'
-                        ? 'bg-[#1A3510] text-white shadow-md'
-                        : 'bg-transparent text-gray-600 hover:bg-gray-200'
-                      }
-                    `}
-                  >
-                    <Briefcase className={`w-4 h-4 ${processingMode === 'brief' ? 'text-white' : 'text-gray-500'}`} />
-                    <span>Brief</span>
-                  </button>
-                </div>
+              {/* Mode Toggle */}
+              <div className="bg-gray-100 p-1 rounded-xl grid grid-cols-2 gap-1 sm:w-auto">
+                <button
+                  onClick={() => setProcessingMode('tasks')}
+                  className={`
+                    flex items-center justify-center gap-2 px-4 py-2.5 rounded-lg text-sm font-medium transition-all duration-200
+                    ${processingMode === 'tasks'
+                      ? 'bg-white text-gray-900 shadow-sm ring-1 ring-black/5'
+                      : 'text-gray-500 hover:text-gray-700 hover:bg-gray-200/50'
+                    }
+                  `}
+                >
+                  <Sparkles className={`w-4 h-4 ${processingMode === 'tasks' ? 'text-[#6FA84C]' : 'text-gray-400'}`} />
+                  <span>Tasks</span>
+                </button>
+                <button
+                  onClick={() => setProcessingMode('brief')}
+                  className={`
+                    flex items-center justify-center gap-2 px-4 py-2.5 rounded-lg text-sm font-medium transition-all duration-200
+                    ${processingMode === 'brief'
+                      ? 'bg-white text-gray-900 shadow-sm ring-1 ring-black/5'
+                      : 'text-gray-500 hover:text-gray-700 hover:bg-gray-200/50'
+                    }
+                  `}
+                >
+                  <Briefcase className={`w-4 h-4 ${processingMode === 'brief' ? 'text-[#6FA84C]' : 'text-gray-400'}`} />
+                  <span>Brief</span>
+                </button>
               </div>
 
-              {/* Process button - slightly more compact */}
+              {/* Process Button */}
               <motion.button
                 whileHover={{ scale: isValid ? 1.02 : 1 }}
                 whileTap={{ scale: isValid ? 0.98 : 1 }}
                 disabled={!isValid || isProcessing || isTranscribing}
                 onClick={handleProcess}
                 className={`
-                  px-5 py-2.5 rounded-xl
-                  font-semibold text-sm
+                  px-6 py-3 rounded-xl
+                  font-semibold text-sm sm:text-base
                   transition-all duration-200
-                  flex items-center gap-2
-                  whitespace-nowrap
+                  flex items-center justify-center gap-2
+                  shadow-lg shadow-green-900/5
                   ${isValid && !isTranscribing
-                    ? 'bg-gradient-to-br from-[#355E1F] to-[#6FA84C] hover:shadow-lg hover:shadow-green-900/20 text-white'
-                    : 'bg-gray-200 text-gray-500 cursor-not-allowed'
+                    ? 'bg-gradient-to-br from-[#355E1F] to-[#6FA84C] hover:shadow-green-900/20 text-white'
+                    : 'bg-gray-100 text-gray-400 cursor-not-allowed'
                   }
                 `}
               >
                 {isProcessing ? (
                   <>
-                    <Loader2 className="w-4 h-4 animate-spin" />
+                    <Loader2 className="w-5 h-5 animate-spin" />
                     <span>Processing...</span>
                   </>
                 ) : (
                   <>
-                    {processingMode === 'tasks' ? <Sparkles className="w-4 h-4" /> : <Briefcase className="w-4 h-4" />}
-                    <span>Process</span>
+                    {processingMode === 'tasks' ? <Sparkles className="w-5 h-5" /> : <Briefcase className="w-5 h-5" />}
+                    <span>Process Note & Tasks</span>
                   </>
                 )}
               </motion.button>
