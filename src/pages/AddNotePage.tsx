@@ -10,7 +10,8 @@ import {
   Check,
   Lightbulb,
   Loader2,
-  Briefcase
+  Briefcase,
+  Mic
 } from 'lucide-react';
 import confetti from 'canvas-confetti';
 import { useAuth } from '../contexts/AuthContext';
@@ -18,12 +19,19 @@ import { useToast } from '../contexts/ToastContext';
 import { supabase } from '../lib/supabase';
 import ProcessingOverlay from '../components/ProcessingOverlay';
 import SuccessOverlay from '../components/SuccessOverlay';
+import CompressionProgressModal from '../components/CompressionProgressModal';
 import {
   getCharacterCount,
   getWordCount,
   estimateTaskCount,
   isValidNoteText
 } from '../utils/textAnalysis';
+import {
+  compressAudioForTranscription,
+  needsCompression,
+  formatFileSize,
+  estimateCompressedSize
+} from '../utils/audioCompression';
 
 const TIPS = [
   "Include names of people mentioned (e.g., \"Alex will complete...\")",
@@ -65,6 +73,18 @@ export default function AddNotePage() {
   const [countdown, setCountdown] = useState(3);
   const [showCancel, setShowCancel] = useState(false);
   const [processingMode, setProcessingMode] = useState<'tasks' | 'brief'>('tasks');
+
+  // Audio upload state
+  const [isTranscribing, setIsTranscribing] = useState(false);
+  const [audioFileName, setAudioFileName] = useState<string | null>(null);
+  const [compressionProgress, setCompressionProgress] = useState(0);
+  const [compressionStage, setCompressionStage] = useState<
+    'loading' | 'preparing' | 'compressing' | 'finalizing' | 'complete' | 'uploading' | 'transcribing'
+  >('loading');
+  const [showCompressionModal, setShowCompressionModal] = useState(false);
+  const [originalFileSize, setOriginalFileSize] = useState('');
+  const [estimatedCompressedSize, setEstimatedCompressedSize] = useState('');
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   // Computed values
   const characterCount = useMemo(() => getCharacterCount(noteText), [noteText]);
@@ -140,6 +160,122 @@ export default function AddNotePage() {
 
     return () => clearInterval(interval);
   }, [showSuccess, navigate]);
+
+  const handleAudioUpload = useCallback(async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    // Reset file input for re-uploads
+    e.target.value = '';
+
+    // Validate file type
+    const validTypes = ['audio/mpeg', 'audio/mp4', 'audio/m4a', 'audio/wav', 'audio/webm', 'audio/x-m4a', 'video/mp4'];
+    const validExtensions = ['.mp3', '.m4a', '.wav', '.webm', '.mp4'];
+    const fileExtension = '.' + file.name.split('.').pop()?.toLowerCase();
+
+    if (!validTypes.includes(file.type) && !validExtensions.includes(fileExtension)) {
+      addToast('Please upload a valid audio file (mp3, m4a, wav, webm, mp4)', 'error', 4000);
+      return;
+    }
+
+    // Set up state
+    setAudioFileName(file.name);
+    setOriginalFileSize(formatFileSize(file.size));
+    setIsTranscribing(true);
+
+    let fileToUpload = file;
+
+    try {
+      // Check if compression is needed (files > 20MB)
+      if (needsCompression(file)) {
+        setShowCompressionModal(true);
+        setEstimatedCompressedSize(formatFileSize(estimateCompressedSize(file.size)));
+
+        // Compress the file
+        fileToUpload = await compressAudioForTranscription(file, (progress, stage) => {
+          setCompressionProgress(progress);
+          setCompressionStage(stage as any);
+        });
+
+        addToast(
+          `Compressed ${formatFileSize(file.size)} → ${formatFileSize(fileToUpload.size)}`,
+          'success',
+          3000
+        );
+      }
+
+      // Final size check after compression
+      const maxSize = 25 * 1024 * 1024;
+      if (fileToUpload.size > maxSize) {
+        throw new Error('File is still too large after compression. Please try a shorter recording.');
+      }
+
+      // Update stage for upload
+      setCompressionStage('uploading');
+      setCompressionProgress(0);
+
+      // Upload to n8n webhook
+      const formData = new FormData();
+      formData.append('data', fileToUpload);
+
+      // Show uploading progress (simulated since fetch doesn't give progress)
+      const uploadProgressInterval = setInterval(() => {
+        setCompressionProgress(prev => Math.min(prev + 10, 90));
+      }, 500);
+
+      const response = await fetch('https://n8n.srv1134430.hstgr.cloud/webhook/growflow-transcribe', {
+        method: 'POST',
+        body: formData,
+      });
+
+      clearInterval(uploadProgressInterval);
+
+      // Update to transcribing stage
+      setCompressionStage('transcribing');
+      setCompressionProgress(95);
+
+      const result = await response.json();
+
+      if (result.success && result.text) {
+        setCompressionProgress(100);
+        setCompressionStage('complete');
+
+        // Brief delay to show completion
+        await new Promise(resolve => setTimeout(resolve, 500));
+
+        // Success - populate textarea
+        setNoteText(prevText => {
+          if (prevText.trim()) {
+            return prevText + '\n\n---\n\n' + result.text;
+          }
+          return result.text;
+        });
+
+        addToast(`Audio transcribed successfully! 🎙️`, 'success', 4000);
+
+        // Focus textarea for editing
+        setTimeout(() => textareaRef.current?.focus(), 100);
+      } else {
+        // Handle specific errors
+        if (result.error === 'FILE_TOO_LARGE') {
+          throw new Error('Audio file is too large. Please try a shorter recording.');
+        } else if (result.error === 'TRANSCRIPTION_FAILED') {
+          throw new Error('Failed to transcribe audio. Please try a different file.');
+        } else {
+          throw new Error(result.message || 'Failed to transcribe audio');
+        }
+      }
+    } catch (error) {
+      console.error('Audio upload error:', error);
+      const errorMessage = error instanceof Error ? error.message : 'Failed to process audio';
+      addToast(errorMessage, 'error', 5000);
+    } finally {
+      setIsTranscribing(false);
+      setShowCompressionModal(false);
+      setAudioFileName(null);
+      setCompressionProgress(0);
+    }
+  }, [addToast]);
 
   const handleProcess = useCallback(async () => {
     if (!user || !isValid) return;
@@ -381,6 +517,16 @@ I need to schedule a code review session with the team, probably by end of week.
             aria-describedby="notes-description"
           />
 
+          {/* Hidden file input for audio upload */}
+          <input
+            type="file"
+            ref={fileInputRef}
+            onChange={handleAudioUpload}
+            accept=".mp3,.m4a,.wav,.webm,.mp4,audio/*"
+            className="hidden"
+            aria-label="Upload audio file for transcription"
+          />
+
           <div id="notes-description" className="sr-only">
             Paste your meeting notes here. Include names, deadlines, and action items
             for best results. Minimum 50 characters required.
@@ -450,69 +596,97 @@ I need to schedule a code review session with the team, probably by end of week.
             </div>
 
             {/* Group B: Actions */}
-            <div className="flex flex-col sm:flex-row items-center gap-4 w-full lg:w-auto">
-              {/* Mode Switcher */}
-              <div className="w-full sm:w-auto min-w-[320px]">
+            <div className="flex flex-wrap items-center justify-end gap-3 w-full lg:w-auto">
+
+              {/* Upload Audio Button - make it more compact */}
+              <motion.button
+                whileHover={{ scale: isTranscribing ? 1 : 1.02 }}
+                whileTap={{ scale: isTranscribing ? 1 : 0.98 }}
+                onClick={() => fileInputRef.current?.click()}
+                disabled={isTranscribing || isProcessing}
+                className={`
+                  flex items-center gap-2 px-3 py-2.5 rounded-xl
+                  border-2 border-dashed transition-all duration-200
+                  whitespace-nowrap text-sm
+                  ${isTranscribing
+                    ? 'border-[#6FA84C] bg-green-50 text-[#2D5016] cursor-wait'
+                    : 'border-gray-300 hover:border-[#6FA84C] hover:bg-green-50/50 text-gray-600 hover:text-[#2D5016]'
+                  }
+                  ${isProcessing ? 'opacity-50 cursor-not-allowed' : ''}
+                `}
+              >
+                {isTranscribing ? (
+                  <>
+                    <Loader2 className="w-4 h-4 animate-spin text-[#6FA84C]" />
+                    <span className="font-medium">Transcribing...</span>
+                  </>
+                ) : (
+                  <>
+                    <Mic className="w-4 h-4" />
+                    <span className="font-medium">Upload Audio</span>
+                  </>
+                )}
+              </motion.button>
+
+              {/* Mode Switcher - reduce min-width */}
+              <div className="w-auto min-w-[240px]">
                 <div className="bg-gray-100 p-1 rounded-xl grid grid-cols-2 gap-1">
                   <button
                     onClick={() => setProcessingMode('tasks')}
                     className={`
-                    flex items-center justify-center gap-2 px-4 py-3 rounded-lg text-sm font-medium transition-all duration-200 w-full
-                    ${processingMode === 'tasks'
+                      flex items-center justify-center gap-1.5 px-3 py-2.5 rounded-lg text-sm font-medium transition-all duration-200
+                      ${processingMode === 'tasks'
                         ? 'bg-[#1A3510] text-white shadow-md'
                         : 'bg-transparent text-gray-600 hover:bg-gray-200'
                       }
-                  `}
+                    `}
                   >
                     <Sparkles className={`w-4 h-4 ${processingMode === 'tasks' ? 'text-white' : 'text-gray-500'}`} />
-                    Grow Tasks
+                    <span>Tasks</span>
                   </button>
                   <button
                     onClick={() => setProcessingMode('brief')}
                     className={`
-                    flex items-center justify-center gap-2 px-4 py-3 rounded-lg text-sm font-medium transition-all duration-200 w-full
-                    ${processingMode === 'brief'
+                      flex items-center justify-center gap-1.5 px-3 py-2.5 rounded-lg text-sm font-medium transition-all duration-200
+                      ${processingMode === 'brief'
                         ? 'bg-[#1A3510] text-white shadow-md'
                         : 'bg-transparent text-gray-600 hover:bg-gray-200'
                       }
-                  `}
+                    `}
                   >
                     <Briefcase className={`w-4 h-4 ${processingMode === 'brief' ? 'text-white' : 'text-gray-500'}`} />
-                    Leadership Brief
+                    <span>Brief</span>
                   </button>
                 </div>
               </div>
 
-              {/* Process button */}
+              {/* Process button - slightly more compact */}
               <motion.button
                 whileHover={{ scale: isValid ? 1.02 : 1 }}
                 whileTap={{ scale: isValid ? 0.98 : 1 }}
-                disabled={!isValid || isProcessing}
+                disabled={!isValid || isProcessing || isTranscribing}
                 onClick={handleProcess}
                 className={`
-                px-6 sm:px-8 py-3 sm:py-4 rounded-2xl
-                font-semibold text-base
-                transition-all duration-200
-                flex items-center gap-2.5
-                whitespace-nowrap
-                ${isValid
-                    ? 'bg-gradient-to-br from-[#355E1F] to-[#6FA84C] hover:shadow-lg hover:shadow-green-900/20 hover:scale-[1.02] text-white font-semibold'
+                  px-5 py-2.5 rounded-xl
+                  font-semibold text-sm
+                  transition-all duration-200
+                  flex items-center gap-2
+                  whitespace-nowrap
+                  ${isValid && !isTranscribing
+                    ? 'bg-gradient-to-br from-[#355E1F] to-[#6FA84C] hover:shadow-lg hover:shadow-green-900/20 text-white'
                     : 'bg-gray-200 text-gray-500 cursor-not-allowed'
                   }
-              `}
+                `}
               >
                 {isProcessing ? (
                   <>
-                    <Loader2 className="w-5 h-5 animate-spin" />
+                    <Loader2 className="w-4 h-4 animate-spin" />
                     <span>Processing...</span>
                   </>
                 ) : (
                   <>
-                    {processingMode === 'tasks' ? <Sparkles className="w-5 h-5" /> : <Briefcase className="w-5 h-5" />}
-                    <span>{processingMode === 'tasks' ? 'Process Note & Tasks' : 'Generate Brief Only'}</span>
-                    <span className="hidden lg:inline text-xs opacity-75 ml-1">
-                      (⌘↵)
-                    </span>
+                    {processingMode === 'tasks' ? <Sparkles className="w-4 h-4" /> : <Briefcase className="w-4 h-4" />}
+                    <span>Process</span>
                   </>
                 )}
               </motion.button>
@@ -597,6 +771,16 @@ I need to schedule a code review session with the team, probably by end of week.
         taskCount={taskCount}
         countdown={countdown}
         onRedirect={handleRedirect}
+      />
+
+      {/* Compression Progress Modal */}
+      <CompressionProgressModal
+        isVisible={showCompressionModal}
+        progress={compressionProgress}
+        stage={compressionStage}
+        fileName={audioFileName || ''}
+        originalSize={originalFileSize}
+        estimatedSize={estimatedCompressedSize}
       />
     </div>
   );

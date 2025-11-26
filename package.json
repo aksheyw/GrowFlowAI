@@ -13,6 +13,8 @@
   },
   "dependencies": {
     "@capacitor/android": "^7.4.4",
+    "@ffmpeg/ffmpeg": "^0.12.15",
+    "@ffmpeg/util": "^0.12.2",
     "@headlessui/react": "^2.2.9",
     "@supabase/supabase-js": "^2.57.4",
     "@tanstack/query-sync-storage-persister": "^5.90.12",
