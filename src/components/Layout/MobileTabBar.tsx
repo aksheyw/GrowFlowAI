@@ -46,10 +46,10 @@ export default function MobileTabBar() {
         <>
             {/* Background extending behind Android nav bar - provides contrast */}
             <div
-                className="md:hidden fixed bottom-0 left-0 right-0 z-40 bg-gray-100"
+                className="md:hidden fixed bottom-0 left-0 right-0 z-40 bg-gray-200"
                 style={{
                     height: 'env(safe-area-inset-bottom, 0px)',
-                    minHeight: '16px'
+                    minHeight: '20px'
                 }}
             />
 
