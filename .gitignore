@@ -22,3 +22,15 @@ dist-ssr
 *.sln
 *.sw?
 .env
+
+# Capacitor
+android/
+ios/
+
+# Keystore (NEVER commit)
+*.keystore
+*.jks
+keystore.properties
+
+# Build outputs
+dist/

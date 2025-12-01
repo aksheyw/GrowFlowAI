@@ -191,7 +191,20 @@ import ScrollToTopOnMount from './components/ScrollToTopOnMount';
 
 // ... (existing imports)
 
+import { useStatusBar } from './hooks/useStatusBar';
+import { useEffect } from 'react';
+import { Capacitor } from '@capacitor/core';
+import { SplashScreen } from '@capacitor/splash-screen';
+
 function App() {
+  useStatusBar();
+
+  useEffect(() => {
+    if (Capacitor.isNativePlatform()) {
+      SplashScreen.hide();
+    }
+  }, []);
+
   return (
     <BrowserRouter>
       <AuthProvider>
