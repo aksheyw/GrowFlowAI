@@ -2,6 +2,24 @@
 @tailwind components;
 @tailwind utilities;
 
+:root {
+  --status-bar-height: 24px;
+  --bottom-nav-height: 16px;
+  --safe-area-top: env(safe-area-inset-top, 24px);
+  --safe-area-bottom: env(safe-area-inset-bottom, 16px);
+}
+
+html,
+body {
+  min-height: 100dvh;
+}
+
+@supports (padding-top: env(safe-area-inset-top)) {
+  body {
+    background-color: #F9FAFB;
+  }
+}
+
 /* Mobile Optimizations & Native App Behavior */
 * {
   -webkit-tap-highlight-color: transparent;

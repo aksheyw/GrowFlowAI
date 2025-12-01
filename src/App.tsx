@@ -196,14 +196,25 @@ function App() {
     <BrowserRouter>
       <AuthProvider>
         <ToastProvider>
-          <div className="min-h-screen bg-gray-50 pt-[env(safe-area-inset-top)] pb-[calc(4rem+env(safe-area-inset-bottom))]">
-            <ScrollToTopOnMount />
-            <Header />
-            <ToastContainer />
-            <AnimatedRoutes />
-            <MobileTabBar />
-            <FloatingActionButton />
-            <ScrollToTop />
+          <div className="min-h-screen bg-gray-50 relative">
+            {/* Android Status Bar Spacer */}
+            <div
+              className="fixed top-0 left-0 right-0 z-[60] bg-gray-50 transition-all duration-200"
+              style={{ height: 'env(safe-area-inset-top, 24px)' }}
+            />
+
+            {/* Main Content Container */}
+            <div
+              className="min-h-screen pt-[max(env(safe-area-inset-top),24px)] pb-[calc(5rem+env(safe-area-inset-bottom,16px))] md:pb-4"
+            >
+              <ScrollToTopOnMount />
+              <Header />
+              <ToastContainer />
+              <AnimatedRoutes />
+              <MobileTabBar />
+              <FloatingActionButton />
+              <ScrollToTop />
+            </div>
           </div>
         </ToastProvider>
       </AuthProvider>

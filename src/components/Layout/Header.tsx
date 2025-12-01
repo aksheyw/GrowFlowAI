@@ -51,10 +51,11 @@ export default function Header() {
                 className="
           md:hidden
           sticky top-0 z-50
-          bg-white/90 backdrop-blur-xl
+          bg-white/95 backdrop-blur-md
           border-b border-gray-100
           shadow-sm
         "
+                style={{ paddingTop: 'env(safe-area-inset-top, 0px)' }}
             >
                 <div className={`px-4 h-16 flex items-center justify-center`}>
                     {/* Logo only */}
