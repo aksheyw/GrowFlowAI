@@ -50,7 +50,7 @@ export default function ScrollToTop() {
             hover:bg-gray-50
             active:scale-95
             transition-transform
-            bottom-[calc(5rem+env(safe-area-inset-bottom,16px)+1rem)]
+            bottom-[calc(140px+env(safe-area-inset-bottom,16px))]
             md:bottom-8
           "
           aria-label="Scroll to top"

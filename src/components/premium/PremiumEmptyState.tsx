@@ -40,7 +40,7 @@ export default function PremiumEmptyState() {
         >
           <span className="text-4xl">🌿</span>
           <span className="text-4xl">🪴</span>
-          <span className="text-4xl">🌸</span>
+          <span className="text-4xl">🌳</span>
         </motion.div>
       </motion.div>
 

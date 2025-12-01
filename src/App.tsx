@@ -218,7 +218,7 @@ function App() {
 
             {/* Main Content Container */}
             <div
-              className="min-h-screen pt-[calc(env(safe-area-inset-top,24px)+56px)] md:pt-0 pb-[calc(5rem+env(safe-area-inset-bottom,16px))] md:pb-4"
+              className="min-h-screen pt-[calc(max(env(safe-area-inset-top),48px)+64px)] md:pt-0 pb-[calc(5rem+env(safe-area-inset-bottom,16px))] md:pb-4"
             >
               <ScrollToTopOnMount />
               <Header />
