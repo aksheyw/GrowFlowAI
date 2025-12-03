@@ -12,7 +12,8 @@ import {
     Flame,
     Sprout,
     Shield,
-    Mail
+    Mail,
+    Calendar
 } from 'lucide-react';
 import EmailIntegrationSettings from '../components/profile/EmailIntegrationSettings';
 import { useAuth } from '../contexts/AuthContext';
@@ -21,17 +22,29 @@ import { getInitials } from '../utils/premiumHelpers';
 import { useToast } from '../contexts/ToastContext';
 
 export default function ProfilePage() {
-    const { user, profile, signOut } = useAuth();
+    const { user, profile, signOut, refreshProfile } = useAuth();
     const navigate = useNavigate();
     const { showToast } = useToast();
     const [activeView, setActiveView] = useState<'main' | 'email_integration'>('main');
     const [showLevelTooltip, setShowLevelTooltip] = useState(false);
+    const [autoSync, setAutoSync] = useState(profile?.auto_calendar_sync || false);
+
+    useEffect(() => {
+        if (profile) {
+            setAutoSync(profile.auto_calendar_sync || false);
+        }
+    }, [profile]);
+
     const [stats, setStats] = useState({
         totalTasks: 0,
         completedTasks: 0,
         activeStreak: 0,
         level: 1
     });
+
+    // ... (rest of the file)
+
+    // In menuItems:
 
     const loadStats = useCallback(async () => {
         try {
@@ -76,7 +89,16 @@ export default function ProfilePage() {
         }
     };
 
-    const menuItems = [
+    interface MenuItem {
+        icon: any;
+        label: string;
+        action: () => void | Promise<void> | any;
+        badge?: string;
+        toggle?: boolean;
+        value?: boolean;
+    }
+
+    const menuItems: { title: string; items: MenuItem[] }[] = [
         {
             title: 'Account Settings',
             items: [
@@ -109,6 +131,39 @@ export default function ProfilePage() {
         {
             title: 'App Preferences',
             items: [
+                {
+                    icon: Calendar,
+                    label: 'Auto-Sync to Google Calendar',
+                    action: async () => {
+                        const newValue = !autoSync;
+                        // Optimistic update
+                        setAutoSync(newValue);
+
+                        try {
+                            const { error } = await supabase
+                                .from('profiles')
+                                .update({ auto_calendar_sync: newValue })
+                                .eq('id', user?.id);
+
+                            if (error) throw error;
+
+                            await refreshProfile();
+
+                            showToast({
+                                type: 'success',
+                                title: newValue ? 'Calendar Sync Enabled' : 'Calendar Sync Disabled',
+                                message: newValue ? 'Tasks will now automatically sync to your calendar.' : 'Automatic sync has been turned off.'
+                            });
+                        } catch (error) {
+                            console.error('Error updating calendar sync:', error);
+                            // Revert on error
+                            setAutoSync(!newValue);
+                            showToast({ type: 'error', title: 'Error', message: 'Failed to update calendar settings' });
+                        }
+                    },
+                    toggle: true,
+                    value: autoSync
+                },
                 {
                     icon: Moon,
                     label: 'Dark Mode',
@@ -246,12 +301,20 @@ export default function ProfilePage() {
                                                 <span className="font-medium text-gray-900">{item.label}</span>
                                             </div>
                                             <div className="flex items-center gap-2">
-                                                {item.badge && (
-                                                    <span className="px-2 py-0.5 bg-gray-100 text-gray-600 text-xs font-medium rounded-full">
-                                                        {item.badge}
-                                                    </span>
+                                                {item.toggle ? (
+                                                    <div className={`w-11 h-6 bg-gray-200 rounded-full relative transition-colors duration-200 ease-in-out ${item.value ? 'bg-green-500' : ''}`}>
+                                                        <div className={`absolute left-1 top-1 w-4 h-4 bg-white rounded-full shadow transition-transform duration-200 ease-in-out ${item.value ? 'translate-x-5' : ''}`} />
+                                                    </div>
+                                                ) : (
+                                                    <>
+                                                        {item.badge && (
+                                                            <span className="px-2 py-0.5 bg-gray-100 text-gray-600 text-xs font-medium rounded-full">
+                                                                {item.badge}
+                                                            </span>
+                                                        )}
+                                                        <ChevronRight className="w-4 h-4 text-gray-400" />
+                                                    </>
                                                 )}
-                                                <ChevronRight className="w-4 h-4 text-gray-400" />
                                             </div>
                                         </button>
                                     ))}
@@ -277,11 +340,13 @@ export default function ProfilePage() {
                 </div>
             )}
 
-            {activeView === 'email_integration' && (
-                <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-                    <EmailIntegrationSettings onBack={() => setActiveView('main')} />
-                </div>
-            )}
-        </div>
+            {
+                activeView === 'email_integration' && (
+                    <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+                        <EmailIntegrationSettings onBack={() => setActiveView('main')} />
+                    </div>
+                )
+            }
+        </div >
     );
 }

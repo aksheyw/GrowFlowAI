@@ -36,21 +36,21 @@ export default function ScrollToTop() {
           onClick={scrollToTop}
           className="
             fixed 
-            right-4 
+            left-1/2 -translate-x-1/2
             z-40
             w-12 
             h-12 
-            bg-white 
+            bg-white/80 backdrop-blur-md
             rounded-full 
-            shadow-lg 
-            border border-gray-200
+            shadow-lg shadow-gray-200/50
+            border border-white/50
             flex 
             items-center 
             justify-center
-            hover:bg-gray-50
+            hover:bg-white hover:scale-110
             active:scale-95
-            transition-transform
-            bottom-[calc(140px+env(safe-area-inset-bottom,16px))]
+            transition-all duration-300
+            bottom-[calc(100px+env(safe-area-inset-bottom,16px))]
             md:bottom-8
           "
           aria-label="Scroll to top"

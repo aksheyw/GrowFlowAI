@@ -15,7 +15,9 @@ import {
   Copy,
   Share2,
   Edit2,
-  AlertTriangle
+  AlertTriangle,
+  CalendarPlus,
+  CalendarCheck
 } from 'lucide-react';
 import PlantIcon from '../components/PlantIcon';
 import { useToast } from '../contexts/ToastContext';
@@ -25,6 +27,7 @@ import TaskGrowthProgress from '../components/task-detail/TaskGrowthProgress';
 import { Card } from '../components/ui/Card';
 import { Button } from '../components/ui/Button';
 import { Badge } from '../components/ui/Badge';
+import { syncTaskToCalendar } from '../lib/api';
 
 interface TaskWithDetails extends Task {
   creator?: Profile;
@@ -45,6 +48,9 @@ export default function TaskDetailPage() {
   const [isEditingDescription, setIsEditingDescription] = useState(false);
   const [descriptionValue, setDescriptionValue] = useState('');
   const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [isSyncing, setIsSyncing] = useState(false);
+  const [highlightDate, setHighlightDate] = useState(false);
+  const dateInputRef = useRef<HTMLInputElement>(null);
 
   // Fetch Data
   const loadTaskAndProfiles = useCallback(async () => {
@@ -134,8 +140,61 @@ export default function TaskDetailPage() {
     setIsEditingDescription(false);
   }
 
+  async function handleSync() {
+    if (!task || task.google_event_id || isSyncing) return;
+
+    // Check if due date is set
+    if (!task.deadline) {
+      showToast({
+        type: 'info',
+        title: 'Date Required',
+        message: 'Please set a due date to add to calendar'
+      });
+
+      // Scroll to date input
+      dateInputRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+
+      // Trigger highlight animation
+      setHighlightDate(true);
+      setTimeout(() => setHighlightDate(false), 2000);
+      return;
+    }
+
+    setIsSyncing(true);
+    try {
+      await syncTaskToCalendar(task.id, task.user_id);
+      showToast({
+        type: 'success',
+        title: 'Added to Calendar',
+        message: 'Task has been synced to your Google Calendar.'
+      });
+      // Refresh task data to get the new google_event_id
+      loadTaskAndProfiles();
+    } catch (error) {
+      showToast({
+        type: 'error',
+        title: 'Sync Failed',
+        message: 'Could not add task to calendar. Please try again.'
+      });
+    } finally {
+      setIsSyncing(false);
+    }
+  }
+
   async function handleDelete() {
     if (!task) return;
+
+    const message = task.google_event_id
+      ? 'Are you sure you want to delete this task? This will also remove the event from your Google Calendar.'
+      : 'Are you sure you want to delete this task? This action cannot be undone.';
+
+    // We already have a modal, so we might not need window.confirm if the modal text is updated dynamically.
+    // However, the current modal has static text. Let's update the modal text instead of using window.confirm here,
+    // OR we can just proceed since the modal is the confirmation.
+    // Actually, the modal text should be dynamic. 
+    // For now, let's just proceed with deletion as the modal is the confirmation step.
+    // BUT, the modal text needs to be updated to reflect the sync status.
+
     setDeleting(true);
     try {
       const { error } = await supabase.from('tasks').delete().eq('id', task.id);
@@ -232,6 +291,11 @@ export default function TaskDetailPage() {
                     task.status === 'In Progress' ? '🌿 In Progress' :
                       '🌱 Not Started'}
                 </Badge>
+                {task.google_event_id && (
+                  <Badge variant="info" className="text-sm px-3 py-1.5 ml-2 flex items-center gap-1">
+                    <CalendarCheck className="w-3 h-3" /> Synced
+                  </Badge>
+                )}
               </div>
 
               {/* Editable Description */}
@@ -337,13 +401,27 @@ export default function TaskDetailPage() {
 
                 {/* Deadline */}
                 <div>
-                  <label className="block text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2">Due Date</label>
-                  <input
-                    type="date"
-                    value={task.deadline || ''}
-                    onChange={(e) => handleUpdate({ deadline: e.target.value || null })}
-                    className="w-full p-3 bg-gray-50 border border-gray-200 rounded-xl font-medium text-gray-900 focus:ring-2 focus:ring-[#6FA84C] focus:border-transparent outline-none transition-all"
-                  />
+                  <label className={`block text-xs font-semibold uppercase tracking-wider mb-2 transition-colors ${highlightDate ? 'text-orange-600' : 'text-gray-500'}`}>
+                    Due Date
+                  </label>
+                  <motion.div
+                    animate={highlightDate ? { x: [0, -5, 5, -5, 5, 0] } : {}}
+                    transition={{ duration: 0.4 }}
+                  >
+                    <input
+                      ref={dateInputRef}
+                      type="date"
+                      value={task.deadline || ''}
+                      onChange={(e) => handleUpdate({ deadline: e.target.value || null })}
+                      className={`
+                        w-full p-3 bg-gray-50 border rounded-xl font-medium text-gray-900 
+                        focus:ring-2 focus:border-transparent outline-none transition-all
+                        ${highlightDate
+                          ? 'border-orange-400 ring-2 ring-orange-100'
+                          : 'border-gray-200 focus:ring-[#6FA84C]'}
+                      `}
+                    />
+                  </motion.div>
                 </div>
 
                 {/* Priority */}
@@ -545,6 +623,17 @@ export default function TaskDetailPage() {
                   Mark as Complete
                 </Button>
 
+                {!task.google_event_id && (
+                  <Button
+                    onClick={handleSync}
+                    disabled={isSyncing}
+                    className="w-full justify-start gap-3 p-3 h-auto bg-blue-50 hover:bg-blue-100 text-blue-700 border-0"
+                  >
+                    {isSyncing ? <Loader2 className="w-5 h-5 animate-spin" /> : <CalendarPlus className="w-5 h-5" />}
+                    Add to Calendar
+                  </Button>
+                )}
+
                 <Button
                   variant="secondary"
                   onClick={handleDuplicate}
@@ -602,7 +691,11 @@ export default function TaskDetailPage() {
                   <AlertTriangle className="w-8 h-8 text-red-600" />
                 </div>
                 <h2 className="text-2xl font-bold text-gray-900 text-center mb-3">Delete this task?</h2>
-                <p className="text-gray-600 text-center mb-6">This action cannot be undone.</p>
+                <p className="text-gray-600 text-center mb-6">
+                  {task.google_event_id
+                    ? 'This will also remove the event from your Google Calendar. This action cannot be undone.'
+                    : 'This action cannot be undone.'}
+                </p>
                 <div className="flex gap-3">
                   <Button
                     variant="secondary"

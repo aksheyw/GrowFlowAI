@@ -75,7 +75,11 @@ export default function LoginPage() {
             <div className="flex -space-x-3">
               {[1, 2, 3, 4].map((i) => (
                 <div key={i} className="w-10 h-10 rounded-full border-2 border-white bg-gray-200 overflow-hidden">
-                  <img src={`https://i.pravatar.cc/100?img=${i + 10}`} alt="User" className="w-full h-full object-cover" />
+                  <img
+                    src={`https://api.dicebear.com/7.x/avataaars/svg?seed=${i + 10}`}
+                    alt="User"
+                    className="w-full h-full object-cover"
+                  />
                 </div>
               ))}
             </div>

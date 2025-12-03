@@ -224,8 +224,12 @@ function App() {
               <Header />
               <ToastContainer />
               <AnimatedRoutes />
-              <MobileTabBar />
-              <FloatingActionButton />
+              {!['/login', '/signup', '/reset-password'].includes(window.location.pathname) && (
+                <>
+                  <MobileTabBar />
+                  <FloatingActionButton />
+                </>
+              )}
               <ScrollToTop />
             </div>
           </div>

@@ -17,6 +17,7 @@ export type Profile = {
   allowed_ingest_emails?: string[] | null;
   created_at: string;
   updated_at: string;
+  auto_calendar_sync?: boolean;
 };
 
 export type Note = {
@@ -54,6 +55,7 @@ export type Task = {
   updated_at: string;
   assignee?: Profile;
   note?: Note;
+  google_event_id?: string | null;
 };
 
 export type Notification = {

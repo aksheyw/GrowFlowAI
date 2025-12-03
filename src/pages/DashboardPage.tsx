@@ -217,6 +217,28 @@ export default function DashboardPage() {
   const firstName = getFirstName(profile?.full_name);
   const greeting = `Good ${timeOfDay}, ${firstName}`;
 
+  async function handleDeleteTask(taskId: string) {
+    // Optimistic update
+    setTasks(prevTasks => prevTasks.filter(t => t.id !== taskId));
+    setSelectedTask(null);
+
+    try {
+      const { error } = await supabase
+        .from('tasks')
+        .delete()
+        .eq('id', taskId);
+
+      if (error) throw error;
+
+      addToast('Task deleted', 'success');
+    } catch (error) {
+      console.error('Error deleting task:', error);
+      // Revert
+      loadData();
+      addToast('Failed to delete task', 'error');
+    }
+  }
+
   if (loading) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-gray-50 to-green-50/30 flex items-center justify-center">
@@ -411,6 +433,7 @@ export default function DashboardPage() {
               setTasks(prev => prev.map(t => t.id === updatedTask.id ? updatedTask : t));
               setSelectedTask(null);
             }}
+            onDelete={() => handleDeleteTask(selectedTask.id)}
           />
         )}
       </AnimatePresence>

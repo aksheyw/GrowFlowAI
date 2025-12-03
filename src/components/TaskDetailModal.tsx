@@ -1,17 +1,36 @@
 import { motion } from 'framer-motion';
-import { X, Calendar, User, CheckCircle2 } from 'lucide-react';
+import { X, Calendar, User, CheckCircle2, CalendarPlus, CalendarCheck, Loader2 } from 'lucide-react';
 import { Task } from '../lib/supabase';
 import { getPriorityColor, getStatusColor } from '../utils/premiumHelpers';
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
+import { syncTaskToCalendar } from '../lib/api';
+import { useToast } from '../contexts/ToastContext';
+
+import { Trash2 } from 'lucide-react';
 
 interface TaskDetailModalProps {
     task: Task;
     onClose: () => void;
     onUpdate: (task: Task) => void;
+    onDelete: () => void;
 }
 
-export default function TaskDetailModal({ task, onClose, onUpdate }: TaskDetailModalProps) {
+export default function TaskDetailModal({ task, onClose, onUpdate, onDelete }: TaskDetailModalProps) {
     const contentRef = useRef<HTMLDivElement>(null);
+    const { showToast } = useToast();
+    const [isSyncing, setIsSyncing] = useState(false);
+
+    // ... (useEffect and handleSync) ...
+
+    const handleDelete = () => {
+        const message = task.google_event_id
+            ? 'Are you sure you want to delete this task? This will also remove the event from your Google Calendar.'
+            : 'Are you sure you want to delete this task? This action cannot be undone.';
+
+        if (window.confirm(message)) {
+            onDelete();
+        }
+    };
 
     useEffect(() => {
         // Reset scroll on mount
@@ -21,6 +40,30 @@ export default function TaskDetailModal({ task, onClose, onUpdate }: TaskDetailM
         // Also reset window scroll just in case
         window.scrollTo(0, 0);
     }, []);
+
+    const handleSync = async () => {
+        if (task.google_event_id || isSyncing) return;
+
+        setIsSyncing(true);
+        try {
+            await syncTaskToCalendar(task.id, task.user_id);
+            showToast({
+                type: 'success',
+                title: 'Added to Calendar',
+                message: 'Task has been synced to your Google Calendar.'
+            });
+            // Ideally we'd update the task object here to reflect the new google_event_id
+            // For now, the toast confirms the action.
+        } catch (error) {
+            showToast({
+                type: 'error',
+                title: 'Sync Failed',
+                message: 'Could not add task to calendar. Please try again.'
+            });
+        } finally {
+            setIsSyncing(false);
+        }
+    };
 
     return (
         <motion.div
@@ -48,14 +91,29 @@ export default function TaskDetailModal({ task, onClose, onUpdate }: TaskDetailM
                             <span className={`px-3 py-1 rounded-full text-xs font-medium ${getPriorityColor(task.priority)}`}>
                                 {task.priority} Priority
                             </span>
+                            {/* Sync Status Badge */}
+                            {task.google_event_id && (
+                                <span className="px-3 py-1 rounded-full text-xs font-medium bg-blue-50 text-blue-700 flex items-center gap-1">
+                                    <CalendarCheck className="w-3 h-3" /> Synced
+                                </span>
+                            )}
                         </div>
                     </div>
-                    <button
-                        onClick={onClose}
-                        className="p-2 hover:bg-gray-100 rounded-full transition-colors"
-                    >
-                        <X className="w-5 h-5 text-gray-500" />
-                    </button>
+                    <div className="flex items-center gap-2">
+                        <button
+                            onClick={handleDelete}
+                            className="p-2 hover:bg-red-50 text-gray-400 hover:text-red-500 rounded-full transition-colors"
+                            title="Delete Task"
+                        >
+                            <Trash2 className="w-5 h-5" />
+                        </button>
+                        <button
+                            onClick={onClose}
+                            className="p-2 hover:bg-gray-100 rounded-full transition-colors"
+                        >
+                            <X className="w-5 h-5 text-gray-500" />
+                        </button>
+                    </div>
                 </div>
 
                 {/* Content */}
@@ -115,6 +173,22 @@ export default function TaskDetailModal({ task, onClose, onUpdate }: TaskDetailM
 
                 {/* Footer Actions */}
                 <div className="p-6 bg-gray-50 border-t border-gray-100 flex justify-end gap-3">
+                    {/* Sync Button */}
+                    {!task.google_event_id && (
+                        <button
+                            onClick={handleSync}
+                            disabled={isSyncing}
+                            className="px-4 py-2 rounded-xl bg-blue-50 text-blue-600 font-medium hover:bg-blue-100 transition-colors flex items-center gap-2 disabled:opacity-50"
+                        >
+                            {isSyncing ? (
+                                <Loader2 className="w-4 h-4 animate-spin" />
+                            ) : (
+                                <CalendarPlus className="w-4 h-4" />
+                            )}
+                            Add to Calendar
+                        </button>
+                    )}
+
                     <button
                         onClick={onClose}
                         className="px-4 py-2 rounded-xl text-gray-600 font-medium hover:bg-gray-200 transition-colors"

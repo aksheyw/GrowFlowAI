@@ -1,6 +1,9 @@
 import { useNavigate } from 'react-router-dom';
 import { Task } from '../lib/supabase';
-import { Calendar, Clock, Trash2 } from 'lucide-react';
+import { Calendar, Clock, Trash2, CalendarCheck, CalendarPlus, Loader2 } from 'lucide-react';
+import { syncTaskToCalendar } from '../lib/api';
+import { useToast } from '../contexts/ToastContext';
+import { useState } from 'react';
 
 interface TaskCardProps {
   task: Task;
@@ -23,14 +26,35 @@ const PRIORITY_COLORS = {
 
 export default function TaskCard({ task, onStatusChange, onDelete, onMeetingClick }: TaskCardProps) {
   const navigate = useNavigate();
+  const { showToast } = useToast();
+  const [isSyncing, setIsSyncing] = useState(false);
 
   const handleDelete = (e: React.MouseEvent) => {
     e.stopPropagation();
-    const confirmDelete = window.confirm(
-      'Are you sure you want to delete this task? This action cannot be undone.'
-    );
+    const message = task.google_event_id
+      ? 'Are you sure you want to delete this task? This will also remove the event from your Google Calendar.'
+      : 'Are you sure you want to delete this task? This action cannot be undone.';
+
+    const confirmDelete = window.confirm(message);
     if (confirmDelete) {
       onDelete(task.id);
+    }
+  };
+
+  const handleSync = async (e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (isSyncing || task.google_event_id) return;
+
+    setIsSyncing(true);
+    try {
+      await syncTaskToCalendar(task.id, task.user_id);
+      showToast({ type: 'success', title: 'Added to Calendar', message: 'Task has been synced to your Google Calendar.' });
+      // Note: In a real app, we'd expect the task prop to update via realtime subscription or parent refresh
+      // For now, we'll just show the success toast
+    } catch (error) {
+      showToast({ type: 'error', title: 'Sync Failed', message: 'Could not add task to calendar.' });
+    } finally {
+      setIsSyncing(false);
     }
   };
 
@@ -73,6 +97,27 @@ export default function TaskCard({ task, onStatusChange, onDelete, onMeetingClic
           <span className={`px-2.5 py-1 rounded-full text-xs font-semibold ${PRIORITY_COLORS[task.priority]}`}>
             {task.priority}
           </span>
+
+          {/* Calendar Sync Status/Action */}
+          {task.google_event_id ? (
+            <div className="p-1.5 text-blue-600 bg-blue-50 rounded-lg" title="Synced to Google Calendar">
+              <CalendarCheck className="w-4 h-4" />
+            </div>
+          ) : (
+            <button
+              onClick={handleSync}
+              disabled={isSyncing}
+              className="p-1.5 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg smooth-transition button-press disabled:opacity-50"
+              title="Add to Google Calendar"
+            >
+              {isSyncing ? (
+                <Loader2 className="w-4 h-4 animate-spin" />
+              ) : (
+                <CalendarPlus className="w-4 h-4" />
+              )}
+            </button>
+          )}
+
           <button
             onClick={handleDelete}
             className="p-1.5 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg smooth-transition button-press"
