@@ -271,22 +271,35 @@ export const useNoteProcessing = () => {
         }
     }, [addToast]);
 
-    const handleAudioUpload = useCallback(async (e: React.ChangeEvent<HTMLInputElement>) => {
-        const file = e.target.files?.[0];
-        if (!file) return;
+    const handleAudioUpload = useCallback(async (input: React.ChangeEvent<HTMLInputElement> | File) => {
+        let file: File | undefined;
 
-        // Reset file input for re-uploads
-        e.target.value = '';
+        if (input instanceof File) {
+            file = input;
+        } else if ('target' in input) {
+            file = input.target.files?.[0];
+            // Reset file input for re-uploads
+            input.target.value = '';
+        }
+
+        if (!file) return;
 
         // Validate file type
         const validTypes = ['audio/mpeg', 'audio/mp4', 'audio/m4a', 'audio/wav', 'audio/webm', 'audio/x-m4a', 'video/mp4'];
         const validExtensions = ['.mp3', '.m4a', '.wav', '.webm', '.mp4'];
         const fileExtension = '.' + file.name.split('.').pop()?.toLowerCase();
 
-        if (!validTypes.includes(file.type) && !validExtensions.includes(fileExtension)) {
+        // Check if type or extension matches
+        const isValidType = validTypes.includes(file.type);
+        const isValidExtension = validExtensions.includes(fileExtension);
+
+        if (!isValidType && !isValidExtension) {
             addToast('Please upload a valid audio file (mp3, m4a, wav, webm, mp4)', 'error', 4000);
             return;
         }
+
+        // Set transcribing state immediately for better UI feedback
+        setIsTranscribing(true);
 
         await processAudioFile(file);
     }, [processAudioFile, addToast]);
@@ -337,10 +350,10 @@ export const useNoteProcessing = () => {
             const blob = new Blob(chunksRef.current, { type: 'audio/webm' });
             const file = new File([blob], `recording-${new Date().getTime()}.webm`, { type: 'audio/webm' });
 
-            // Process the recorded file
-            await processAudioFile(file);
+            // Process the recorded file via the unified handler
+            await handleAudioUpload(file);
         };
-    }, [processAudioFile]);
+    }, [handleAudioUpload]);
 
     const handleProcess = useCallback(async () => {
         if (!user || !isValid) return;
