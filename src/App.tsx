@@ -196,6 +196,38 @@ import { useEffect } from 'react';
 import { Capacitor } from '@capacitor/core';
 import { SplashScreen } from '@capacitor/splash-screen';
 
+function AppContent() {
+  const location = useLocation();
+  const isAuthPage = ['/login', '/signup', '/reset-password'].includes(location.pathname);
+
+  return (
+    <div className="min-h-screen bg-gray-50 relative">
+      {/* Android Status Bar Spacer */}
+      <div
+        className="md:hidden fixed top-0 left-0 right-0 z-[60] bg-gray-50 transition-all duration-200"
+        style={{ height: 'env(safe-area-inset-top, 24px)' }}
+      />
+
+      {/* Main Content Container */}
+      <div
+        className="min-h-screen pt-[calc(max(env(safe-area-inset-top),48px)+64px)] md:pt-0 pb-[calc(5rem+env(safe-area-inset-bottom,16px))] md:pb-4"
+      >
+        <ScrollToTopOnMount />
+        <Header />
+        <ToastContainer />
+        <AnimatedRoutes />
+        {!isAuthPage && (
+          <>
+            <MobileTabBar />
+            <FloatingActionButton />
+          </>
+        )}
+        <ScrollToTop />
+      </div>
+    </div>
+  );
+}
+
 function App() {
   useStatusBar();
 
@@ -209,30 +241,7 @@ function App() {
     <BrowserRouter>
       <AuthProvider>
         <ToastProvider>
-          <div className="min-h-screen bg-gray-50 relative">
-            {/* Android Status Bar Spacer */}
-            <div
-              className="md:hidden fixed top-0 left-0 right-0 z-[60] bg-gray-50 transition-all duration-200"
-              style={{ height: 'env(safe-area-inset-top, 24px)' }}
-            />
-
-            {/* Main Content Container */}
-            <div
-              className="min-h-screen pt-[calc(max(env(safe-area-inset-top),48px)+64px)] md:pt-0 pb-[calc(5rem+env(safe-area-inset-bottom,16px))] md:pb-4"
-            >
-              <ScrollToTopOnMount />
-              <Header />
-              <ToastContainer />
-              <AnimatedRoutes />
-              {!['/login', '/signup', '/reset-password'].includes(window.location.pathname) && (
-                <>
-                  <MobileTabBar />
-                  <FloatingActionButton />
-                </>
-              )}
-              <ScrollToTop />
-            </div>
-          </div>
+          <AppContent />
         </ToastProvider>
       </AuthProvider>
     </BrowserRouter>

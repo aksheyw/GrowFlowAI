@@ -15,7 +15,6 @@ export default function AddNotePage() {
   const {
     // State
     noteText,
-    setNoteText,
     isFocused,
     setIsFocused,
     isProcessing,
@@ -35,7 +34,6 @@ export default function AddNotePage() {
     compressionProgress,
     compressionStage,
     showCompressionModal,
-    setShowCompressionModal,
     originalFileSize,
     estimatedCompressedSize,
     // Recording

@@ -73,10 +73,15 @@ export default function LoginPage() {
             className="flex gap-4"
           >
             <div className="flex -space-x-3">
-              {[1, 2, 3, 4].map((i) => (
+              {[
+                'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=64&h=64&fit=crop&crop=faces',
+                'https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?w=64&h=64&fit=crop&crop=faces',
+                'https://images.unsplash.com/photo-1517841905240-472988babdf9?w=64&h=64&fit=crop&crop=faces',
+                'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=64&h=64&fit=crop&crop=faces'
+              ].map((src, i) => (
                 <div key={i} className="w-10 h-10 rounded-full border-2 border-white bg-gray-200 overflow-hidden">
                   <img
-                    src={`https://api.dicebear.com/7.x/avataaars/svg?seed=${i + 10}`}
+                    src={src}
                     alt="User"
                     className="w-full h-full object-cover"
                   />
