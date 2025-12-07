@@ -6,6 +6,7 @@ interface MediaInputProps {
     setInputMode: (mode: 'text' | 'audio' | 'record' | 'photo') => void;
     fileInputRef: React.RefObject<HTMLInputElement>;
     handleAudioUpload: (e: React.ChangeEvent<HTMLInputElement>) => void;
+    handleImageUpload?: (e: React.ChangeEvent<HTMLInputElement>) => void;
     isTranscribing: boolean;
     // Recording
     isRecording?: boolean;
@@ -25,12 +26,16 @@ export default function MediaInput({
     setInputMode,
     fileInputRef,
     handleAudioUpload,
+    handleImageUpload,
     isTranscribing,
     isRecording = false,
     recordingDuration = 0,
     startRecording,
     stopRecording
 }: MediaInputProps) {
+    const photoInputRef = React.useRef<HTMLInputElement>(null);
+    const cameraInputRef = React.useRef<HTMLInputElement>(null);
+
     return (
         <>
             {/* Input Method Toolbar */}
@@ -171,18 +176,88 @@ export default function MediaInput({
                 </div>
             )}
 
-            {/* Photo Mode (Still Coming Soon) */}
+            {/* Photo Mode */}
             {inputMode === 'photo' && (
                 <div className="flex-1 flex flex-col items-center justify-center p-8 text-center bg-gray-50/30">
-                    <div className="w-16 h-16 rounded-2xl bg-gray-100 flex items-center justify-center mb-4">
-                        <Camera className="w-8 h-8 text-gray-400" />
+                    <div className={`
+                        w-full max-w-md aspect-video rounded-3xl
+                        border-3 border-dashed border-gray-200
+                        flex flex-col items-center justify-center gap-6
+                        transition-all duration-300
+                        ${isTranscribing ? 'bg-green-50/50 border-[#6FA84C]' : 'bg-transparent'}
+                    `}>
+                        {isTranscribing ? (
+                            <>
+                                <div className="w-16 h-16 rounded-full bg-green-100 flex items-center justify-center">
+                                    <Loader2 className="w-8 h-8 text-[#6FA84C] animate-spin" />
+                                </div>
+                                <div>
+                                    <h3 className="text-lg font-semibold text-[#2D5016]">Analyzing Image...</h3>
+                                    <p className="text-sm text-gray-500 mt-1">Extracting text from your photo</p>
+                                </div>
+                            </>
+                        ) : (
+                            <div className="flex gap-4">
+                                {/* Take Photo Button */}
+                                <div
+                                    onClick={() => cameraInputRef.current?.click()}
+                                    className="
+                                        flex flex-col items-center justify-center gap-3
+                                        w-32 h-32 rounded-2xl bg-white shadow-sm border border-gray-100
+                                        cursor-pointer hover:border-[#6FA84C] hover:shadow-md transition-all
+                                        group
+                                    "
+                                >
+                                    <div className="w-12 h-12 rounded-full bg-gray-50 group-hover:bg-green-50 flex items-center justify-center transition-colors">
+                                        <Camera className="w-6 h-6 text-gray-600 group-hover:text-[#6FA84C]" />
+                                    </div>
+                                    <span className="text-sm font-medium text-gray-700 group-hover:text-[#2D5016]">Take Photo</span>
+                                </div>
+
+                                {/* Upload Image Button */}
+                                <div
+                                    onClick={() => photoInputRef.current?.click()}
+                                    className="
+                                        flex flex-col items-center justify-center gap-3
+                                        w-32 h-32 rounded-2xl bg-white shadow-sm border border-gray-100
+                                        cursor-pointer hover:border-[#6FA84C] hover:shadow-md transition-all
+                                        group
+                                    "
+                                >
+                                    <div className="w-12 h-12 rounded-full bg-gray-50 group-hover:bg-green-50 flex items-center justify-center transition-colors">
+                                        <UploadCloud className="w-6 h-6 text-gray-600 group-hover:text-[#6FA84C]" />
+                                    </div>
+                                    <span className="text-sm font-medium text-gray-700 group-hover:text-[#2D5016]">Upload Image</span>
+                                </div>
+                            </div>
+                        )}
+
+                        {!isTranscribing && (
+                            <div>
+                                <h3 className="text-lg font-semibold text-gray-900">Capture Text</h3>
+                                <p className="text-sm text-gray-500 mt-1">Take a photo or upload an image</p>
+                            </div>
+                        )}
                     </div>
-                    <h3 className="text-lg font-semibold text-gray-900">Coming Soon</h3>
-                    <p className="text-gray-500 max-w-xs mx-auto mt-2">
-                        Photo capture and OCR will be available in the next update.
-                    </p>
                 </div>
             )}
+
+            {/* Hidden Photo Inputs */}
+            <input
+                type="file"
+                ref={cameraInputRef}
+                onChange={handleImageUpload}
+                accept="image/*"
+                capture="environment"
+                className="hidden"
+            />
+            <input
+                type="file"
+                ref={photoInputRef}
+                onChange={handleImageUpload}
+                accept="image/*"
+                className="hidden"
+            />
 
             {/* Hidden file input */}
             <input

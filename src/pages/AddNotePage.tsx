@@ -59,6 +59,7 @@ export default function AddNotePage() {
     handleTextChange,
     handlePaste,
     handleAudioUpload,
+    handleImageUpload,
     handleProcess,
     handleCancel,
     loadExample
@@ -160,6 +161,7 @@ export default function AddNotePage() {
             setInputMode={setInputMode}
             fileInputRef={fileInputRef}
             handleAudioUpload={handleAudioUpload}
+            handleImageUpload={handleImageUpload}
             isTranscribing={isTranscribing}
             isRecording={isRecording}
             recordingDuration={recordingDuration}

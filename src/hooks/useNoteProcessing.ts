@@ -304,6 +304,60 @@ export const useNoteProcessing = () => {
         await processAudioFile(file);
     }, [processAudioFile, addToast]);
 
+    const handleImageUpload = useCallback(async (input: React.ChangeEvent<HTMLInputElement> | File) => {
+        let file: File | undefined;
+
+        if (input instanceof File) {
+            file = input;
+        } else if ('target' in input) {
+            file = input.target.files?.[0];
+            input.target.value = '';
+        }
+
+        if (!file) return;
+
+        // Validate image
+        if (!file.type.startsWith('image/')) {
+            addToast('Please upload a valid image file', 'error', 4000);
+            return;
+        }
+
+        setIsTranscribing(true);
+        addToast('Analyzing image...', 'info', 2000);
+
+        try {
+            const formData = new FormData();
+            formData.append('data', file);
+
+            const response = await fetch('https://n8n.srv1134430.hstgr.cloud/webhook/growflow-vision', {
+                method: 'POST',
+                body: formData,
+            });
+
+            if (!response.ok) throw new Error('Failed to connect to Vision API');
+
+            const result = await response.json();
+
+            if (result.text) {
+                setNoteText(prev => {
+                    const separator = prev.trim() ? '\n\n---\n\n' : '';
+                    return prev + separator + result.text;
+                });
+                setInputMode('text');
+                addToast('Image transcribed successfully! 📸', 'success', 3000);
+                setTimeout(() => textareaRef.current?.focus(), 500);
+            } else {
+                throw new Error('No text extraction result returned');
+            }
+
+        } catch (error) {
+            console.error('Vision API error:', error);
+            addToast('Failed to analyze image. Please try again.', 'error', 4000);
+        } finally {
+            setIsTranscribing(false);
+        }
+    }, [addToast, setInputMode]);
+
     const startRecording = useCallback(async () => {
         try {
             const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
@@ -533,6 +587,7 @@ export const useNoteProcessing = () => {
         handleTextChange,
         handlePaste,
         handleAudioUpload,
+        handleImageUpload,
         handleProcess,
         handleCancel,
         loadExample
