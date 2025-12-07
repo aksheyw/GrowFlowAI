@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { motion } from 'framer-motion';
 import { ArrowLeft, Sparkles } from 'lucide-react';
 import { useNoteProcessing } from '../hooks/useNoteProcessing';
@@ -12,6 +13,7 @@ import { useNavigate } from 'react-router-dom';
 
 export default function AddNotePage() {
   const navigate = useNavigate();
+  const [isExpanded, setIsExpanded] = useState(false);
 
   const {
     // State
@@ -172,6 +174,8 @@ export default function AddNotePage() {
             setIsFocused={setIsFocused}
             textareaRef={textareaRef}
             isVisible={inputMode === 'text'}
+            isExpanded={isExpanded}
+            setIsExpanded={setIsExpanded}
           />
 
           <NoteActionBar
@@ -187,7 +191,7 @@ export default function AddNotePage() {
         </motion.div>
 
         {/* Tips Section */}
-        <NotesTips isVisible={!isFocused && noteText.length === 0} />
+        <NotesTips isVisible={!isFocused && !isExpanded && noteText.length === 0} />
       </main>
     </div>
   );
