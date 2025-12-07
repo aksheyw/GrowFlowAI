@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { ArrowLeft, Mail, Plus, Trash2, Loader2, Sprout } from 'lucide-react';
 import { useAuth } from '../../contexts/AuthContext';
 import { supabase } from '../../lib/supabase';
-import toast from 'react-hot-toast';
+import { useToast } from '../../contexts/ToastContext';
 
 interface Props {
     onBack: () => void;
@@ -10,6 +10,7 @@ interface Props {
 
 export default function EmailIntegrationSettings({ onBack }: Props) {
     const { user } = useAuth();
+    const { addToast } = useToast();
     const [allowedEmails, setAllowedEmails] = useState<string[]>([]);
     const [newEmail, setNewEmail] = useState('');
     const [loading, setLoading] = useState(false);
@@ -52,12 +53,12 @@ export default function EmailIntegrationSettings({ onBack }: Props) {
         const emailToAdd = newEmail.trim().toLowerCase();
 
         if (!validateEmail(emailToAdd)) {
-            toast.error('Please enter a valid email address');
+            addToast('Please enter a valid email address', 'error');
             return;
         }
 
         if (allowedEmails.includes(emailToAdd)) {
-            toast.error('This email is already added');
+            addToast('This email is already added', 'error');
             return;
         }
 
@@ -74,7 +75,7 @@ export default function EmailIntegrationSettings({ onBack }: Props) {
 
             const currentEmails = latestProfile?.allowed_ingest_emails || [];
             if (currentEmails.includes(emailToAdd)) {
-                toast.error('This email is already added');
+                addToast('This email is already added', 'error');
                 setAllowedEmails(currentEmails);
                 return;
             }
@@ -90,10 +91,10 @@ export default function EmailIntegrationSettings({ onBack }: Props) {
 
             setAllowedEmails(updatedEmails);
             setNewEmail('');
-            toast.success('Email added to root system 🌱');
+            addToast('Email added to root system 🌱', 'success');
         } catch (error) {
             console.error('Error adding email:', error);
-            toast.error('Failed to add email');
+            addToast('Failed to add email', 'error');
         } finally {
             setLoading(false);
         }
@@ -121,10 +122,10 @@ export default function EmailIntegrationSettings({ onBack }: Props) {
             if (error) throw error;
 
             setAllowedEmails(updatedEmails);
-            toast.success('Email removed');
+            addToast('Email removed', 'success');
         } catch (error) {
             console.error('Error removing email:', error);
-            toast.error('Failed to remove email');
+            addToast('Failed to remove email', 'error');
         } finally {
             setLoading(false);
         }
