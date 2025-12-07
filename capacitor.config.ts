@@ -5,9 +5,8 @@ const config: CapacitorConfig = {
     appName: 'GrowFlow',
     webDir: 'dist',
     server: {
-        // For development - remove in production
-        // url: 'http://192.168.1.x:5173',
-        // cleartext: true,
+        url: 'https://grow-flow-ai.vercel.app',
+        cleartext: true,
         androidScheme: 'https'
     },
     plugins: {
