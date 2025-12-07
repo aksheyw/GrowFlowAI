@@ -34,14 +34,14 @@ export default function NoteEditor({
             className={`flex-1 flex flex-col relative transition-colors duration-300 ${isVisible ? 'flex' : 'hidden'}`}
         >
             {/* Focus Mode Toggle */}
-            <div className="absolute top-4 right-4 z-10 opacity-0 hover:opacity-100 focus-within:opacity-100 transition-opacity duration-200">
+            <div className="absolute top-4 right-4 z-50">
                 {setIsExpanded && (
                     <button
                         onClick={() => setIsExpanded(!isExpanded)}
                         className="
                             p-2 rounded-xl
-                            text-gray-400 hover:text-[#6FA84C] hover:bg-green-50
-                            transition-all duration-200
+                            text-green-600 bg-green-50 hover:bg-green-100
+                            transition-all duration-200 shadow-sm
                         "
                         title={isExpanded ? "Exit Focus Mode" : "Enter Focus Mode"}
                     >
