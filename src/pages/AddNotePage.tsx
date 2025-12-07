@@ -4,6 +4,7 @@ import { useNoteProcessing } from '../hooks/useNoteProcessing';
 import NoteEditor from '../components/notes/NoteEditor';
 import MediaInput from '../components/notes/MediaInput';
 import NoteActionBar from '../components/notes/NoteActionBar';
+import NotesTips from '../components/notes/NotesTips';
 import ProcessingOverlay from '../components/ProcessingOverlay';
 import SuccessOverlay from '../components/SuccessOverlay';
 import CompressionProgressModal from '../components/CompressionProgressModal';
@@ -168,7 +169,6 @@ export default function AddNotePage() {
             noteText={noteText}
             handleTextChange={handleTextChange}
             handlePaste={handlePaste}
-            isFocused={isFocused}
             setIsFocused={setIsFocused}
             textareaRef={textareaRef}
             isVisible={inputMode === 'text'}
@@ -185,6 +185,9 @@ export default function AddNotePage() {
             isTranscribing={isTranscribing}
           />
         </motion.div>
+
+        {/* Tips Section */}
+        <NotesTips isVisible={!isFocused && noteText.length === 0} />
       </main>
     </div>
   );
