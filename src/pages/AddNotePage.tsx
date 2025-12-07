@@ -66,9 +66,10 @@ export default function AddNotePage() {
   } = useNoteProcessing();
 
   return (
-    <div className="fixed inset-0 flex flex-col bg-gray-50 h-[100dvh]">
+    <div className="fixed inset-0 bg-gray-50 h-[100dvh]">
+
       {/* Header */}
-      <header className="flex-none z-50 bg-white/80 backdrop-blur-xl border-b border-gray-200/50 shadow-sm pt-[env(safe-area-inset-top)] min-h-16 h-auto transition-all">
+      <header className="absolute top-0 left-0 right-0 z-50 bg-white/80 backdrop-blur-xl border-b border-gray-200/50 shadow-sm pt-[env(safe-area-inset-top)] transition-all">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between h-16">
             <motion.button
@@ -91,9 +92,10 @@ export default function AddNotePage() {
 
       {/* Main Content */}
       <main className="
-        w-full max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 
-        pt-10 sm:pt-14 pb-32
-        flex-1 overflow-y-auto overscroll-none
+        w-full h-full 
+        max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 
+        pt-[calc(4rem+env(safe-area-inset-top)+2rem)] pb-32
+        overflow-y-auto overscroll-none
       ">
 
         {/* Overlays - Fixed on top of everything */}
