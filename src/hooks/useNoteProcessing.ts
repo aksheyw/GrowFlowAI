@@ -41,6 +41,9 @@ export const useNoteProcessing = () => {
     // Refs
     const textareaRef = useRef<HTMLTextAreaElement>(null);
     const fileInputRef = useRef<HTMLInputElement>(null);
+    const mediaRecorderRef = useRef<MediaRecorder | null>(null);
+    const chunksRef = useRef<Blob[]>([]);
+    const timerRef = useRef<NodeJS.Timeout | null>(null);
 
     // UI State
     const [noteText, setNoteText] = useState('');
@@ -64,6 +67,10 @@ export const useNoteProcessing = () => {
     const [showCompressionModal, setShowCompressionModal] = useState(false);
     const [originalFileSize, setOriginalFileSize] = useState('');
     const [estimatedCompressedSize, setEstimatedCompressedSize] = useState('');
+
+    // Recording State
+    const [isRecording, setIsRecording] = useState(false);
+    const [recordingDuration, setRecordingDuration] = useState(0);
 
     // Computed values
     const characterCount = useMemo(() => getCharacterCount(noteText), [noteText]);
@@ -140,23 +147,28 @@ export const useNoteProcessing = () => {
         return () => clearInterval(interval);
     }, [showSuccess, navigate]);
 
-    const handleAudioUpload = useCallback(async (e: React.ChangeEvent<HTMLInputElement>) => {
-        const file = e.target.files?.[0];
-        if (!file) return;
+    // cleanup recording on unmount or tab switch
+    useEffect(() => {
+        return () => {
+            if (recordingDuration > 0 || isRecording) {
+                if (mediaRecorderRef.current && mediaRecorderRef.current.state !== 'inactive') {
+                    mediaRecorderRef.current.stop();
+                }
+                if (timerRef.current) clearInterval(timerRef.current);
+            }
+        };
+    }, []);
 
-        // Reset file input for re-uploads
-        e.target.value = '';
-
-        // Validate file type
-        const validTypes = ['audio/mpeg', 'audio/mp4', 'audio/m4a', 'audio/wav', 'audio/webm', 'audio/x-m4a', 'video/mp4'];
-        const validExtensions = ['.mp3', '.m4a', '.wav', '.webm', '.mp4'];
-        const fileExtension = '.' + file.name.split('.').pop()?.toLowerCase();
-
-        if (!validTypes.includes(file.type) && !validExtensions.includes(fileExtension)) {
-            addToast('Please upload a valid audio file (mp3, m4a, wav, webm, mp4)', 'error', 4000);
-            return;
+    // Also stop recording if input mode changes
+    useEffect(() => {
+        if (inputMode !== 'record' && isRecording) {
+            stopRecording();
+            addToast('Recording stopped due to mode switch', 'info', 3000);
         }
+    }, [inputMode]);
 
+
+    const processAudioFile = useCallback(async (file: File) => {
         // Set up state
         setAudioFileName(file.name);
         setOriginalFileSize(formatFileSize(file.size));
@@ -230,6 +242,9 @@ export const useNoteProcessing = () => {
                     return result.text;
                 });
 
+                // Switch back to text mode to show the result
+                setInputMode('text');
+
                 addToast(`Audio transcribed successfully! 🎙️`, 'success', 4000);
 
                 // Focus textarea for editing
@@ -255,6 +270,77 @@ export const useNoteProcessing = () => {
             setCompressionProgress(0);
         }
     }, [addToast]);
+
+    const handleAudioUpload = useCallback(async (e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0];
+        if (!file) return;
+
+        // Reset file input for re-uploads
+        e.target.value = '';
+
+        // Validate file type
+        const validTypes = ['audio/mpeg', 'audio/mp4', 'audio/m4a', 'audio/wav', 'audio/webm', 'audio/x-m4a', 'video/mp4'];
+        const validExtensions = ['.mp3', '.m4a', '.wav', '.webm', '.mp4'];
+        const fileExtension = '.' + file.name.split('.').pop()?.toLowerCase();
+
+        if (!validTypes.includes(file.type) && !validExtensions.includes(fileExtension)) {
+            addToast('Please upload a valid audio file (mp3, m4a, wav, webm, mp4)', 'error', 4000);
+            return;
+        }
+
+        await processAudioFile(file);
+    }, [processAudioFile, addToast]);
+
+    const startRecording = useCallback(async () => {
+        try {
+            const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+
+            const mediaRecorder = new MediaRecorder(stream);
+            mediaRecorderRef.current = mediaRecorder;
+            chunksRef.current = [];
+
+            mediaRecorder.ondataavailable = (e) => {
+                if (e.data.size > 0) {
+                    chunksRef.current.push(e.data);
+                }
+            };
+
+            mediaRecorder.start();
+            setIsRecording(true);
+            setRecordingDuration(0);
+
+            // Start timer
+            timerRef.current = setInterval(() => {
+                setRecordingDuration(prev => prev + 1);
+            }, 1000);
+
+        } catch (err) {
+            console.error('Error accessing microphone:', err);
+            addToast('Could not access microphone. Please check permissions.', 'error', 4000);
+        }
+    }, [addToast]);
+
+    const stopRecording = useCallback(() => {
+        if (!mediaRecorderRef.current || mediaRecorderRef.current.state === 'inactive') return;
+
+        mediaRecorderRef.current.stop();
+        mediaRecorderRef.current.stream.getTracks().forEach(track => track.stop());
+
+        setIsRecording(false);
+        if (timerRef.current) {
+            clearInterval(timerRef.current);
+            timerRef.current = null;
+        }
+
+        // Wait for final data
+        mediaRecorderRef.current.onstop = async () => {
+            const blob = new Blob(chunksRef.current, { type: 'audio/webm' });
+            const file = new File([blob], `recording-${new Date().getTime()}.webm`, { type: 'audio/webm' });
+
+            // Process the recorded file
+            await processAudioFile(file);
+        };
+    }, [processAudioFile]);
 
     const handleProcess = useCallback(async () => {
         if (!user || !isValid) return;
@@ -413,6 +499,12 @@ export const useNoteProcessing = () => {
         setShowCompressionModal,
         originalFileSize,
         estimatedCompressedSize,
+
+        // Recording
+        isRecording,
+        recordingDuration,
+        startRecording,
+        stopRecording,
 
         // Computed
         characterCount,

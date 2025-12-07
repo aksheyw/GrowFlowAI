@@ -1,5 +1,5 @@
 import React from 'react';
-import { Type, UploadCloud, Mic, Camera, Loader2 } from 'lucide-react';
+import { Type, UploadCloud, Mic, Camera, Loader2, Square } from 'lucide-react';
 
 interface MediaInputProps {
     inputMode: 'text' | 'audio' | 'record' | 'photo';
@@ -7,14 +7,29 @@ interface MediaInputProps {
     fileInputRef: React.RefObject<HTMLInputElement>;
     handleAudioUpload: (e: React.ChangeEvent<HTMLInputElement>) => void;
     isTranscribing: boolean;
+    // Recording
+    isRecording?: boolean;
+    recordingDuration?: number;
+    startRecording?: () => void;
+    stopRecording?: () => void;
 }
+
+const formatDuration = (seconds: number) => {
+    const mins = Math.floor(seconds / 60);
+    const secs = seconds % 60;
+    return `${mins}:${secs.toString().padStart(2, '0')}`;
+};
 
 export default function MediaInput({
     inputMode,
     setInputMode,
     fileInputRef,
     handleAudioUpload,
-    isTranscribing
+    isTranscribing,
+    isRecording = false,
+    recordingDuration = 0,
+    startRecording,
+    stopRecording
 }: MediaInputProps) {
     return (
         <>
@@ -104,22 +119,67 @@ export default function MediaInput({
                 </div>
             )}
 
-            {/* Placeholder Modes */}
-            {(inputMode === 'record' || inputMode === 'photo') && (
+            {/* Recording Mode */}
+            {inputMode === 'record' && (
+                <div className="flex-1 flex flex-col items-center justify-center p-8 text-center bg-gray-50/30 relative overflow-hidden">
+                    {/* Background pulsing ring when recording */}
+                    {isRecording && (
+                        <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+                            <div className="w-64 h-64 rounded-full bg-red-500/10 animate-ping opacity-75" />
+                        </div>
+                    )}
+
+                    <div className="relative z-10 flex flex-col items-center justify-center gap-6">
+                        {/* Timer Display */}
+                        {isRecording && (
+                            <div className="text-4xl font-mono font-bold text-gray-900 tabular-nums">
+                                {formatDuration(recordingDuration)}
+                            </div>
+                        )}
+
+                        {/* Action Button */}
+                        <button
+                            onClick={isRecording ? stopRecording : startRecording}
+                            className={`
+                                w-24 h-24 rounded-full flex items-center justify-center
+                                transition-all duration-300 shadow-xl
+                                ${isRecording
+                                    ? 'bg-white border-4 border-red-500 hover:bg-red-50'
+                                    : 'bg-red-500 hover:bg-red-600 hover:scale-105'
+                                }
+                            `}
+                        >
+                            {isRecording ? (
+                                <Square className="w-8 h-8 text-red-500 fill-current rounded-sm" />
+                            ) : (
+                                <Mic className="w-10 h-10 text-white" />
+                            )}
+                        </button>
+
+                        <div className="space-y-2">
+                            <h3 className="text-lg font-semibold text-gray-900">
+                                {isRecording ? 'Listening...' : 'Tap to Record'}
+                            </h3>
+                            <p className="text-sm text-gray-500">
+                                {isRecording
+                                    ? 'Speak clearly, we are capturing your thoughts'
+                                    : 'We will transcribe your voice into text'
+                                }
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {/* Photo Mode (Still Coming Soon) */}
+            {inputMode === 'photo' && (
                 <div className="flex-1 flex flex-col items-center justify-center p-8 text-center bg-gray-50/30">
                     <div className="w-16 h-16 rounded-2xl bg-gray-100 flex items-center justify-center mb-4">
-                        {inputMode === 'record' ? (
-                            <Mic className="w-8 h-8 text-gray-400" />
-                        ) : (
-                            <Camera className="w-8 h-8 text-gray-400" />
-                        )}
+                        <Camera className="w-8 h-8 text-gray-400" />
                     </div>
                     <h3 className="text-lg font-semibold text-gray-900">Coming Soon</h3>
                     <p className="text-gray-500 max-w-xs mx-auto mt-2">
-                        {inputMode === 'record'
-                            ? 'Voice recording will be available in the next update.'
-                            : 'Photo capture and OCR will be available in the next update.'
-                        }
+                        Photo capture and OCR will be available in the next update.
                     </p>
                 </div>
             )}

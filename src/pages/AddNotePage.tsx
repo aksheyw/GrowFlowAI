@@ -38,6 +38,11 @@ export default function AddNotePage() {
     setShowCompressionModal,
     originalFileSize,
     estimatedCompressedSize,
+    // Recording
+    isRecording,
+    recordingDuration,
+    startRecording,
+    stopRecording,
 
     // Computed
     characterCount,
@@ -155,6 +160,10 @@ export default function AddNotePage() {
             fileInputRef={fileInputRef}
             handleAudioUpload={handleAudioUpload}
             isTranscribing={isTranscribing}
+            isRecording={isRecording}
+            recordingDuration={recordingDuration}
+            startRecording={startRecording}
+            stopRecording={stopRecording}
           />
 
           <NoteEditor
