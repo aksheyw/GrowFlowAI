@@ -67,7 +67,7 @@ export default function AddNotePage() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-50 to-green-50/30">
       {/* Header */}
-      <header className="sticky top-0 z-40 bg-white/80 backdrop-blur-xl border-b border-gray-200/50 shadow-sm">
+      <header className="sticky top-0 z-40 bg-white/80 backdrop-blur-xl border-b border-gray-200/50 shadow-sm pt-[env(safe-area-inset-top)] min-h-16 h-auto transition-all">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between h-16">
             <motion.button
@@ -89,7 +89,7 @@ export default function AddNotePage() {
       </header>
 
       {/* Main Content */}
-      <main className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12">
+      <main className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12 pt-[env(safe-area-inset-top)]">
 
         {/* Overlays */}
         {isProcessing && !showSuccess && (
