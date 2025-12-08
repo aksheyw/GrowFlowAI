@@ -66,10 +66,10 @@ export default function AddNotePage() {
   } = useNoteProcessing();
 
   return (
-    <div className="fixed inset-0 bg-gray-50 h-[100dvh]">
+    <div className="fixed inset-0 bg-gray-50 h-[100dvh] overflow-y-auto">
 
       {/* Header */}
-      <header className="absolute top-0 left-0 right-0 z-50 bg-white/80 backdrop-blur-xl border-b border-gray-200/50 shadow-sm pt-[env(safe-area-inset-top)] transition-all">
+      <header className="sticky top-0 z-50 bg-white/80 backdrop-blur-xl border-b border-gray-200/50 shadow-sm pt-[env(safe-area-inset-top)] transition-all">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between h-16">
             <motion.button
@@ -92,118 +92,113 @@ export default function AddNotePage() {
 
       {/* Main Content */}
       <main className="
-        w-full h-full 
-        max-w-4xl mx-auto
-        overflow-y-auto overscroll-none
+        w-full
+        max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 
+        pt-8 pb-32
       ">
-        {/* Spacer for Fixed Header + Safe Area */}
-        <div className="w-full h-[calc(4rem+env(safe-area-inset-top)+2rem)] flex-shrink-0" />
 
-        <div className="px-4 sm:px-6 lg:px-8 pb-32">
-
-          {/* Overlays - Fixed on top of everything */}
-          {isProcessing && !showSuccess && (
-            <ProcessingOverlay
-              isVisible={true}
-              currentStep={currentStep}
-              showCancel={showCancel}
-              onCancel={handleCancel}
-            />
-          )}
-
-          {showSuccess && (
-            <SuccessOverlay
-              isVisible={true}
-              taskCount={taskCount}
-              countdown={countdown}
-              onRedirect={() => navigate('/dashboard')}
-            />
-          )}
-
-          <CompressionProgressModal
-            isVisible={showCompressionModal}
-            progress={compressionProgress}
-            stage={compressionStage}
-            fileName={audioFileName || 'Audio File'}
-            originalSize={originalFileSize}
-            estimatedSize={estimatedCompressedSize}
+        {/* Overlays - Fixed on top of everything */}
+        {isProcessing && !showSuccess && (
+          <ProcessingOverlay
+            isVisible={true}
+            currentStep={currentStep}
+            showCancel={showCancel}
+            onCancel={handleCancel}
           />
+        )}
 
-          {/* Page Header */}
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.4, delay: 0.1 }}
-            className="mb-8"
-          >
-            <h1 className="
+        {showSuccess && (
+          <SuccessOverlay
+            isVisible={true}
+            taskCount={taskCount}
+            countdown={countdown}
+            onRedirect={() => navigate('/dashboard')}
+          />
+        )}
+
+        <CompressionProgressModal
+          isVisible={showCompressionModal}
+          progress={compressionProgress}
+          stage={compressionStage}
+          fileName={audioFileName || 'Audio File'}
+          originalSize={originalFileSize}
+          estimatedSize={estimatedCompressedSize}
+        />
+
+        {/* Page Header */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.4, delay: 0.1 }}
+          className="mb-8"
+        >
+          <h1 className="
             text-3xl sm:text-4xl lg:text-5xl font-bold text-gray-900 mb-4
             bg-gradient-to-r from-gray-900 to-gray-700
             bg-clip-text
           ">
-              Add Meeting Notes
-            </h1>
+            Add Meeting Notes
+          </h1>
 
-            <p className="text-base sm:text-lg lg:text-xl text-gray-600 flex items-center gap-2">
-              <Sparkles className="w-5 h-5 text-[#6FA84C]" />
-              Paste your notes below, and our AI will extract tasks for you
-            </p>
-          </motion.div>
+          <p className="text-base sm:text-lg lg:text-xl text-gray-600 flex items-center gap-2">
+            <Sparkles className="w-5 h-5 text-[#6FA84C]" />
+            Paste your notes below, and our AI will extract tasks for you
+          </p>
+        </motion.div>
 
-          {/* Note Input Card */}
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.4, delay: 0.2 }}
-            className={`
+        {/* Note Input Card */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.4, delay: 0.2 }}
+          className={`
             bg-white rounded-3xl overflow-hidden
             border-2 transition-all duration-300
             flex-1 flex flex-col
             ${isFocused && inputMode === 'text'
-                ? 'border-[#6FA84C] shadow-xl shadow-green-500/10'
-                : 'border-gray-100 shadow-lg'
-              }
+              ? 'border-[#6FA84C] shadow-xl shadow-green-500/10'
+              : 'border-gray-100 shadow-lg'
+            }
           `}
-          >
-            <MediaInput
-              inputMode={inputMode}
-              setInputMode={setInputMode}
-              fileInputRef={fileInputRef}
-              handleAudioUpload={handleAudioUpload}
-              handleImageUpload={handleImageUpload}
-              isTranscribing={isTranscribing}
-              isRecording={isRecording}
-              recordingDuration={recordingDuration}
-              startRecording={startRecording}
-              stopRecording={stopRecording}
-            />
+        >
+          <MediaInput
+            inputMode={inputMode}
+            setInputMode={setInputMode}
+            fileInputRef={fileInputRef}
+            handleAudioUpload={handleAudioUpload}
+            handleImageUpload={handleImageUpload}
+            isTranscribing={isTranscribing}
+            isRecording={isRecording}
+            recordingDuration={recordingDuration}
+            startRecording={startRecording}
+            stopRecording={stopRecording}
+          />
 
-            <NoteEditor
-              noteText={noteText}
-              handleTextChange={handleTextChange}
-              handlePaste={handlePaste}
-              setIsFocused={setIsFocused}
-              textareaRef={textareaRef}
-              isVisible={inputMode === 'text'}
-              isExpanded={isExpanded}
-              setIsExpanded={setIsExpanded}
-            />
+          <NoteEditor
+            noteText={noteText}
+            handleTextChange={handleTextChange}
+            handlePaste={handlePaste}
+            setIsFocused={setIsFocused}
+            textareaRef={textareaRef}
+            isVisible={inputMode === 'text'}
+            isExpanded={isExpanded}
+            setIsExpanded={setIsExpanded}
+          />
 
-            <NoteActionBar
-              stats={{ characterCount, wordCount, estimatedTasks }}
-              loadExample={loadExample}
-              processingMode={processingMode}
-              setProcessingMode={setProcessingMode}
-              handleProcess={handleProcess}
-              isValid={isValid}
-              isProcessing={isProcessing}
-              isTranscribing={isTranscribing}
-            />
-          </motion.div>
+          <NoteActionBar
+            stats={{ characterCount, wordCount, estimatedTasks }}
+            loadExample={loadExample}
+            processingMode={processingMode}
+            setProcessingMode={setProcessingMode}
+            handleProcess={handleProcess}
+            isValid={isValid}
+            isProcessing={isProcessing}
+            isTranscribing={isTranscribing}
+          />
+        </motion.div>
 
-          {/* Tips Section */}
-          <NotesTips isVisible={!isFocused && !isExpanded && noteText.length === 0} />
-        </div>
+        {/* Tips Section */}
+        <NotesTips isVisible={!isFocused && !isExpanded && noteText.length === 0} />
       </main>
     </div>
   );
