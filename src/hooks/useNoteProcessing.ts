@@ -426,49 +426,7 @@ export const useNoteProcessing = () => {
                 })
                 .select()
                 .single();
-
-            if (noteError || !noteData) {
-                throw new Error(`Failed to save note: ${noteError?.message || 'Unknown error'}`);
-            }
-
-            // BRANCHING LOGIC
-            if (processingMode === 'brief') {
-                // PATH B: Leadership Brief
-
-                // Trigger n8n webhook
-                const webhookUrl = 'https://n8n.srv1134430.hstgr.cloud/webhook/generate-summary';
-
-                // Fire and forget (or await for error catching but not completion)
-                fetch(webhookUrl, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ note_id: noteData.id })
-                }).catch(err => console.error('Webhook trigger failed:', err));
-
-                // Redirect immediately
-                addToast('Drafting Leadership Brief...', 'success', 3000);
-                navigate(`/note/${noteData.id}`, { state: { isSynthesizing: true } });
-                return;
-            }
-
-            // PATH A: Grow Tasks (Existing Logic)
-            // Process with edge function
-            const edgeFunctionUrl = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/process-ai-notes`;
-
-            const response = await fetch(edgeFunctionUrl, {
-                method: 'POST',
-                headers: {
-                    'Authorization': `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY}`,
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({
-                    user_id: user.id,
-                    note_text: noteText.trim(),
-                    note_id: noteData.id,
-                    default_priority: 'Medium'
-                })
-            });
-
+            // ... (skipping unchanged lines) ...
             if (!response.ok) {
                 const errorText = await response.text();
                 console.error('Edge function error:', errorText);

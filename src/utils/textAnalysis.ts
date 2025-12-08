@@ -60,5 +60,5 @@ export function estimateTaskCount(text: string): number {
  * Requires minimum 50 characters
  */
 export function isValidNoteText(text: string): boolean {
-    return getCharacterCount(text) >= 50;
+    return getCharacterCount(text) >= 5;
 }

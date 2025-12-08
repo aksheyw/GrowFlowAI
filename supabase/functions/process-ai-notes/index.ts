@@ -237,6 +237,17 @@ Deno.serve(async (req: Request) => {
         }
       }
 
+      // Fallback: If AI returns no tasks, but we have text, treat the text as a task
+      // This handles cases like "Buy milk" where AI might not see it as a "meeting task"
+      if (tasks.length === 0 && body.note_text.trim().length > 0) {
+        console.log('AI returned 0 tasks. Falling back to using note text as task description.');
+        tasks.push({
+          description: body.note_text.trim(),
+          priority: defaultPriority,
+          status: 'Not Started',
+        });
+      }
+
       if (body.note_id) {
         const { error: noteError } = await supabase
           .from('notes')
@@ -340,22 +351,7 @@ Deno.serve(async (req: Request) => {
           console.log(`Created task: ${task.description}`);
 
           if (newTask.assignee_id && newTask.assignee_id !== null) {
-            const { error: notificationError } = await supabase
-              .from("notifications")
-              .insert({
-                recipient_id: newTask.assignee_id,
-                actor_id: body.user_id,
-                type: 'assigned',
-                task_id: newTask.id,
-                message: `You've been assigned: ${newTask.description}`,
-                read: false,
-              });
-
-            if (notificationError) {
-              console.error('Notification insertion error:', notificationError);
-            } else {
-              console.log(`Notification created for assignee: ${newTask.assignee_id}`);
-            }
+            console.log(`Notification logic delegated to DB trigger for: ${newTask.assignee_id}`);
           }
         }
       } catch (taskError) {
