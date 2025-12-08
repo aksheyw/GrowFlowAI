@@ -60,6 +60,11 @@ export default function NoteEditor({
             <textarea
                 ref={textareaRef}
                 id="meeting-notes"
+                name="meeting_notes_content" // Specific name to avoid username detection
+                autoComplete="off"           // Disable browser autofill
+                data-form-type="other"       // Hint for password managers
+                data-1p-ignore="true"        // 1Password ignore
+                data-lpignore="true"         // LastPass ignore
                 value={noteText}
                 onChange={handleTextChange}
                 onFocus={() => setIsFocused(true)}
