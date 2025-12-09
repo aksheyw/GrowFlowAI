@@ -426,17 +426,25 @@ export const useNoteProcessing = () => {
                 })
                 .select()
                 .single();
-            // ... (skipping unchanged lines) ...
-            if (!response.ok) {
-                const errorText = await response.text();
-                console.error('Edge function error:', errorText);
-                throw new Error(`Processing failed: ${response.status}`);
+            if (noteError) throw noteError;
+
+            // Call the Edge Function to extract tasks
+            const { data: result, error: funcError } = await supabase.functions.invoke('process-ai-notes', {
+                body: {
+                    user_id: user.id,
+                    note_text: noteText.trim(),
+                    note_id: noteData.id
+                }
+            });
+
+            if (funcError) {
+                console.error('Edge function error:', funcError);
+                throw new Error(`Processing failed: ${funcError.message}`);
             }
 
-            const result = await response.json();
             console.log('Processing result:', result);
 
-            const tasksCreatedCount = result.created || 0;
+            const tasksCreatedCount = result?.created || 0;
             setTaskCount(tasksCreatedCount);
 
             // Show success screen
