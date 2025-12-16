@@ -9,6 +9,12 @@
   --safe-area-bottom: env(safe-area-inset-bottom, 16px);
 }
 
+/* Native select dropdown fix for Android WebView */
+select option {
+  color: #111827; /* gray-900 */
+  background-color: #ffffff;
+}
+
 html,
 body {
   min-height: 100dvh;

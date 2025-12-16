@@ -378,9 +378,9 @@ export default function TaskDetailPage() {
                     onChange={(e) => handleUpdate({ status: e.target.value as Task['status'] })}
                     className="w-full p-3 bg-gray-50 border border-gray-200 rounded-xl font-medium text-gray-900 focus:ring-2 focus:ring-[#6FA84C] focus:border-transparent outline-none transition-all"
                   >
-                    <option value="Not Started">🌱 Not Started</option>
-                    <option value="In Progress">🌿 In Progress</option>
-                    <option value="Done">🌳 Done</option>
+                    <option value="Not Started" className="text-gray-900 bg-white">🌱 Not Started</option>
+                    <option value="In Progress" className="text-gray-900 bg-white">🌿 In Progress</option>
+                    <option value="Done" className="text-gray-900 bg-white">🌳 Done</option>
                   </select>
                 </div>
 
@@ -392,9 +392,9 @@ export default function TaskDetailPage() {
                     onChange={(e) => handleUpdate({ assignee_id: e.target.value || null })}
                     className="w-full p-3 bg-gray-50 border border-gray-200 rounded-xl font-medium text-gray-900 focus:ring-2 focus:ring-[#6FA84C] focus:border-transparent outline-none transition-all"
                   >
-                    <option value="">Unassigned</option>
+                    <option value="" className="text-gray-900 bg-white">Unassigned</option>
                     {profiles.map(p => (
-                      <option key={p.id} value={p.id}>{p.full_name}</option>
+                      <option key={p.id} value={p.id} className="text-gray-900 bg-white">{p.full_name}</option>
                     ))}
                   </select>
                 </div>
