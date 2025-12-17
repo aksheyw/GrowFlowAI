@@ -109,31 +109,8 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
         });
     };
 
-    // 3. Listen for Auth Changes to fetch persistent theme
-    useEffect(() => {
-        const { data: authListener } = supabase.auth.onAuthStateChange(async (event, session) => {
-            if (event === 'SIGNED_IN' && session?.user) {
-                const { data, error } = await supabase
-                    .from('profiles')
-                    .select('theme_preference')
-                    .eq('id', session.user.id)
-                    .single();
-
-                if (!error && data?.theme_preference) {
-                    const pref = data.theme_preference as Theme;
-                    // Only update if different from local storage to avoid flicker/loops
-                    if (pref !== localStorage.getItem('theme_preference')) {
-                        setThemeState(pref);
-                        localStorage.setItem('theme_preference', pref);
-                    }
-                }
-            }
-        });
-
-        return () => {
-            authListener.subscription.unsubscribe();
-        };
-    }, []);
+    // 3. Auth Listener removed to prevent freeze. 
+    // Persistence is now handled by ThemeSynchronizer.tsx via AuthContext.
 
     return (
         <ThemeContext.Provider value={{ theme, setTheme, isDark }}>
