@@ -53,10 +53,17 @@ body {
   min-height: 100dvh;
 }
 
-@supports (padding-top: env(safe-area-inset-top)) {
-  body {
-    background-color: #F9FAFB;
-  }
+/* Global Theme Defaults */
+body {
+  background-color: #F2F2F7;
+  /* System Gray 6 (Light) */
+  color: #000000;
+}
+
+.dark body {
+  background-color: #000000;
+  /* True Black (Dark) */
+  color: #FFFFFF;
 }
 
 /* Mobile Optimizations & Native App Behavior */
