@@ -20,6 +20,8 @@ import { useAuth } from '../contexts/AuthContext';
 import { supabase } from '../lib/supabase';
 import { getInitials } from '../utils/premiumHelpers';
 import { useToast } from '../contexts/ToastContext';
+import { useTheme } from '../contexts/ThemeContext';
+import ThemeSelector from '../components/profile/ThemeSelector';
 
 export default function ProfilePage() {
     const { user, profile, signOut, refreshProfile } = useAuth();
@@ -28,6 +30,8 @@ export default function ProfilePage() {
     const [activeView, setActiveView] = useState<'main' | 'email_integration'>('main');
     const [showLevelTooltip, setShowLevelTooltip] = useState(false);
     const [autoSync, setAutoSync] = useState(profile?.auto_calendar_sync || false);
+    const [showThemeSelector, setShowThemeSelector] = useState(false);
+    const { theme } = useTheme();
 
     useEffect(() => {
         if (profile) {
@@ -166,9 +170,9 @@ export default function ProfilePage() {
                 },
                 {
                     icon: Moon,
-                    label: 'Dark Mode',
-                    action: () => showToast({ type: 'info', title: 'Coming Soon', message: 'Dark mode is currently in development.' }),
-                    badge: 'Coming Soon'
+                    label: 'Appearance',
+                    action: () => setShowThemeSelector(true),
+                    badge: theme === 'system' ? 'Auto' : theme === 'dark' ? 'Dark' : 'Light'
                 },
                 {
                     icon: HelpCircle,
@@ -347,6 +351,7 @@ export default function ProfilePage() {
                     </div>
                 )
             }
+            <ThemeSelector isOpen={showThemeSelector} onClose={() => setShowThemeSelector(false)} />
         </div >
     );
 }

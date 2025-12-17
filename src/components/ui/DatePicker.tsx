@@ -98,20 +98,20 @@ export default function DatePicker({
         }
 
         return (
-            <div className="p-4 w-72 bg-white rounded-xl shadow-xl border border-gray-100">
+            <div className="p-4 w-72 bg-white dark:bg-zinc-900 rounded-xl shadow-xl border border-gray-100 dark:border-luxury-border-dark">
                 <div className="flex items-center justify-between mb-4">
                     <button
                         onClick={(e) => { e.preventDefault(); e.stopPropagation(); handlePrevMonth(); }}
-                        className="p-1 hover:bg-gray-100 rounded-lg text-gray-600"
+                        className="p-1 hover:bg-gray-100 dark:hover:bg-zinc-800 rounded-lg text-gray-600 dark:text-gray-400"
                     >
                         <ChevronLeft className="w-5 h-5" />
                     </button>
-                    <span className="font-semibold text-gray-900">
+                    <span className="font-semibold text-gray-900 dark:text-gray-100">
                         {monthNames[month]} {year}
                     </span>
                     <button
                         onClick={(e) => { e.preventDefault(); e.stopPropagation(); handleNextMonth(); }}
-                        className="p-1 hover:bg-gray-100 rounded-lg text-gray-600"
+                        className="p-1 hover:bg-gray-100 dark:hover:bg-zinc-800 rounded-lg text-gray-600 dark:text-gray-400"
                     >
                         <ChevronRight className="w-5 h-5" />
                     </button>
@@ -135,8 +135,8 @@ export default function DatePicker({
                                     className={clsx(
                                         "w-full h-full text-sm rounded-lg flex items-center justify-center transition-colors",
                                         isSelected(day) ? "bg-[#6FA84C] text-white font-medium" :
-                                            isToday(day) ? "bg-green-50 text-[#6FA84C] font-medium" :
-                                                "text-gray-900 hover:bg-gray-100"
+                                            isToday(day) ? "bg-green-50 text-[#6FA84C] dark:bg-green-900/30 dark:text-green-400 font-medium" :
+                                                "text-gray-900 dark:text-gray-100 hover:bg-gray-100 dark:hover:bg-zinc-800"
                                     )}
                                 >
                                     {day}
@@ -146,7 +146,7 @@ export default function DatePicker({
                     ))}
                 </div>
 
-                <div className="mt-4 pt-3 border-t border-gray-100 flex justify-between">
+                <div className="mt-4 pt-3 border-t border-gray-100 dark:border-white/10 flex justify-between">
                     <button
                         onClick={() => { onChange(null); close(); }}
                         className="text-xs font-medium text-red-500 hover:text-red-600 px-2 py-1 hover:bg-red-50 rounded"
@@ -172,7 +172,7 @@ export default function DatePicker({
     return (
         <div className={twMerge("", className)}>
             {label && (
-                <label className="block text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2">
+                <label className="block text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-2">
                     {label}
                 </label>
             )}
@@ -180,7 +180,7 @@ export default function DatePicker({
                 {({ open, close }) => (
                     <>
                         <Popover.Button className={clsx(
-                            "w-full flex items-center gap-2 p-3 bg-gray-50 border border-gray-200 rounded-xl font-medium text-gray-900 text-left outline-none transition-all",
+                            "w-full flex items-center gap-2 p-3 bg-white dark:bg-luxury-surface-dark border border-gray-200 dark:border-luxury-border-dark rounded-xl font-medium text-gray-900 dark:text-gray-100 text-left outline-none transition-all",
                             open ? "ring-2 ring-[#6FA84C] border-transparent" : "focus:ring-2 focus:ring-[#6FA84C] focus:border-transparent"
                         )}>
                             <CalendarIcon className="w-4 h-4 text-gray-500" />

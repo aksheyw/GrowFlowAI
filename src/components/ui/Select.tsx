@@ -32,7 +32,7 @@ export default function Select({
     return (
         <div className={className}>
             {label && (
-                <label className="block text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2">
+                <label className="block text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-2">
                     {label}
                 </label>
             )}
@@ -41,9 +41,10 @@ export default function Select({
                     <Listbox.Button className="
             relative w-full cursor-pointer
             bg-white hover:bg-gray-50
-            border border-gray-200 rounded-xl
+            dark:bg-luxury-surface-dark dark:hover:bg-zinc-800
+            border border-gray-200 dark:border-luxury-border-dark rounded-xl
             pl-3 pr-10 py-3
-            text-left text-sm font-medium text-gray-900
+            text-left text-sm font-medium text-gray-900 dark:text-gray-100
             focus:outline-none focus:ring-2 focus:ring-[#6FA84C] focus:border-transparent
             transition-all duration-200
             disabled:opacity-50 disabled:cursor-not-allowed
@@ -71,15 +72,17 @@ export default function Select({
                     >
                         <Listbox.Options className="
               absolute z-50 mt-1 max-h-60 w-full overflow-auto
-              rounded-xl bg-white py-1 text-base shadow-lg
-              border border-gray-100
+              rounded-xl bg-white dark:bg-zinc-900 py-1 text-base shadow-lg
+              border border-gray-100 dark:border-luxury-border-dark
               focus:outline-none sm:text-sm
             ">
                             {options.map((option) => (
                                 <Listbox.Option
                                     key={option.value}
                                     className={({ active }) =>
-                                        `relative cursor-default select-none py-3 pl-10 pr-4 ${active ? 'bg-green-50 text-green-900' : 'text-gray-900'
+                                        `relative cursor-default select-none py-3 pl-10 pr-4 ${active
+                                            ? 'bg-green-50 text-green-900 dark:bg-green-900/30 dark:text-green-300'
+                                            : 'text-gray-900 dark:text-gray-100'
                                         }`
                                     }
                                     value={option.value}

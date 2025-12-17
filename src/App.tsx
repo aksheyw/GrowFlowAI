@@ -191,7 +191,7 @@ import ScrollToTopOnMount from './components/ScrollToTopOnMount';
 
 // ... (existing imports)
 
-import { useStatusBar } from './hooks/useStatusBar';
+// import { useStatusBar } from './hooks/useStatusBar'; // Moved to ThemeContext
 import { useEffect } from 'react';
 import { Capacitor } from '@capacitor/core';
 import { SplashScreen } from '@capacitor/splash-screen';
@@ -201,10 +201,10 @@ function AppContent() {
   const isAuthPage = ['/login', '/signup', '/reset-password'].includes(location.pathname);
 
   return (
-    <div className="min-h-screen bg-gray-50 relative">
+    <div className="min-h-screen bg-luxury-paper-light dark:bg-luxury-paper-dark text-gray-900 dark:text-gray-100 transition-colors duration-300 relative">
       {/* Android Status Bar Spacer */}
       <div
-        className="md:hidden fixed top-0 left-0 right-0 z-[60] bg-gray-50 transition-all duration-200"
+        className="md:hidden fixed top-0 left-0 right-0 z-[60] bg-luxury-paper-light dark:bg-luxury-paper-dark transition-colors duration-300"
         style={{ height: 'env(safe-area-inset-top, 24px)' }}
       />
 
@@ -229,7 +229,7 @@ function AppContent() {
 }
 
 function App() {
-  useStatusBar();
+  // useStatusBar(); // Managed by ThemeContext now
 
   useEffect(() => {
     if (Capacitor.isNativePlatform()) {

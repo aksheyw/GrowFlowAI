@@ -6,20 +6,31 @@
 
 
 :root {
-  color-scheme: light;
-  /* Force light mode for native controls */
+  color-scheme: light dark;
+  /* Status bar vars */
   --status-bar-height: 24px;
   --bottom-nav-height: 16px;
   --safe-area-top: env(safe-area-inset-top, 24px);
   --safe-area-bottom: env(safe-area-inset-bottom, 16px);
 }
 
+.dark {
+  color-scheme: dark;
+}
+
+/* Native select dropdown fix for Android WebView */
 /* Native select dropdown fix for Android WebView */
 select,
 select option {
   color: #111827 !important;
-  /* gray-900 */
   background-color: #ffffff !important;
+}
+
+/* Dark mode native select fallback */
+.dark select,
+.dark select option {
+  color: #F3F4F6 !important;
+  background-color: #18181B !important;
 }
 
 /* Ensure option text is always readable in all states */
@@ -28,7 +39,13 @@ select option:hover,
 select option:focus {
   color: #111827 !important;
   background-color: #f3f4f6 !important;
-  /* gray-100 */
+}
+
+.dark select option:checked,
+.dark select option:hover,
+.dark select option:focus {
+  color: #F3F4F6 !important;
+  background-color: #27272A !important;
 }
 
 html,
