@@ -41,10 +41,10 @@ export default function Select({
                     <Listbox.Button className="
             relative w-full cursor-pointer
             bg-white hover:bg-gray-50
-            dark:bg-luxury-surface-dark dark:hover:bg-zinc-800
-            border border-gray-200 dark:border-luxury-border-dark rounded-xl
+            dark:bg-ios-card-dark dark:hover:bg-ios-surface-dark
+            border border-gray-200 dark:border-ios-separator-dark rounded-xl
             pl-3 pr-10 py-3
-            text-left text-sm font-medium text-gray-900 dark:text-gray-100
+            text-left text-sm font-medium text-gray-900 dark:text-ios-label-primary-dark
             focus:outline-none focus:ring-2 focus:ring-[#6FA84C] focus:border-transparent
             transition-all duration-200
             disabled:opacity-50 disabled:cursor-not-allowed
@@ -72,8 +72,8 @@ export default function Select({
                     >
                         <Listbox.Options className="
               absolute z-50 mt-1 max-h-60 w-full overflow-auto
-              rounded-xl bg-white dark:bg-zinc-900 py-1 text-base shadow-lg
-              border border-gray-100 dark:border-luxury-border-dark
+              rounded-xl bg-white dark:bg-ios-card-dark py-1 text-base shadow-lg
+              border border-gray-100 dark:border-ios-separator-dark
               focus:outline-none sm:text-sm
             ">
                             {options.map((option) => (
@@ -82,7 +82,7 @@ export default function Select({
                                     className={({ active }) =>
                                         `relative cursor-default select-none py-3 pl-10 pr-4 ${active
                                             ? 'bg-green-50 text-green-900 dark:bg-green-900/30 dark:text-green-300'
-                                            : 'text-gray-900 dark:text-gray-100'
+                                            : 'text-gray-900 dark:text-ios-label-primary-dark'
                                         }`
                                     }
                                     value={option.value}

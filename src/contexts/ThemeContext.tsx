@@ -58,7 +58,7 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
             } else {
                 // Light Mode: Light BG, Dark Text
                 StatusBar.setStyle({ style: Style.Dark }).catch(() => { });
-                StatusBar.setBackgroundColor({ color: '#FDFDFD' }).catch(() => { }); // Luxury Porcelain
+                StatusBar.setBackgroundColor({ color: '#F2F2F7' }).catch(() => { }); // System Gray 6
             }
         }
 
@@ -84,7 +84,7 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
                         StatusBar.setBackgroundColor({ color: '#000000' }).catch(() => { });
                     } else {
                         StatusBar.setStyle({ style: Style.Dark }).catch(() => { });
-                        StatusBar.setBackgroundColor({ color: '#FDFDFD' }).catch(() => { });
+                        StatusBar.setBackgroundColor({ color: '#F2F2F7' }).catch(() => { });
                     }
                 }
             }

@@ -201,10 +201,10 @@ function AppContent() {
   const isAuthPage = ['/login', '/signup', '/reset-password'].includes(location.pathname);
 
   return (
-    <div className="min-h-screen bg-luxury-paper-light dark:bg-luxury-paper-dark text-luxury-text-main-light dark:text-luxury-text-main-dark transition-colors duration-300 relative">
+    <div className="min-h-screen bg-ios-bg-light dark:bg-ios-bg-dark text-ios-label-primary-light dark:text-ios-label-primary-dark transition-colors duration-300 relative">
       {/* Android Status Bar Spacer */}
       <div
-        className="md:hidden fixed top-0 left-0 right-0 z-[60] bg-luxury-paper-light dark:bg-luxury-paper-dark transition-colors duration-300"
+        className="md:hidden fixed top-0 left-0 right-0 z-[60] bg-ios-bg-light dark:bg-ios-bg-dark transition-colors duration-300"
         style={{ height: 'env(safe-area-inset-top, 24px)' }}
       />
 

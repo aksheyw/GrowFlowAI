@@ -36,15 +36,15 @@ export default function ThemeSelector({ isOpen, onClose }: ThemeSelectorProps) {
                             fixed z-50 
                             bottom-4 left-4 right-4 md:bottom-auto md:top-1/2 md:left-1/2 md:-translate-x-1/2 md:-translate-y-1/2
                             md:w-96
-                            bg-white dark:bg-zinc-900 
+                            bg-white dark:bg-ios-card-dark 
                             rounded-2xl shadow-2xl 
-                            border border-gray-100 dark:border-white/10
+                            border border-gray-100 dark:border-ios-separator-dark
                             overflow-hidden
                         "
                     >
-                        <div className="p-4 border-b border-gray-100 dark:border-white/5 flex items-center justify-between">
-                            <h3 className="font-semibold text-gray-900 dark:text-gray-100">Appearance</h3>
-                            <button onClick={onClose} className="p-1 rounded-full hover:bg-gray-100 dark:hover:bg-zinc-800 transition-colors">
+                        <div className="p-4 border-b border-gray-100 dark:border-ios-separator-dark flex items-center justify-between">
+                            <h3 className="font-semibold text-gray-900 dark:text-ios-label-primary-dark">Appearance</h3>
+                            <button onClick={onClose} className="p-1 rounded-full hover:bg-gray-100 dark:hover:bg-ios-surface-dark transition-colors">
                                 <X className="w-5 h-5 text-gray-500 dark:text-gray-400" />
                             </button>
                         </div>
@@ -57,8 +57,8 @@ export default function ThemeSelector({ isOpen, onClose }: ThemeSelectorProps) {
                                     className={`
                                         w-full flex items-center justify-between p-3 rounded-xl transition-all duration-200
                                         ${theme === option.id
-                                            ? 'bg-gray-100 dark:bg-white/10 text-gray-900 dark:text-white font-medium'
-                                            : 'text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-white/5'
+                                            ? 'bg-gray-100 dark:bg-ios-surface-dark text-gray-900 dark:text-ios-label-primary-dark font-medium'
+                                            : 'text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-ios-surface-dark'
                                         }
                                     `}
                                 >

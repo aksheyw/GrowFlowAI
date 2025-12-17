@@ -5,35 +5,35 @@ export default {
   theme: {
     extend: {
       colors: {
-        luxury: {
-          paper: {
-            light: '#FDFDFD', // Porcelain
-            dark: '#000000',  // OLED Black
+        ios: {
+          bg: {
+            light: '#F2F2F7', // System Gray 6 Light
+            dark: '#000000',  // Pure Black
+          },
+          card: {
+            light: '#FFFFFF', // Pure White
+            dark: '#1C1C1E',  // System Gray 6 Dark
           },
           surface: {
-            light: 'rgba(255, 255, 255, 0.8)',
-            dark: 'rgba(18, 18, 18, 0.8)',
+            light: '#FFFFFF',
+            dark: '#2C2C2E',  // System Gray 5 Dark
           },
-          glass: {
-            light: 'rgba(255, 255, 255, 0.7)',
-            dark: 'rgba(0, 0, 0, 0.6)',
+          separator: {
+            light: '#C6C6C8', // System Gray 3 Light
+            dark: '#38383A',  // System Gray 3 Dark
           },
-          border: {
-            light: 'rgba(0, 0, 0, 0.05)',
-            dark: 'rgba(255, 255, 255, 0.1)',
-          },
-          primary: {
-            light: '#2D5016', // Deep Forest
-            dark: '#86EFAC',  // Neon Fern
-          },
-          text: {
-            main: {
-              light: '#111827', // Gray 900
-              dark: '#EDEDED',  // Platinum
+          label: {
+            primary: {
+              light: '#000000',
+              dark: '#FFFFFF',
             },
-            muted: {
-              light: '#6B7280', // Gray 500
-              dark: '#71717A',  // Zinc 500
+            secondary: {
+              light: 'rgba(60, 60, 67, 0.6)', // Label Secondary Light
+              dark: 'rgba(235, 235, 245, 0.6)', // Label Secondary Dark
+            },
+            tertiary: {
+              light: 'rgba(60, 60, 67, 0.3)',
+              dark: 'rgba(235, 235, 245, 0.3)',
             }
           }
         }
