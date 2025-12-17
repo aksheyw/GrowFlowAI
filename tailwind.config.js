@@ -21,6 +21,20 @@ export default {
           border: {
             light: 'rgba(0, 0, 0, 0.05)',
             dark: 'rgba(255, 255, 255, 0.1)',
+          },
+          primary: {
+            light: '#2D5016', // Deep Forest
+            dark: '#86EFAC',  // Neon Fern
+          },
+          text: {
+            main: {
+              light: '#111827', // Gray 900
+              dark: '#EDEDED',  // Platinum
+            },
+            muted: {
+              light: '#6B7280', // Gray 500
+              dark: '#71717A',  // Zinc 500
+            }
           }
         }
       },

@@ -201,7 +201,7 @@ function AppContent() {
   const isAuthPage = ['/login', '/signup', '/reset-password'].includes(location.pathname);
 
   return (
-    <div className="min-h-screen bg-luxury-paper-light dark:bg-luxury-paper-dark text-gray-900 dark:text-gray-100 transition-colors duration-300 relative">
+    <div className="min-h-screen bg-luxury-paper-light dark:bg-luxury-paper-dark text-luxury-text-main-light dark:text-luxury-text-main-dark transition-colors duration-300 relative">
       {/* Android Status Bar Spacer */}
       <div
         className="md:hidden fixed top-0 left-0 right-0 z-[60] bg-luxury-paper-light dark:bg-luxury-paper-dark transition-colors duration-300"
