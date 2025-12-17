@@ -36,7 +36,7 @@ export default function ScrollToTop() {
           onClick={scrollToTop}
           className="
             fixed 
-            left-1/2 -translate-x-1/2
+            left-0 right-0 mx-auto
             z-40
             w-12 
             h-12 

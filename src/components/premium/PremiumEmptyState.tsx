@@ -13,7 +13,7 @@ export default function PremiumEmptyState() {
       transition={{ duration: 0.4 }}
       className="
         flex flex-col items-center justify-center
-        py-20 px-6 text-center
+        py-8 px-6 text-center
       "
     >
       <motion.div
@@ -26,7 +26,7 @@ export default function PremiumEmptyState() {
         }}
         className="mb-8"
       >
-        <div className="text-8xl mb-4">🌱</div>
+        <div className="text-6xl mb-4">🌱</div>
         <motion.div
           animate={{
             y: [0, -10, 0]
@@ -45,11 +45,11 @@ export default function PremiumEmptyState() {
       </motion.div>
 
       <h2 className="text-3xl font-bold text-gray-900 mb-3">
-        Your garden is empty
+        Your garden is waiting
       </h2>
 
       <p className="text-lg text-gray-600 max-w-md mb-8">
-        Add meeting notes to plant your first seeds.<br />
+        Create a note to start planting your seeds.<br />
         Watch them grow as you complete tasks!
       </p>
 
@@ -67,7 +67,7 @@ export default function PremiumEmptyState() {
         "
         icon={Plus}
       >
-        Add Your First Note
+        Create New Note
       </Button>
 
       <div className="mt-12 max-w-lg">

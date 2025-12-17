@@ -268,7 +268,7 @@ export default function DashboardPage() {
               <h2 className="text-2xl sm:text-4xl font-bold text-gray-900 mb-1 sm:mb-2">{greeting}</h2>
               <p className="text-gray-600 text-sm sm:text-base">
                 {activeTab === 'tasks'
-                  ? `You have ${tasks.length} ${tasks.length === 1 ? 'task' : 'tasks'} to manage`
+                  ? `You have ${taskCounts.active} active ${taskCounts.active === 1 ? 'task' : 'tasks'} to tend`
                   : `You have ${notes.length} meeting ${notes.length === 1 ? 'note' : 'notes'} recorded`
                 }
               </p>
