@@ -217,7 +217,10 @@ function AppContent() {
 
       {/* Main Content Container */}
       <div
-        className="min-h-screen pt-[calc(max(env(safe-area-inset-top),48px)+64px)] md:pt-0 pb-[calc(5rem+env(safe-area-inset-bottom,16px))] md:pb-4"
+        className={`min-h-screen md:pt-0 md:pb-4 ${isAuthPage
+            ? 'pt-0 pb-0'
+            : 'pt-[calc(max(env(safe-area-inset-top),48px)+64px)] pb-[calc(5rem+env(safe-area-inset-bottom,16px))]'
+          }`}
       >
         <ScrollToTopOnMount />
         <Header />
