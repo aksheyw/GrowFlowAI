@@ -33,8 +33,8 @@ export default function ThemeSelector({ isOpen, onClose }: ThemeSelectorProps) {
                         exit={{ opacity: 0, y: 100, scale: 0.95 }}
                         transition={{ type: 'spring', damping: 25, stiffness: 300 }}
                         className="
-                            fixed z-50 
-                            bottom-4 left-4 right-4 md:bottom-auto md:top-1/2 md:left-1/2 md:-translate-x-1/2 md:-translate-y-1/2
+                            fixed z-[100] 
+                            bottom-20 left-4 right-4 md:bottom-auto md:top-1/2 md:left-1/2 md:-translate-x-1/2 md:-translate-y-1/2
                             md:w-96
                             bg-white dark:bg-ios-card-dark 
                             rounded-2xl shadow-2xl 
