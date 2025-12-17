@@ -61,7 +61,8 @@ export default function NoteEditor({
                 ref={textareaRef}
                 id="meeting-notes"
                 name="meeting_notes_content" // Specific name to avoid username detection
-                autoComplete="off"           // Disable browser autofill
+                autoComplete="new-password"  // Prevents credential autofill suggestions
+                inputMode="text"             // Hint for keyboard to show text mode
                 data-form-type="other"       // Hint for password managers
                 data-1p-ignore="true"        // 1Password ignore
                 data-lpignore="true"         // LastPass ignore
