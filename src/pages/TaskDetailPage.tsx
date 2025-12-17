@@ -29,6 +29,7 @@ import { Button } from '../components/ui/Button';
 import { Badge } from '../components/ui/Badge';
 import { syncTaskToCalendar } from '../lib/api';
 import Select from '../components/ui/Select';
+import DatePicker from '../components/ui/DatePicker';
 
 interface TaskWithDetails extends Task {
   creator?: Profile;
@@ -51,7 +52,7 @@ export default function TaskDetailPage() {
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [isSyncing, setIsSyncing] = useState(false);
   const [highlightDate, setHighlightDate] = useState(false);
-  const dateInputRef = useRef<HTMLInputElement>(null);
+  const dateInputRef = useRef<HTMLDivElement>(null);
 
   // Fetch Data
   const loadTaskAndProfiles = useCallback(async () => {
@@ -407,19 +408,13 @@ export default function TaskDetailPage() {
                     animate={highlightDate ? { x: [0, -5, 5, -5, 5, 0] } : {}}
                     transition={{ duration: 0.4 }}
                   >
-                    <input
-                      ref={dateInputRef}
-                      type="date"
-                      value={task.deadline || ''}
-                      onChange={(e) => handleUpdate({ deadline: e.target.value || null })}
-                      className={`
-                        w-full p-3 bg-gray-50 border rounded-xl font-medium text-gray-900 
-                        focus:ring-2 focus:border-transparent outline-none transition-all
-                        ${highlightDate
-                          ? 'border-orange-400 ring-2 ring-orange-100'
-                          : 'border-gray-200 focus:ring-[#6FA84C]'}
-                      `}
-                    />
+                    <div ref={dateInputRef}>
+                      <DatePicker
+                        value={task.deadline || null}
+                        onChange={(date) => handleUpdate({ deadline: date })}
+                        className={highlightDate ? 'ring-2 ring-orange-100 rounded-xl' : ''}
+                      />
+                    </div>
                   </motion.div>
                 </div>
 

@@ -4,6 +4,7 @@ import { supabase } from '../lib/supabase';
 import { useToast } from '../contexts/ToastContext';
 import { ArrowLeft, Loader2 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
+import Select from '../components/ui/Select';
 
 export default function TestNotificationPage() {
   const navigate = useNavigate();
@@ -108,18 +109,18 @@ export default function TestNotificationPage() {
               <label htmlFor="type" className="block text-sm font-medium text-gray-700 mb-1">
                 Notification Type
               </label>
-              <select
-                id="type"
+              <Select
                 value={notificationType}
-                onChange={(e) =>
-                  setNotificationType(e.target.value as 'assigned' | 'updated' | 'completed')
+                onChange={(value) =>
+                  setNotificationType(value as 'assigned' | 'updated' | 'completed')
                 }
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent outline-none"
-              >
-                <option value="assigned">📋 Task Assigned</option>
-                <option value="updated">✏️ Task Updated</option>
-                <option value="completed">✅ Task Completed</option>
-              </select>
+                options={[
+                  { value: 'assigned', label: '📋 Task Assigned' },
+                  { value: 'updated', label: '✏️ Task Updated' },
+                  { value: 'completed', label: '✅ Task Completed' }
+                ]}
+                className="w-full"
+              />
             </div>
 
             <button
