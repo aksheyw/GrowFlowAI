@@ -33,8 +33,9 @@ export default function AuthInput({
             w-full h-[52px] px-4 pt-5 pb-1
             bg-gray-50/50 border border-gray-200 rounded-xl
             transition-all duration-300 ease-out
-            focus:outline-none text-gray-900 font-medium text-base
+            focus:outline-none text-gray-900 dark:text-gray-900 font-medium text-base
             placeholder-transparent
+            autofill:bg-white autofill:text-gray-900
             ${error ? 'border-red-300 bg-red-50/30' : 'hover:border-gray-300'}
             ${(focused || hasValue) ? 'bg-white shadow-[0_2px_8px_rgba(0,0,0,0.04)]' : ''}
             ${focused && !error ? 'border-[#6FA84C] ring-4 ring-[#6FA84C]/10' : ''}

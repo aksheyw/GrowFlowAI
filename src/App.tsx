@@ -205,11 +205,13 @@ function AppContent() {
   return (
     <div className="min-h-screen bg-ios-bg-light dark:bg-ios-bg-dark text-ios-label-primary-light dark:text-ios-label-primary-dark transition-colors duration-300 relative">
       <ThemeSynchronizer />
-      {/* Android Status Bar Spacer */}
-      <div
-        className="md:hidden fixed top-0 left-0 right-0 z-[60] bg-ios-bg-light dark:bg-ios-bg-dark transition-colors duration-300"
-        style={{ height: 'env(safe-area-inset-top, 24px)' }}
-      />
+      {/* Android Status Bar Spacer - Hide on Auth pages to avoid black band */}
+      {!isAuthPage && (
+        <div
+          className="md:hidden fixed top-0 left-0 right-0 z-[60] bg-ios-bg-light dark:bg-ios-bg-dark transition-colors duration-300"
+          style={{ height: 'env(safe-area-inset-top, 24px)' }}
+        />
+      )}
 
       {/* Main Content Container */}
       <div
