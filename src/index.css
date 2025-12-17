@@ -2,6 +2,9 @@
 @tailwind components;
 @tailwind utilities;
 
+/* Force Vercel Re-deploy: Dec 17 20:40 */
+
+
 :root {
   --status-bar-height: 24px;
   --bottom-nav-height: 16px;
@@ -12,7 +15,8 @@
 /* Native select dropdown fix for Android WebView */
 select,
 select option {
-  color: #111827 !important; /* gray-900 */
+  color: #111827 !important;
+  /* gray-900 */
   background-color: #ffffff !important;
 }
 
@@ -21,7 +25,8 @@ select option:checked,
 select option:hover,
 select option:focus {
   color: #111827 !important;
-  background-color: #f3f4f6 !important; /* gray-100 */
+  background-color: #f3f4f6 !important;
+  /* gray-100 */
 }
 
 html,
