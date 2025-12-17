@@ -190,11 +190,11 @@ export default function TaskCard({ task, onStatusChange, onDelete, onMeetingClic
               e.stopPropagation();
               onStatusChange(task.id, e.target.value as Task['status']);
             }}
-            className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm bg-white hover:border-green-700 focus:ring-2 focus:ring-green-500 focus:border-transparent outline-none smooth-transition cursor-pointer"
+            className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm text-gray-900 bg-white hover:border-green-700 focus:ring-2 focus:ring-green-500 focus:border-transparent outline-none smooth-transition cursor-pointer"
           >
-            <option value="Not Started">Not Started</option>
-            <option value="In Progress">In Progress</option>
-            <option value="Done">Done</option>
+            <option value="Not Started" className="text-gray-900 bg-white">🌱 Not Started</option>
+            <option value="In Progress" className="text-gray-900 bg-white">🌿 In Progress</option>
+            <option value="Done" className="text-gray-900 bg-white">🌳 Done</option>
           </select>
         </div>
       </div>

@@ -10,9 +10,18 @@
 }
 
 /* Native select dropdown fix for Android WebView */
+select,
 select option {
-  color: #111827; /* gray-900 */
-  background-color: #ffffff;
+  color: #111827 !important; /* gray-900 */
+  background-color: #ffffff !important;
+}
+
+/* Ensure option text is always readable in all states */
+select option:checked,
+select option:hover,
+select option:focus {
+  color: #111827 !important;
+  background-color: #f3f4f6 !important; /* gray-100 */
 }
 
 html,
