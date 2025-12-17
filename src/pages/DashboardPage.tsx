@@ -10,7 +10,6 @@ import PremiumTaskCard from '../components/premium/PremiumTaskCard';
 import PremiumFilterBar, { PremiumFilterType, SortOption } from '../components/premium/PremiumFilterBar';
 import PremiumEmptyState from '../components/premium/PremiumEmptyState';
 import MeetingNoteCard from '../components/premium/MeetingNoteCard';
-import { Card } from '../components/ui/Card';
 import { Button } from '../components/ui/Button';
 import TaskDetailModal from '../components/TaskDetailModal';
 
@@ -32,7 +31,7 @@ export default function DashboardPage() {
 
   // Tasks State
   const [tasks, setTasks] = useState<Task[]>([]);
-  const [activeFilter, setActiveFilter] = useState<PremiumFilterType>('all');
+  const [activeFilter, setActiveFilter] = useState<PremiumFilterType>('active');
   const [sortBy, setSortBy] = useState<SortOption>('deadline');
   const [selectedTask, setSelectedTask] = useState<Task | null>(null);
 
@@ -182,7 +181,7 @@ export default function DashboardPage() {
 
   const filteredTasks = tasks
     .filter(task => {
-      if (activeFilter === 'all') return true;
+      if (activeFilter === 'active') return task.status !== 'Done';
       return task.status === activeFilter;
     })
     .sort((a, b) => {
@@ -200,14 +199,14 @@ export default function DashboardPage() {
     });
 
   const taskCounts = {
-    all: tasks.length,
+    active: tasks.filter(t => t.status !== 'Done').length,
     'Not Started': tasks.filter(t => t.status === 'Not Started').length,
     'In Progress': tasks.filter(t => t.status === 'In Progress').length,
     'Done': tasks.filter(t => t.status === 'Done').length,
   };
 
   const filters = [
-    { id: 'all' as PremiumFilterType, label: 'All', count: taskCounts.all },
+    { id: 'active' as PremiumFilterType, label: 'Active', count: taskCounts.active },
     { id: 'Not Started' as PremiumFilterType, label: 'Not Started', count: taskCounts['Not Started'] },
     { id: 'In Progress' as PremiumFilterType, label: 'In Progress', count: taskCounts['In Progress'] },
     { id: 'Done' as PremiumFilterType, label: 'Done', count: taskCounts['Done'] },
@@ -309,38 +308,7 @@ export default function DashboardPage() {
               exit={{ opacity: 0, x: 20 }}
               transition={{ duration: 0.3 }}
             >
-              {/* Stats Cards */}
-              <div className="
-                flex overflow-x-auto pb-4 gap-4 snap-x snap-mandatory scrollbar-hide -mx-4 px-4
-                sm:grid sm:grid-cols-3 sm:gap-6 sm:pb-0 sm:mx-0 sm:px-0
-                mb-8 sm:mb-10
-              ">
-                {[
-                  { label: 'Not Started', count: taskCounts['Not Started'], emoji: '🌱', color: 'from-gray-400 to-gray-500' },
-                  { label: 'In Progress', count: taskCounts['In Progress'], emoji: '🌿', color: 'from-yellow-400 to-orange-500' },
-                  { label: 'Completed', count: taskCounts['Done'], emoji: '🌳', color: 'from-green-400 to-emerald-500' },
-                ].map((stat, index) => (
-                  <Card
-                    key={stat.label}
-                    className="
-                      min-w-[240px] sm:min-w-0 flex-shrink-0 snap-center
-                      p-5 sm:p-6 
-                      hover:shadow-xl transition-shadow duration-300 
-                    "
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: index * 0.1 }}
-                  >
-                    <div className="flex items-center justify-between mb-2">
-                      <p className="text-gray-600 text-sm font-medium">{stat.label}</p>
-                      <span className="text-3xl sm:text-4xl">{stat.emoji}</span>
-                    </div>
-                    <p className={`text-3xl font-bold bg-gradient-to-r ${stat.color} bg-clip-text text-transparent`}>
-                      {stat.count}
-                    </p>
-                  </Card>
-                ))}
-              </div>
+              {/* Stats Cards Removed as per redesign */}
 
               {/* Filter Bar */}
               <div className="mb-6 sm:mb-8">

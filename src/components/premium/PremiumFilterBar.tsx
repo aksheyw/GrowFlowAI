@@ -3,7 +3,7 @@ import { motion } from 'framer-motion';
 import { ChevronDown, Check } from 'lucide-react';
 import { Menu, Transition } from '@headlessui/react';
 
-export type PremiumFilterType = 'all' | 'Not Started' | 'In Progress' | 'Done';
+export type PremiumFilterType = 'active' | 'Not Started' | 'In Progress' | 'Done';
 export type SortOption = 'deadline' | 'created_at' | 'priority';
 
 interface FilterOption {
