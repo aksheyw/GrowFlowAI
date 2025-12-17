@@ -4,6 +4,7 @@ import { Calendar, Clock, Trash2, CalendarCheck, CalendarPlus, Loader2 } from 'l
 import { syncTaskToCalendar } from '../lib/api';
 import { useToast } from '../contexts/ToastContext';
 import { useState } from 'react';
+import Select from './ui/Select';
 
 interface TaskCardProps {
   task: Task;
@@ -182,20 +183,19 @@ export default function TaskCard({ task, onStatusChange, onDelete, onMeetingClic
         )}
 
         <div className="pt-1">
-          <label className="block text-xs font-semibold text-gray-700 mb-1.5">Status</label>
-          <select
-            value={task.status}
-            onClick={(e) => e.stopPropagation()}
-            onChange={(e) => {
-              e.stopPropagation();
-              onStatusChange(task.id, e.target.value as Task['status']);
-            }}
-            className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm text-gray-900 bg-white hover:border-green-700 focus:ring-2 focus:ring-green-500 focus:border-transparent outline-none smooth-transition cursor-pointer"
-          >
-            <option value="Not Started" className="text-gray-900 bg-white">🌱 Not Started</option>
-            <option value="In Progress" className="text-gray-900 bg-white">🌿 In Progress</option>
-            <option value="Done" className="text-gray-900 bg-white">🌳 Done</option>
-          </select>
+          <div onClick={(e) => e.stopPropagation()}>
+            <Select
+              label="Status"
+              value={task.status}
+              onChange={(value) => onStatusChange(task.id, value as Task['status'])}
+              options={[
+                { value: 'Not Started', label: 'Not Started', icon: '🌱' },
+                { value: 'In Progress', label: 'In Progress', icon: '🌿' },
+                { value: 'Done', label: 'Done', icon: '🌳' }
+              ]}
+              className="w-full"
+            />
+          </div>
         </div>
       </div>
     </div>

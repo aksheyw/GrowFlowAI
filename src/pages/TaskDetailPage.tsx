@@ -28,6 +28,7 @@ import { Card } from '../components/ui/Card';
 import { Button } from '../components/ui/Button';
 import { Badge } from '../components/ui/Badge';
 import { syncTaskToCalendar } from '../lib/api';
+import Select from '../components/ui/Select';
 
 interface TaskWithDetails extends Task {
   creator?: Profile;
@@ -373,30 +374,28 @@ export default function TaskDetailPage() {
                 {/* Status */}
                 <div>
                   <label className="block text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2">Status</label>
-                  <select
+                  <Select
                     value={task.status}
-                    onChange={(e) => handleUpdate({ status: e.target.value as Task['status'] })}
-                    className="w-full p-3 bg-gray-50 border border-gray-200 rounded-xl font-medium text-gray-900 focus:ring-2 focus:ring-[#6FA84C] focus:border-transparent outline-none transition-all"
-                  >
-                    <option value="Not Started" className="text-gray-900 bg-white">🌱 Not Started</option>
-                    <option value="In Progress" className="text-gray-900 bg-white">🌿 In Progress</option>
-                    <option value="Done" className="text-gray-900 bg-white">🌳 Done</option>
-                  </select>
+                    onChange={(value) => handleUpdate({ status: value as Task['status'] })}
+                    options={[
+                      { value: 'Not Started', label: 'Not Started', icon: '🌱' },
+                      { value: 'In Progress', label: 'In Progress', icon: '🌿' },
+                      { value: 'Done', label: 'Done', icon: '🌳' }
+                    ]}
+                  />
                 </div>
 
                 {/* Assignee */}
                 <div>
                   <label className="block text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2">Assignee</label>
-                  <select
+                  <Select
                     value={task.assignee_id || ''}
-                    onChange={(e) => handleUpdate({ assignee_id: e.target.value || null })}
-                    className="w-full p-3 bg-gray-50 border border-gray-200 rounded-xl font-medium text-gray-900 focus:ring-2 focus:ring-[#6FA84C] focus:border-transparent outline-none transition-all"
-                  >
-                    <option value="" className="text-gray-900 bg-white">Unassigned</option>
-                    {profiles.map(p => (
-                      <option key={p.id} value={p.id} className="text-gray-900 bg-white">{p.full_name}</option>
-                    ))}
-                  </select>
+                    onChange={(value) => handleUpdate({ assignee_id: value || null })}
+                    options={[
+                      { value: '', label: 'Unassigned' },
+                      ...profiles.map(p => ({ value: p.id, label: p.full_name }))
+                    ]}
+                  />
                 </div>
 
                 {/* Deadline */}
