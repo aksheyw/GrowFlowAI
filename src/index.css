@@ -6,6 +6,8 @@
 
 
 :root {
+  color-scheme: light;
+  /* Force light mode for native controls */
   --status-bar-height: 24px;
   --bottom-nav-height: 16px;
   --safe-area-top: env(safe-area-inset-top, 24px);
