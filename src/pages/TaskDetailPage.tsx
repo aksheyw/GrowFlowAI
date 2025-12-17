@@ -537,7 +537,7 @@ export default function TaskDetailPage() {
                     <p className="text-gray-500 dark:text-gray-400 mb-2">From meeting note</p>
                     <button
                       onClick={() => navigate(`/note/${task.note_id}`)}
-                      className="text-[#2D5016] font-medium hover:underline flex items-center gap-1"
+                      className="text-[#2D5016] dark:text-[#6FA84C] font-medium hover:underline flex items-center gap-1"
                     >
                       <FileText className="w-3 h-3" />
                       View original note →

@@ -33,8 +33,8 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
         return currentTheme === 'dark';
     };
 
-    // 1. Effect to apply class to DOM
-    useEffect(() => {
+    // 1. Effect to apply class to DOM - Use useLayoutEffect to prevent FOUC
+    React.useLayoutEffect(() => {
         const root = window.document.documentElement;
         const dark = checkIsDark(theme);
         setIsDark(dark);
@@ -51,9 +51,6 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
         if (Capacitor.isNativePlatform()) {
             if (dark) {
                 // Dark Mode: Dark BG, Light Text
-                // Note: Capacitor naming can be confusing. 
-                // Style.Light usually means Light TEXT (for dark backgrounds).
-                // Style.Dark usually means Dark TEXT (for light backgrounds).
                 StatusBar.setStyle({ style: Style.Light }).catch(() => { });
                 StatusBar.setBackgroundColor({ color: '#000000' }).catch(() => { });
             } else {
