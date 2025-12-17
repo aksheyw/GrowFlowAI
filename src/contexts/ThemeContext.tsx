@@ -46,20 +46,6 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
         } else {
             root.classList.add('light');
         }
-
-        // Update Status Bar
-        if (Capacitor.isNativePlatform()) {
-            if (dark) {
-                // Dark Mode: Dark BG, Light Text
-                StatusBar.setStyle({ style: Style.Light }).catch(() => { });
-                StatusBar.setBackgroundColor({ color: '#000000' }).catch(() => { });
-            } else {
-                // Light Mode: Light BG, Dark Text
-                StatusBar.setStyle({ style: Style.Dark }).catch(() => { });
-                StatusBar.setBackgroundColor({ color: '#F2F2F7' }).catch(() => { }); // System Gray 6
-            }
-        }
-
     }, [theme]);
 
     // 2. Listener for System changes

@@ -197,6 +197,7 @@ import { Capacitor } from '@capacitor/core';
 import { SplashScreen } from '@capacitor/splash-screen';
 
 import ThemeSynchronizer from './components/ThemeSynchronizer';
+import StatusBarManager from './components/StatusBarManager';
 
 function AppContent() {
   const location = useLocation();
@@ -205,6 +206,7 @@ function AppContent() {
   return (
     <div className="min-h-screen bg-ios-bg-light dark:bg-ios-bg-dark text-ios-label-primary-light dark:text-ios-label-primary-dark transition-colors duration-300 relative">
       <ThemeSynchronizer />
+      <StatusBarManager />
       {/* Android Status Bar Spacer - Hide on Auth pages to avoid black band */}
       {!isAuthPage && (
         <div
