@@ -18,10 +18,10 @@ export default function StatusDropdown({ currentStatus, onChange }: StatusDropdo
             onClick={(e) => e.stopPropagation()}
             className="
               flex items-center gap-2 px-4 py-2
-              bg-gray-50 hover:bg-gray-100
-              rounded-xl border border-gray-200
+              bg-gray-50 dark:bg-ios-surface-dark hover:bg-gray-100 dark:hover:bg-ios-card-dark
+              rounded-xl border border-gray-200 dark:border-ios-separator-dark
               transition-all duration-200
-              text-sm font-medium text-gray-700
+              text-sm font-medium text-gray-700 dark:text-gray-300
             "
           >
             <div
@@ -52,8 +52,8 @@ export default function StatusDropdown({ currentStatus, onChange }: StatusDropdo
           >
             <Menu.Items className="
               absolute right-0 mt-2 w-52
-              bg-white rounded-2xl shadow-xl
-              border border-gray-100
+              bg-white dark:bg-ios-card-dark rounded-2xl shadow-xl
+              border border-gray-100 dark:border-ios-separator-dark
               overflow-hidden
               focus:outline-none
               z-10
@@ -70,16 +70,16 @@ export default function StatusDropdown({ currentStatus, onChange }: StatusDropdo
                         w-full px-4 py-3 text-left
                         flex items-center gap-3
                         transition-colors duration-150
-                        ${active ? 'bg-gray-50' : ''}
-                        ${option.value === currentStatus ? 'bg-green-50' : ''}
+                        ${active ? 'bg-gray-50 dark:bg-ios-surface-dark' : ''}
+                        ${option.value === currentStatus ? 'bg-green-50 dark:bg-green-900/30' : ''}
                       `}
                     >
                       <div className="text-2xl">{option.emoji}</div>
                       <div className="flex-1">
-                        <div className="font-medium text-sm text-gray-900">
+                        <div className="font-medium text-sm text-gray-900 dark:text-white">
                           {option.label}
                         </div>
-                        <div className="text-xs text-gray-500">
+                        <div className="text-xs text-gray-500 dark:text-gray-400">
                           {option.description}
                         </div>
                       </div>

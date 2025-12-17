@@ -5,6 +5,7 @@ import { useUpdates } from '../hooks/useUpdates';
 import { useToast } from '../contexts/ToastContext';
 import UpdateCard from '../components/updates/UpdateCard';
 import { UpdateNotification } from '../types';
+import { Check, Bell } from 'lucide-react';
 
 type FilterType = 'All' | 'Alerts' | 'Tasks' | 'Mentions';
 
@@ -19,7 +20,6 @@ export default function UpdatesPage() {
     const handleNotificationClick = (notification: UpdateNotification) => {
         markRead(notification.id);
 
-        // Prioritize navigation if IDs are present, regardless of type
         if (notification.task_id) {
             navigate(`/task/${notification.task_id}`);
             return;
@@ -31,32 +31,35 @@ export default function UpdatesPage() {
             return;
         }
 
-        // Fallback for system alerts without IDs
         if (notification.type === 'system_alert') {
             addToast(notification.message, 'info', 4000);
         }
     };
 
     const hasNotifications = Object.keys(groupedNotifications).length > 0;
-
-    // Define the order of sections
     const sectionOrder = ['Today', 'Yesterday', 'This Week', 'Earlier'];
 
     return (
-        <div className="min-h-screen bg-gradient-to-br from-gray-50 to-green-50/30 pb-32 md:pb-8">
+        <div className="min-h-screen bg-[#F2F2F7] dark:bg-black pb-32 md:pb-8 transition-colors duration-300">
             {/* Header */}
-            <header className="sticky top-0 z-40 bg-white/80 backdrop-blur-xl border-b border-gray-200/50 shadow-sm">
-                <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
-                    <div className="flex items-center justify-between h-16">
-                        {/* Title - Centered on mobile effectively due to flex justify-between and empty divs if needed, but here we want it left aligned or just simple */}
-                        <h1 className="text-2xl font-bold text-gray-900">Updates</h1>
+            <header className="sticky top-0 z-40 bg-white/80 dark:bg-[#1C1C1E]/80 backdrop-blur-xl border-b border-gray-200/50 dark:border-[#38383A] shadow-sm">
+                <div className="max-w-2xl mx-auto px-4">
+                    <div className="flex items-center justify-between h-14">
+                        <h1 className="text-xl font-bold text-gray-900 dark:text-white flex items-center gap-2">
+                            Updates
+                            {unreadCount > 0 && (
+                                <span className="bg-red-500 text-white text-[10px] font-bold px-1.5 py-0.5 rounded-full">
+                                    {unreadCount}
+                                </span>
+                            )}
+                        </h1>
 
-                        {/* Mark All Read Button */}
                         {unreadCount > 0 && (
                             <button
                                 onClick={markAllRead}
-                                className="text-sm font-medium text-[#2D5016] hover:text-[#1a2f0d] transition-colors"
+                                className="text-sm font-medium text-[#007AFF] hover:text-[#007AFF]/80 transition-colors flex items-center gap-1"
                             >
+                                <Check className="w-4 h-4" />
                                 Mark all read
                             </button>
                         )}
@@ -69,10 +72,10 @@ export default function UpdatesPage() {
                                 key={filter}
                                 onClick={() => setActiveFilter(filter)}
                                 className={`
-                  px-4 py-2 rounded-xl text-sm font-medium whitespace-nowrap transition-all
+                  px-4 py-1.5 rounded-full text-sm font-medium whitespace-nowrap transition-all border
                   ${activeFilter === filter
-                                        ? 'bg-[#2D5016] text-white shadow-sm'
-                                        : 'bg-white text-gray-600 hover:bg-gray-50 border border-gray-200'
+                                        ? 'bg-gray-900 dark:bg-white text-white dark:text-black border-transparent shadow-sm'
+                                        : 'bg-white dark:bg-[#2C2C2E] text-gray-600 dark:text-gray-300 border-gray-200 dark:border-[#38383A] hover:bg-gray-50 dark:hover:bg-[#3A3A3C]'
                                     }
                 `}
                             >
@@ -84,23 +87,22 @@ export default function UpdatesPage() {
             </header>
 
             {/* Content */}
-            <main className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+            <main className="max-w-2xl mx-auto px-4 py-6">
                 {isLoading ? (
                     <div className="flex items-center justify-center py-12">
-                        <div className="w-8 h-8 border-4 border-[#2D5016] border-t-transparent rounded-full animate-spin" />
+                        <div className="w-8 h-8 border-4 border-[#007AFF] border-t-transparent rounded-full animate-spin" />
                     </div>
                 ) : hasNotifications ? (
-                    <div className="bg-white rounded-xl shadow-sm overflow-hidden">
+                    <div className="space-y-8">
                         {sectionOrder.map((section) => {
                             const notifications = groupedNotifications[section];
                             if (!notifications || notifications.length === 0) return null;
 
-                            // Filter notifications based on activeFilter
                             const filteredNotifications = notifications.filter(notification => {
                                 if (activeFilter === 'All') return true;
                                 if (activeFilter === 'Alerts') return notification.type === 'system_alert';
                                 if (activeFilter === 'Tasks') return notification.type === 'task_updated' || notification.type === 'deadline_soon';
-                                if (activeFilter === 'Mentions') return notification.type === 'meeting_summary'; // Mapping meeting summaries to mentions/updates for now
+                                if (activeFilter === 'Mentions') return notification.type === 'meeting_summary';
                                 return true;
                             });
 
@@ -108,52 +110,47 @@ export default function UpdatesPage() {
 
                             return (
                                 <div key={section}>
-                                    {/* Section Header */}
-                                    <div className="px-4 py-3 bg-gray-50 border-b border-gray-100">
-                                        <h2 className="text-xs font-bold text-gray-400 uppercase tracking-wider">
-                                            {section}
-                                        </h2>
-                                    </div>
+                                    <h2 className="text-[13px] font-semibold text-gray-400/80 dark:text-gray-500/80 uppercase tracking-wide mb-3 pl-1">
+                                        {section}
+                                    </h2>
 
-                                    {/* Notification List */}
-                                    <AnimatePresence mode="popLayout">
-                                        {filteredNotifications.map((notification, index) => (
-                                            <motion.div
-                                                key={notification.id}
-                                                initial={{ opacity: 0, y: 20 }}
-                                                animate={{ opacity: 1, y: 0 }}
-                                                exit={{ opacity: 0, x: -100 }}
-                                                transition={{
-                                                    duration: 0.3,
-                                                    delay: index * 0.05,
-                                                }}
-                                                className="cursor-pointer hover:bg-gray-50 active:scale-[0.99] transition-all rounded-xl"
-                                            >
-                                                <UpdateCard
-                                                    notification={notification}
-                                                    onClick={handleNotificationClick}
-                                                />
-                                            </motion.div>
-                                        ))}
-                                    </AnimatePresence>
+                                    <div className="space-y-3">
+                                        <AnimatePresence mode="popLayout">
+                                            {filteredNotifications.map((notification, index) => (
+                                                <motion.div
+                                                    key={notification.id}
+                                                    initial={{ opacity: 0, y: 10, scale: 0.98 }}
+                                                    animate={{ opacity: 1, y: 0, scale: 1 }}
+                                                    exit={{ opacity: 0, scale: 0.95 }}
+                                                    transition={{ duration: 0.2, delay: index * 0.05 }}
+                                                >
+                                                    <UpdateCard
+                                                        notification={notification}
+                                                        onClick={handleNotificationClick}
+                                                    />
+                                                </motion.div>
+                                            ))}
+                                        </AnimatePresence>
+                                    </div>
                                 </div>
                             );
                         })}
                     </div>
                 ) : (
-                    /* Empty State */
                     <motion.div
                         initial={{ opacity: 0, scale: 0.95 }}
                         animate={{ opacity: 1, scale: 1 }}
                         transition={{ duration: 0.3 }}
-                        className="flex flex-col items-center justify-center py-16 px-4"
+                        className="flex flex-col items-center justify-center py-24 px-4 text-center"
                     >
-                        <div className="w-24 h-24 mb-6 text-6xl">🌱</div>
-                        <h3 className="text-xl font-semibold text-gray-900 mb-2">
-                            You're all caught up!
+                        <div className="w-20 h-20 bg-gray-100 dark:bg-[#1C1C1E] rounded-full flex items-center justify-center mb-6">
+                            <Bell className="w-8 h-8 text-gray-400" />
+                        </div>
+                        <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-2">
+                            All caught up
                         </h3>
-                        <p className="text-gray-500 text-center max-w-sm">
-                            No new updates at the moment. Enjoy the peace and quiet.
+                        <p className="text-gray-500 dark:text-gray-400 max-w-xs leading-relaxed">
+                            You have no new updates. Enjoy your free time!
                         </p>
                     </motion.div>
                 )}

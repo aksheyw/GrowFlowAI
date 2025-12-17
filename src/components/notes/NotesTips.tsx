@@ -26,8 +26,8 @@ export default function NotesTips({ isVisible }: NotesTipsProps) {
         >
             <div className="
                 p-6 sm:p-8
-                bg-gradient-to-br from-blue-50 to-indigo-50
-                rounded-2xl border border-blue-100
+                bg-gradient-to-br from-blue-50 to-indigo-50 dark:from-blue-900/20 dark:to-indigo-900/20
+                rounded-2xl border border-blue-100 dark:border-blue-800
                 max-w-4xl mx-auto
             ">
                 {/* Header */}
@@ -41,10 +41,10 @@ export default function NotesTips({ isVisible }: NotesTipsProps) {
                         <Lightbulb className="w-5 h-5 text-white" />
                     </div>
                     <div>
-                        <h3 className="text-lg font-semibold text-gray-900 mb-1">
+                        <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-1">
                             Tips for better results
                         </h3>
-                        <p className="text-sm text-gray-600">
+                        <p className="text-sm text-gray-600 dark:text-gray-400">
                             Help our AI extract tasks more accurately
                         </p>
                     </div>
@@ -62,15 +62,15 @@ export default function NotesTips({ isVisible }: NotesTipsProps) {
                         >
                             <div className="
                                 w-6 h-6 rounded-full
-                                bg-white border border-blue-200
+                                bg-white dark:bg-ios-card-dark border border-blue-200 dark:border-blue-700
                                 flex items-center justify-center
-                                text-xs font-bold text-blue-600
+                                text-xs font-bold text-blue-600 dark:text-blue-400
                                 flex-shrink-0 mt-0.5
                                 shadow-sm
                             ">
                                 {index + 1}
                             </div>
-                            <p className="text-sm text-gray-700 leading-relaxed">
+                            <p className="text-sm text-gray-700 dark:text-gray-300 leading-relaxed">
                                 {tip}
                             </p>
                         </motion.div>

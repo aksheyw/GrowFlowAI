@@ -26,6 +26,7 @@ export default function SuccessOverlay({
                     className="
             fixed inset-0 z-50
             bg-gradient-to-br from-green-50 via-emerald-50 to-teal-50
+            dark:from-[#1C1C1E] dark:via-[#000000] dark:to-[#1C1C1E]
             flex items-center justify-center
             p-6
           "
@@ -103,7 +104,7 @@ export default function SuccessOverlay({
                             initial={{ y: 20, opacity: 0 }}
                             animate={{ y: 0, opacity: 1 }}
                             transition={{ delay: 0.5 }}
-                            className="text-3xl sm:text-4xl lg:text-5xl font-bold text-gray-900 mb-4"
+                            className="text-3xl sm:text-4xl lg:text-5xl font-bold text-gray-900 dark:text-white mb-4"
                         >
                             Seeds planted! 🎉
                         </motion.h2>
@@ -112,7 +113,7 @@ export default function SuccessOverlay({
                             initial={{ y: 20, opacity: 0 }}
                             animate={{ y: 0, opacity: 1 }}
                             transition={{ delay: 0.6 }}
-                            className="text-xl sm:text-2xl text-gray-600 mb-3"
+                            className="text-xl sm:text-2xl text-gray-600 dark:text-gray-300 mb-3"
                         >
                             {taskCount} {taskCount === 1 ? 'task' : 'tasks'} extracted successfully
                         </motion.p>
@@ -121,7 +122,7 @@ export default function SuccessOverlay({
                             initial={{ y: 20, opacity: 0 }}
                             animate={{ y: 0, opacity: 1 }}
                             transition={{ delay: 0.7 }}
-                            className="text-base text-gray-500 mb-8"
+                            className="text-base text-gray-500 dark:text-gray-500 mb-8"
                         >
                             Watch them grow in your garden
                         </motion.p>
@@ -151,7 +152,7 @@ export default function SuccessOverlay({
                             initial={{ opacity: 0 }}
                             animate={{ opacity: 1 }}
                             transition={{ delay: 1 }}
-                            className="mt-6 text-sm text-gray-500"
+                            className="mt-6 text-sm text-gray-500 dark:text-gray-600"
                         >
                             Redirecting in {countdown} second{countdown !== 1 ? 's' : ''}...
                         </motion.p>

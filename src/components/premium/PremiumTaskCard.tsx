@@ -73,7 +73,7 @@ export default function PremiumTaskCard({ task, onStatusChange }: PremiumTaskCar
         transition-all duration-300 ease-out
         p-6 cursor-pointer
         h-full flex flex-col
-        border-gray-100
+        border-gray-100 dark:border-ios-separator-dark
       "
     >
       <div
@@ -102,9 +102,9 @@ export default function PremiumTaskCard({ task, onStatusChange }: PremiumTaskCar
 
       <div className="flex-grow mb-4">
         <h3 className="
-          text-lg sm:text-xl font-semibold text-gray-900
+          text-lg sm:text-xl font-semibold text-gray-900 dark:text-white
           line-clamp-3
-          group-hover:text-[#2D5016]
+          group-hover:text-[#2D5016] dark:group-hover:text-green-400
           transition-colors duration-200
         ">
           {task.description}
@@ -125,7 +125,7 @@ export default function PremiumTaskCard({ task, onStatusChange }: PremiumTaskCar
                 ">
                   {getInitials(task.assignee.full_name)}
                 </div>
-                <span className="font-medium text-gray-700">
+                <span className="font-medium text-gray-700 dark:text-gray-300">
                   {task.assignee.full_name}
                 </span>
               </>
@@ -133,14 +133,14 @@ export default function PremiumTaskCard({ task, onStatusChange }: PremiumTaskCar
               <>
                 <div className="
                   w-8 h-8 rounded-full
-                  bg-gray-200
+                  bg-gray-200 dark:bg-gray-700
                   flex items-center justify-center
                   text-gray-500 font-medium text-xs
                   shadow-sm ring-2 ring-white
                 ">
                   ?
                 </div>
-                <span className="font-medium text-gray-500 italic">
+                <span className="font-medium text-gray-500 dark:text-gray-400 italic">
                   Unassigned
                 </span>
               </>
@@ -151,10 +151,10 @@ export default function PremiumTaskCard({ task, onStatusChange }: PremiumTaskCar
             className={`
               flex items-center gap-1.5 px-3 py-1.5 rounded-lg
               ${deadline.isOverdue
-                ? 'bg-red-50 text-red-700 font-semibold'
+                ? 'bg-red-50 dark:bg-rose-500/20 text-red-700 dark:text-rose-300 font-semibold'
                 : deadline.isDueSoon
-                  ? 'bg-yellow-50 text-yellow-700'
-                  : 'bg-gray-50 text-gray-700'
+                  ? 'bg-yellow-50 dark:bg-amber-500/20 text-yellow-700 dark:text-amber-300'
+                  : 'bg-gray-50 dark:bg-ios-surface-dark text-gray-700 dark:text-gray-300'
               }
             `}
           >
@@ -169,7 +169,7 @@ export default function PremiumTaskCard({ task, onStatusChange }: PremiumTaskCar
           </Badge>
         </div>
 
-        <div className="h-2 bg-gray-100 rounded-full overflow-hidden">
+        <div className="h-2 bg-gray-100 dark:bg-ios-surface-dark rounded-full overflow-hidden">
           <motion.div
             initial={{ width: 0 }}
             animate={{ width: `${getProgressPercentage(task.status)}%` }}

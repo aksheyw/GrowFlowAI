@@ -23,7 +23,7 @@ export default function MeetingContent({ note, copied, onCopyNotes }: MeetingCon
             className="p-6 sm:p-8 border-gray-100 shadow-sm"
         >
             <div className="flex items-center justify-between mb-6">
-                <h2 className="text-xl font-bold text-gray-900 flex items-center gap-2">
+                <h2 className="text-xl font-bold text-gray-900 dark:text-white flex items-center gap-2">
                     <AlignLeft className="w-5 h-5 text-[#6FA84C]" />
                     Original Notes
                 </h2>
@@ -51,11 +51,11 @@ export default function MeetingContent({ note, copied, onCopyNotes }: MeetingCon
 
             {/* Notes content */}
             <div className="
-                p-6 bg-gray-50 rounded-xl
-                border border-gray-200
+                p-6 bg-gray-50 dark:bg-ios-surface-dark rounded-xl
+                border border-gray-200 dark:border-ios-separator-dark
               ">
                 <pre className="
-                  font-mono text-sm text-gray-800
+                  font-mono text-sm text-gray-800 dark:text-gray-200
                   whitespace-pre-wrap leading-relaxed
                   overflow-x-auto
                 ">
@@ -64,7 +64,7 @@ export default function MeetingContent({ note, copied, onCopyNotes }: MeetingCon
             </div>
 
             {/* Character count */}
-            <div className="mt-4 flex items-center gap-4 text-xs text-gray-500">
+            <div className="mt-4 flex items-center gap-4 text-xs text-gray-500 dark:text-gray-400">
                 <span className="flex items-center gap-1">
                     <FileText className="w-3 h-3" />
                     {note.content.length.toLocaleString()} characters

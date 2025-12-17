@@ -58,28 +58,28 @@ export default function MeetingNoteCard({ note, taskCount = 0 }: MeetingNoteCard
             >
                 {/* Header: Icon + Date */}
                 <div className="flex items-center justify-between mb-4">
-                    <div className="w-10 h-10 rounded-lg bg-blue-50 flex items-center justify-center text-blue-600">
+                    <div className="w-10 h-10 rounded-lg bg-blue-50 dark:bg-blue-900/30 flex items-center justify-center text-blue-600 dark:text-blue-400">
                         <Calendar className="w-5 h-5" />
                     </div>
-                    <span className="text-xs font-medium text-gray-500 bg-gray-50 px-2 py-1 rounded-md">
+                    <span className="text-xs font-medium text-gray-500 dark:text-gray-400 bg-gray-50 dark:bg-ios-surface-dark px-2 py-1 rounded-md">
                         {formatDateShort(displayDate)}
                     </span>
                 </div>
 
                 {/* Content: Title */}
                 <div className="flex-1 mb-4">
-                    <h3 className="text-lg font-bold text-gray-900 line-clamp-2 leading-tight group-hover:text-blue-700 transition-colors">
+                    <h3 className="text-lg font-bold text-gray-900 dark:text-white line-clamp-2 leading-tight group-hover:text-blue-700 dark:group-hover:text-blue-400 transition-colors">
                         {displayTitle}
                     </h3>
                     {note.meeting_summary && (
-                        <p className="text-sm text-gray-500 mt-2 line-clamp-2">
+                        <p className="text-sm text-gray-500 dark:text-gray-400 mt-2 line-clamp-2">
                             {cleanSummary(note.meeting_summary)}
                         </p>
                     )}
                 </div>
 
                 {/* Footer: Badges */}
-                <div className="flex items-center gap-2 mt-auto pt-4 border-t border-gray-50">
+                <div className="flex items-center gap-2 mt-auto pt-4 border-t border-gray-50 dark:border-ios-separator-dark">
                     {/* Task Count Badge */}
                     <Badge variant="success" className="rounded-full px-2.5 py-1 text-xs font-medium gap-1.5">
                         <CheckCircle2 className="w-3.5 h-3.5" />

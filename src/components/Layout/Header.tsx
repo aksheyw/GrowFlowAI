@@ -20,8 +20,8 @@ export default function Header() {
                 className="
           hidden md:block
           sticky top-0 z-50
-          bg-white/80 backdrop-blur-xl
-          border-b border-gray-100
+          bg-white/80 dark:bg-ios-card-dark/80 backdrop-blur-xl
+          border-b border-gray-100 dark:border-ios-separator-dark
           shadow-sm
           transition-all duration-200
         "
@@ -38,8 +38,8 @@ export default function Header() {
                     {user && (
                         <div className="flex items-center gap-4">
                             <NotificationBell />
-                            <Link to="/profile" className="w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center hover:bg-gray-200 transition-colors">
-                                <User className="w-5 h-5 text-gray-600" />
+                            <Link to="/profile" className="w-8 h-8 rounded-full bg-gray-100 dark:bg-ios-surface-dark flex items-center justify-center hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors">
+                                <User className="w-5 h-5 text-gray-600 dark:text-gray-400" />
                             </Link>
                         </div>
                     )}
@@ -51,8 +51,8 @@ export default function Header() {
                 className="
           md:hidden
           fixed top-0 left-0 right-0 z-50
-          bg-white
-          border-b border-gray-100
+          bg-white dark:bg-ios-card-dark
+          border-b border-gray-100 dark:border-ios-separator-dark
           shadow-sm
         "
                 style={{ paddingTop: 'max(env(safe-area-inset-top), 48px)' }}

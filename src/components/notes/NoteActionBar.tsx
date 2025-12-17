@@ -40,12 +40,12 @@ export default function NoteActionBar({
     return (
         <div className="
       px-6 sm:px-8 py-5
-      bg-white border-t border-gray-100
+      bg-white dark:bg-ios-card-dark border-t border-gray-100 dark:border-ios-separator-dark
       flex flex-col lg:flex-row lg:items-center justify-between
       gap-6
     ">
             {/* Left Side: Metadata */}
-            <div className="flex flex-wrap items-center gap-4 text-sm text-gray-500 w-full lg:w-auto">
+            <div className="flex flex-wrap items-center gap-4 text-sm text-gray-500 dark:text-gray-400 w-full lg:w-auto">
                 <div className="flex items-center gap-1.5">
                     <FileText className="w-4 h-4" />
                     <span>{characterCount.toLocaleString()} chars</span>
@@ -86,14 +86,14 @@ export default function NoteActionBar({
             <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 w-full lg:w-auto">
 
                 {/* Mode Toggle */}
-                <div className="bg-gray-100 p-1 rounded-xl grid grid-cols-2 gap-1 sm:w-auto">
+                <div className="bg-gray-100 dark:bg-ios-surface-dark p-1 rounded-xl grid grid-cols-2 gap-1 sm:w-auto">
                     <button
                         onClick={() => setProcessingMode('tasks')}
                         className={`
               flex items-center justify-center gap-2 px-4 py-2.5 rounded-lg text-sm font-medium transition-all duration-200
               ${processingMode === 'tasks'
-                                ? 'bg-white text-gray-900 shadow-sm ring-1 ring-black/5'
-                                : 'text-gray-500 hover:text-gray-700 hover:bg-gray-200/50'
+                                ? 'bg-white dark:bg-ios-card-dark text-gray-900 dark:text-white shadow-sm ring-1 ring-black/5 dark:ring-white/10'
+                                : 'text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 hover:bg-gray-200/50 dark:hover:bg-white/5'
                             }
             `}
                     >
@@ -105,8 +105,8 @@ export default function NoteActionBar({
                         className={`
               flex items-center justify-center gap-2 px-4 py-2.5 rounded-lg text-sm font-medium transition-all duration-200
               ${processingMode === 'brief'
-                                ? 'bg-white text-gray-900 shadow-sm ring-1 ring-black/5'
-                                : 'text-gray-500 hover:text-gray-700 hover:bg-gray-200/50'
+                                ? 'bg-white dark:bg-ios-card-dark text-gray-900 dark:text-white shadow-sm ring-1 ring-black/5 dark:ring-white/10'
+                                : 'text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 hover:bg-gray-200/50 dark:hover:bg-white/5'
                             }
             `}
                     >
@@ -128,8 +128,8 @@ export default function NoteActionBar({
             flex items-center justify-center gap-2
             shadow-lg shadow-green-900/5
             ${isValid && !isTranscribing
-                            ? 'bg-gradient-to-br from-[#355E1F] to-[#6FA84C] hover:shadow-green-900/20 text-white'
-                            : 'bg-gray-100 text-gray-400 cursor-not-allowed'
+                            ? 'bg-gradient-to-br from-[#355E1F] to-[#6FA84C] hover:shadow-lg hover:shadow-green-900/20 text-white shadow-md shadow-green-900/10'
+                            : 'bg-gray-100 dark:bg-white/5 text-gray-400 dark:text-white/20 cursor-not-allowed border border-transparent dark:border-white/5'
                         }
           `}
                 >

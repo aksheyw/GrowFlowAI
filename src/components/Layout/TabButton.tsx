@@ -28,7 +28,7 @@ export default function TabButton({ tab, isActive, onClick }: TabButtonProps) {
         flex flex-col items-center justify-center
         min-w-[64px] h-full px-3
         transition-all duration-200
-        ${isActive ? 'text-green-600' : 'text-gray-400'}
+        ${isActive ? 'text-green-600 dark:text-green-400' : 'text-gray-400 dark:text-gray-500'}
       `}
         >
             {/* Active background pill */}
@@ -37,7 +37,7 @@ export default function TabButton({ tab, isActive, onClick }: TabButtonProps) {
                     layoutId="activeTabBg"
                     className="
             absolute inset-0 -m-1
-            bg-gray-100 rounded-xl
+            bg-gray-100 dark:bg-ios-surface-dark rounded-xl
             -z-10
           "
                     transition={{

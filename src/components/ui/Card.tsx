@@ -14,7 +14,7 @@ export const Card = React.forwardRef<HTMLDivElement, CardProps>(
                 whileHover={{ y: -4 }}
                 transition={{ type: "spring", stiffness: 300, damping: 20 }}
                 className={cn(
-                    'bg-white rounded-2xl p-6 shadow-sm border border-gray-200/50',
+                    'bg-white dark:bg-ios-card-dark rounded-2xl p-6 shadow-sm border border-gray-200/50 dark:border-ios-separator-dark',
                     className
                 )}
                 {...props}

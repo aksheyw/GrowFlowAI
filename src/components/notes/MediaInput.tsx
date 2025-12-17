@@ -41,8 +41,8 @@ export default function MediaInput({
             {/* Input Method Toolbar */}
             <div className="
         flex items-center gap-1 p-2
-        border-b border-gray-100
-        bg-gray-50/50
+        border-b border-gray-100 dark:border-ios-separator-dark
+        bg-gray-50/50 dark:bg-ios-surface-dark
         overflow-x-auto no-scrollbar
       ">
                 {[
@@ -59,8 +59,8 @@ export default function MediaInput({
               text-sm font-medium whitespace-nowrap
               transition-all duration-200
               ${inputMode === mode.id
-                                ? 'bg-white text-[#2D5016] shadow-sm ring-1 ring-black/5'
-                                : 'text-gray-500 hover:text-gray-700 hover:bg-gray-100'
+                                ? 'bg-white dark:bg-ios-card-dark text-[#2D5016] dark:text-green-400 shadow-sm ring-1 ring-black/5 dark:ring-white/10'
+                                : 'text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 hover:bg-gray-100 dark:hover:bg-ios-surface-dark'
                             }
             `}
                     >
@@ -72,7 +72,7 @@ export default function MediaInput({
 
             {/* Audio Upload Mode */}
             {inputMode === 'audio' && (
-                <div className="flex-1 flex flex-col items-center justify-center p-8 text-center bg-gray-50/30">
+                <div className="flex-1 flex flex-col items-center justify-center p-8 text-center bg-gray-50/30 dark:bg-ios-bg-dark">
                     <div
                         onClick={() => fileInputRef.current?.click()}
                         className={`
@@ -107,8 +107,8 @@ export default function MediaInput({
                                     <UploadCloud className="w-8 h-8 text-[#6FA84C]" />
                                 </div>
                                 <div>
-                                    <h3 className="text-lg font-semibold text-gray-900">Click to Upload Audio</h3>
-                                    <p className="text-sm text-gray-500 mt-1">MP3, M4A, WAV (up to 2 hours)</p>
+                                    <h3 className="text-lg font-semibold text-gray-900 dark:text-white">Click to Upload Audio</h3>
+                                    <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">MP3, M4A, WAV (up to 2 hours)</p>
                                 </div>
                                 <button className="
                   mt-2 px-4 py-2 rounded-full
@@ -126,7 +126,7 @@ export default function MediaInput({
 
             {/* Recording Mode */}
             {inputMode === 'record' && (
-                <div className="flex-1 flex flex-col items-center justify-center p-8 text-center bg-gray-50/30 relative overflow-hidden">
+                <div className="flex-1 flex flex-col items-center justify-center p-8 text-center bg-gray-50/30 dark:bg-ios-bg-dark relative overflow-hidden">
                     {/* Background pulsing ring when recording */}
                     {isRecording && (
                         <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
@@ -137,7 +137,7 @@ export default function MediaInput({
                     <div className="relative z-10 flex flex-col items-center justify-center gap-6">
                         {/* Timer Display */}
                         {isRecording && (
-                            <div className="text-4xl font-mono font-bold text-gray-900 tabular-nums">
+                            <div className="text-4xl font-mono font-bold text-gray-900 dark:text-white tabular-nums">
                                 {formatDuration(recordingDuration)}
                             </div>
                         )}
@@ -162,10 +162,10 @@ export default function MediaInput({
                         </button>
 
                         <div className="space-y-2">
-                            <h3 className="text-lg font-semibold text-gray-900">
+                            <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
                                 {isRecording ? 'Listening...' : 'Tap to Record'}
                             </h3>
-                            <p className="text-sm text-gray-500">
+                            <p className="text-sm text-gray-500 dark:text-gray-400">
                                 {isRecording
                                     ? 'Speak clearly, we are capturing your thoughts'
                                     : 'We will transcribe your voice into text'
@@ -178,7 +178,7 @@ export default function MediaInput({
 
             {/* Photo Mode */}
             {inputMode === 'photo' && (
-                <div className="flex-1 flex flex-col items-center justify-center p-8 text-center bg-gray-50/30">
+                <div className="flex-1 flex flex-col items-center justify-center p-8 text-center bg-gray-50/30 dark:bg-ios-bg-dark">
                     <div className={`
                         w-full max-w-md aspect-video rounded-3xl
                         border-3 border-dashed border-gray-200
@@ -203,15 +203,15 @@ export default function MediaInput({
                                     onClick={() => cameraInputRef.current?.click()}
                                     className="
                                         flex flex-col items-center justify-center gap-3
-                                        w-32 h-32 rounded-2xl bg-white shadow-sm border border-gray-100
+                                        w-32 h-32 rounded-2xl bg-white dark:bg-ios-card-dark shadow-sm border border-gray-100 dark:border-ios-separator-dark
                                         cursor-pointer hover:border-[#6FA84C] hover:shadow-md transition-all
                                         group
                                     "
                                 >
-                                    <div className="w-12 h-12 rounded-full bg-gray-50 group-hover:bg-green-50 flex items-center justify-center transition-colors">
+                                    <div className="w-12 h-12 rounded-full bg-gray-50 dark:bg-ios-surface-dark group-hover:bg-green-50 dark:group-hover:bg-green-900/30 flex items-center justify-center transition-colors">
                                         <Camera className="w-6 h-6 text-gray-600 group-hover:text-[#6FA84C]" />
                                     </div>
-                                    <span className="text-sm font-medium text-gray-700 group-hover:text-[#2D5016]">Take Photo</span>
+                                    <span className="text-sm font-medium text-gray-700 dark:text-gray-300 group-hover:text-[#2D5016] dark:group-hover:text-green-400">Take Photo</span>
                                 </div>
 
                                 {/* Upload Image Button */}
@@ -219,23 +219,23 @@ export default function MediaInput({
                                     onClick={() => photoInputRef.current?.click()}
                                     className="
                                         flex flex-col items-center justify-center gap-3
-                                        w-32 h-32 rounded-2xl bg-white shadow-sm border border-gray-100
+                                        w-32 h-32 rounded-2xl bg-white dark:bg-ios-card-dark shadow-sm border border-gray-100 dark:border-ios-separator-dark
                                         cursor-pointer hover:border-[#6FA84C] hover:shadow-md transition-all
                                         group
                                     "
                                 >
-                                    <div className="w-12 h-12 rounded-full bg-gray-50 group-hover:bg-green-50 flex items-center justify-center transition-colors">
+                                    <div className="w-12 h-12 rounded-full bg-gray-50 dark:bg-ios-surface-dark group-hover:bg-green-50 dark:group-hover:bg-green-900/30 flex items-center justify-center transition-colors">
                                         <UploadCloud className="w-6 h-6 text-gray-600 group-hover:text-[#6FA84C]" />
                                     </div>
-                                    <span className="text-sm font-medium text-gray-700 group-hover:text-[#2D5016]">Upload Image</span>
+                                    <span className="text-sm font-medium text-gray-700 dark:text-gray-300 group-hover:text-[#2D5016] dark:group-hover:text-green-400">Upload Image</span>
                                 </div>
                             </div>
                         )}
 
                         {!isTranscribing && (
                             <div>
-                                <h3 className="text-lg font-semibold text-gray-900">Capture Text</h3>
-                                <p className="text-sm text-gray-500 mt-1">Take a photo or upload an image</p>
+                                <h3 className="text-lg font-semibold text-gray-900 dark:text-white">Capture Text</h3>
+                                <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">Take a photo or upload an image</p>
                             </div>
                         )}
                     </div>

@@ -43,7 +43,7 @@ export default function MeetingHeader({
             {/* Background gradient */}
             <div className="
             absolute inset-0
-            bg-gradient-to-br from-blue-50/50 to-indigo-50/50
+            bg-gradient-to-br from-blue-50/50 to-indigo-50/50 dark:from-ios-card-dark dark:to-ios-card-dark
             pointer-events-none
           " />
 
@@ -83,7 +83,7 @@ export default function MeetingHeader({
                         className="
                   w-full
                   text-3xl sm:text-4xl font-bold
-                  text-gray-900 text-left
+                  text-gray-900 dark:text-white text-left
                   border-2 border-blue-500
                   rounded-xl px-2 py-1
                   bg-transparent
@@ -98,7 +98,7 @@ export default function MeetingHeader({
                         <h1
                             onClick={() => setIsEditingTitle(true)}
                             className="
-                                text-3xl sm:text-4xl font-bold text-gray-900
+                                text-3xl sm:text-4xl font-bold text-gray-900 dark:text-white
                                 cursor-pointer
                                 hover:text-blue-600
                                 transition-colors duration-200
@@ -106,7 +106,7 @@ export default function MeetingHeader({
                                 relative
                                 inline-flex items-center gap-3
                                 px-2 py-1
-                                -ml-2 rounded-xl hover:bg-blue-50/50
+                                -ml-2 rounded-xl hover:bg-blue-50/50 dark:hover:bg-blue-900/30
                             "
                         >
                             {note.meeting_title || 'Meeting Notes'}
@@ -124,7 +124,7 @@ export default function MeetingHeader({
                 {/* Metadata row */}
                 <div className="
               flex flex-wrap items-center justify-start gap-6
-              text-base text-gray-600 mb-6
+              text-base text-gray-600 dark:text-gray-400 mb-6
             ">
                     {/* Date */}
                     {note.meeting_date && (
@@ -157,7 +157,7 @@ export default function MeetingHeader({
                     {/* Created timestamp */}
                     <div className="flex items-center gap-2">
                         <Clock className="w-5 h-5 text-gray-400" />
-                        <span className="text-sm text-gray-500">
+                        <span className="text-sm text-gray-500 dark:text-gray-400">
                             Created {formatTimeAgo(note.created_at)}
                         </span>
                     </div>
@@ -173,7 +173,7 @@ export default function MeetingHeader({
                                 <Badge
                                     key={index}
                                     variant="neutral"
-                                    className="px-4 py-2 bg-white/80 backdrop-blur-sm border-blue-200 gap-2"
+                                    className="px-4 py-2 bg-white/80 dark:bg-ios-surface-dark backdrop-blur-sm border-blue-200 dark:border-blue-800 gap-2"
                                 >
                                     <div className="
                       w-8 h-8 rounded-full
@@ -183,7 +183,7 @@ export default function MeetingHeader({
                     ">
                                         {participant.charAt(0).toUpperCase()}
                                     </div>
-                                    <span className="text-sm font-medium text-gray-900">
+                                    <span className="text-sm font-medium text-gray-900 dark:text-white">
                                         {participant}
                                     </span>
                                 </Badge>

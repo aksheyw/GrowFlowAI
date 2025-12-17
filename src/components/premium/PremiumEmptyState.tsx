@@ -44,11 +44,11 @@ export default function PremiumEmptyState() {
         </motion.div>
       </motion.div>
 
-      <h2 className="text-3xl font-bold text-gray-900 mb-3">
+      <h2 className="text-3xl font-bold text-gray-900 dark:text-white mb-3">
         Your garden is waiting
       </h2>
 
-      <p className="text-lg text-gray-600 max-w-md mb-8">
+      <p className="text-lg text-gray-600 dark:text-gray-400 max-w-md mb-8">
         Create a note to start planting your seeds.<br />
         Watch them grow as you complete tasks!
       </p>
@@ -71,11 +71,11 @@ export default function PremiumEmptyState() {
       </Button>
 
       <div className="mt-12 max-w-lg">
-        <p className="text-sm text-gray-500 mb-3">Example meeting note:</p>
+        <p className="text-sm text-gray-500 dark:text-gray-400 mb-3">Example meeting note:</p>
         <div className="
-          bg-gray-50 rounded-xl p-4
-          text-left text-sm text-gray-700
-          border border-gray-200
+          bg-gray-50 dark:bg-ios-surface-dark rounded-xl p-4
+          text-left text-sm text-gray-700 dark:text-gray-300
+          border border-gray-200 dark:border-ios-separator-dark
         ">
           Team standup with Alex and Jordan.<br />
           Alex will complete user auth by Nov 12th - urgent.<br />

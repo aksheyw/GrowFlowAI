@@ -30,8 +30,8 @@ export default function NotificationItem({
         transition-colors duration-200
         cursor-pointer
         ${!notification.read
-                    ? 'bg-blue-50/30 hover:bg-blue-50/50'
-                    : 'hover:bg-gray-50'
+                    ? 'bg-blue-50/30 dark:bg-blue-900/20 hover:bg-blue-50/50 dark:hover:bg-blue-900/30'
+                    : 'hover:bg-gray-50 dark:hover:bg-ios-surface-dark'
                 }
       `}
         >
@@ -51,8 +51,8 @@ export default function NotificationItem({
                     <p className={`
             text-sm leading-relaxed mb-1
             ${!notification.read
-                            ? 'font-medium text-gray-900'
-                            : 'text-gray-700'
+                            ? 'font-medium text-gray-900 dark:text-white'
+                            : 'text-gray-700 dark:text-gray-300'
                         }
           `}>
                         {notification.message}
@@ -61,7 +61,7 @@ export default function NotificationItem({
                     {/* Metadata row */}
                     <div className="flex items-center gap-3 mt-2">
                         {/* Timestamp */}
-                        <span className="text-xs text-gray-500 flex items-center gap-1">
+                        <span className="text-xs text-gray-500 dark:text-gray-400 flex items-center gap-1">
                             <Clock className="w-3 h-3" />
                             {formatTimeAgo(notification.created_at)}
                         </span>

@@ -19,7 +19,7 @@ export default function SummaryPreview({ data, format }: SummaryPreviewProps) {
     }, [data, format]);
 
     return (
-        <div className="bg-white border border-gray-200 rounded-xl p-6 h-[400px] overflow-y-auto shadow-sm font-mono text-sm whitespace-pre-wrap text-gray-700">
+        <div className="bg-white dark:bg-ios-surface-dark border border-gray-200 dark:border-ios-separator-dark rounded-xl p-6 h-[400px] overflow-y-auto shadow-sm font-mono text-sm whitespace-pre-wrap text-gray-700 dark:text-gray-300">
             {formattedContent}
         </div>
     );

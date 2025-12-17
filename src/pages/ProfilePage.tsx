@@ -199,7 +199,7 @@ export default function ProfilePage() {
     };
 
     return (
-        <div className="min-h-screen bg-gray-50 pb-24 md:pb-12">
+        <div className="min-h-screen bg-gray-50 dark:bg-ios-bg-dark pb-24 md:pb-12">
             {activeView === 'main' && (
                 <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
 
@@ -219,11 +219,11 @@ export default function ProfilePage() {
                                 onMouseLeave={() => setShowLevelTooltip(false)}
                                 onClick={() => setShowLevelTooltip(!showLevelTooltip)}
                             >
-                                <div className="flex items-center gap-1 px-3 py-1 bg-white/90 backdrop-blur-sm rounded-full shadow-lg border border-white/50 whitespace-nowrap">
+                                <div className="flex items-center gap-1 px-3 py-1 bg-white/90 dark:bg-ios-card-dark/90 backdrop-blur-sm rounded-full shadow-lg border border-white/50 dark:border-ios-separator-dark whitespace-nowrap">
                                     <div className="w-4 h-4 rounded-full bg-gradient-to-br from-yellow-300 to-yellow-500 flex items-center justify-center shadow-sm flex-shrink-0">
                                         <span className="text-[10px] font-bold text-white">★</span>
                                     </div>
-                                    <span className="text-xs font-semibold text-gray-700">Lvl {stats.level}</span>
+                                    <span className="text-xs font-semibold text-gray-700 dark:text-gray-300">Lvl {stats.level}</span>
                                 </div>
 
                                 <AnimatePresence>
@@ -232,18 +232,18 @@ export default function ProfilePage() {
                                             initial={{ opacity: 0, y: 5, scale: 0.95 }}
                                             animate={{ opacity: 1, y: 0, scale: 1 }}
                                             exit={{ opacity: 0, y: 5, scale: 0.95 }}
-                                            className="absolute top-full left-1/2 transform -translate-x-1/2 mt-2 w-48 bg-white/80 backdrop-blur-md text-gray-800 text-xs p-3 rounded-xl shadow-xl border border-white/50 text-center z-50"
+                                            className="absolute top-full left-1/2 transform -translate-x-1/2 mt-2 w-48 bg-white/80 dark:bg-ios-card-dark/90 backdrop-blur-md text-gray-800 dark:text-gray-200 text-xs p-3 rounded-xl shadow-xl border border-white/50 dark:border-ios-separator-dark text-center z-50"
                                         >
-                                            <div className="font-bold mb-1 text-gray-900">Gardener Level {stats.level}</div>
-                                            <div className="text-gray-600">Complete 5 tasks to level up!</div>
+                                            <div className="font-bold mb-1 text-gray-900 dark:text-white">Gardener Level {stats.level}</div>
+                                            <div className="text-gray-600 dark:text-gray-400">Complete 5 tasks to level up!</div>
                                             <div className="absolute -top-1 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-2 h-2 bg-white/80 rotate-45 border-t border-l border-white/50" />
                                         </motion.div>
                                     )}
                                 </AnimatePresence>
                             </div>
                         </div>
-                        <h1 className="text-2xl font-bold text-gray-900">{profile?.full_name || 'Gardener'}</h1>
-                        <p className="text-gray-500">{user?.email}</p>
+                        <h1 className="text-2xl font-bold text-gray-900 dark:text-white">{profile?.full_name || 'Gardener'}</h1>
+                        <p className="text-gray-500 dark:text-gray-400">{user?.email}</p>
                     </motion.div>
 
                     {/* Gamification Stats */}
@@ -253,28 +253,28 @@ export default function ProfilePage() {
                         animate="visible"
                         className="grid grid-cols-3 gap-4 mb-8"
                     >
-                        <motion.div variants={itemVariants} className="bg-white p-4 rounded-2xl shadow-sm border border-gray-100 flex flex-col items-center text-center">
+                        <motion.div variants={itemVariants} className="bg-white dark:bg-ios-card-dark p-4 rounded-2xl shadow-sm border border-gray-100 dark:border-ios-separator-dark flex flex-col items-center text-center">
                             <div className="w-10 h-10 bg-green-100 rounded-full flex items-center justify-center mb-2 text-green-700">
                                 <Trophy className="w-5 h-5" />
                             </div>
-                            <span className="text-2xl font-bold text-gray-900">{stats.completedTasks}</span>
-                            <span className="text-xs text-gray-500 font-medium">Completed</span>
+                            <span className="text-2xl font-bold text-gray-900 dark:text-white">{stats.completedTasks}</span>
+                            <span className="text-xs text-gray-500 dark:text-gray-400 font-medium">Completed</span>
                         </motion.div>
 
-                        <motion.div variants={itemVariants} className="bg-white p-4 rounded-2xl shadow-sm border border-gray-100 flex flex-col items-center text-center">
+                        <motion.div variants={itemVariants} className="bg-white dark:bg-ios-card-dark p-4 rounded-2xl shadow-sm border border-gray-100 dark:border-ios-separator-dark flex flex-col items-center text-center">
                             <div className="w-10 h-10 bg-orange-100 rounded-full flex items-center justify-center mb-2 text-orange-700">
                                 <Flame className="w-5 h-5" />
                             </div>
-                            <span className="text-2xl font-bold text-gray-900">{stats.activeStreak}</span>
-                            <span className="text-xs text-gray-500 font-medium">Day Streak</span>
+                            <span className="text-2xl font-bold text-gray-900 dark:text-white">{stats.activeStreak}</span>
+                            <span className="text-xs text-gray-500 dark:text-gray-400 font-medium">Day Streak</span>
                         </motion.div>
 
-                        <motion.div variants={itemVariants} className="bg-white p-4 rounded-2xl shadow-sm border border-gray-100 flex flex-col items-center text-center">
+                        <motion.div variants={itemVariants} className="bg-white dark:bg-ios-card-dark p-4 rounded-2xl shadow-sm border border-gray-100 dark:border-ios-separator-dark flex flex-col items-center text-center">
                             <div className="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center mb-2 text-blue-700">
                                 <Sprout className="w-5 h-5" />
                             </div>
-                            <span className="text-2xl font-bold text-gray-900">{stats.totalTasks}</span>
-                            <span className="text-xs text-gray-500 font-medium">Total Planted</span>
+                            <span className="text-2xl font-bold text-gray-900 dark:text-white">{stats.totalTasks}</span>
+                            <span className="text-xs text-gray-500 dark:text-gray-400 font-medium">Total Planted</span>
                         </motion.div>
                     </motion.div>
 
@@ -287,32 +287,32 @@ export default function ProfilePage() {
                     >
                         {menuItems.map((section, idx) => (
                             <motion.div key={idx} variants={itemVariants}>
-                                <h3 className="text-sm font-semibold text-gray-500 uppercase tracking-wider mb-3 ml-1">
+                                <h3 className="text-sm font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-3 ml-1">
                                     {section.title}
                                 </h3>
-                                <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
+                                <div className="bg-white dark:bg-ios-card-dark rounded-2xl shadow-sm border border-gray-100 dark:border-ios-separator-dark overflow-hidden">
                                     {section.items.map((item, itemIdx) => (
                                         <button
                                             key={itemIdx}
                                             onClick={item.action}
-                                            className={`w-full flex items-center justify-between p-4 hover:bg-gray-50 transition-colors ${itemIdx !== section.items.length - 1 ? 'border-b border-gray-100' : ''
+                                            className={`w-full flex items-center justify-between p-4 hover:bg-gray-50 dark:hover:bg-ios-surface-dark transition-colors ${itemIdx !== section.items.length - 1 ? 'border-b border-gray-100 dark:border-ios-separator-dark' : ''
                                                 }`}
                                         >
                                             <div className="flex items-center gap-3">
-                                                <div className="w-8 h-8 rounded-lg bg-gray-50 flex items-center justify-center text-gray-600">
+                                                <div className="w-8 h-8 rounded-lg bg-gray-50 dark:bg-ios-surface-dark flex items-center justify-center text-gray-600 dark:text-gray-400">
                                                     <item.icon className="w-4 h-4" />
                                                 </div>
-                                                <span className="font-medium text-gray-900">{item.label}</span>
+                                                <span className="font-medium text-gray-900 dark:text-white">{item.label}</span>
                                             </div>
                                             <div className="flex items-center gap-2">
                                                 {item.toggle ? (
-                                                    <div className={`w-11 h-6 bg-gray-200 rounded-full relative transition-colors duration-200 ease-in-out ${item.value ? 'bg-green-500' : ''}`}>
-                                                        <div className={`absolute left-1 top-1 w-4 h-4 bg-white rounded-full shadow transition-transform duration-200 ease-in-out ${item.value ? 'translate-x-5' : ''}`} />
+                                                    <div className={`w-12 h-7 rounded-full relative transition-all duration-300 ease-[bezier(0.25,0.1,0.25,1)] ${item.value ? 'bg-[#34C759]' : 'bg-gray-200 dark:bg-gray-600'}`}>
+                                                        <div className={`absolute left-0.5 top-0.5 w-6 h-6 bg-white rounded-full shadow-[0_2px_4px_rgba(0,0,0,0.15)] transition-all duration-300 ease-[bezier(0.25,0.1,0.25,1)] ${item.value ? 'translate-x-5' : 'translate-x-0'}`} />
                                                     </div>
                                                 ) : (
                                                     <>
                                                         {item.badge && (
-                                                            <span className="px-2 py-0.5 bg-gray-100 text-gray-600 text-xs font-medium rounded-full">
+                                                            <span className="px-2 py-0.5 bg-gray-100 dark:bg-ios-surface-dark text-gray-600 dark:text-gray-400 text-xs font-medium rounded-full">
                                                                 {item.badge}
                                                             </span>
                                                         )}
@@ -331,7 +331,7 @@ export default function ProfilePage() {
                             variants={itemVariants}
                             onClick={handleLogout}
                             whileTap={{ scale: 0.98 }}
-                            className="w-full bg-white p-4 rounded-2xl shadow-sm border border-red-100 flex items-center justify-center gap-2 text-red-600 font-semibold hover:bg-red-50 transition-colors mt-8"
+                            className="w-full bg-white dark:bg-ios-card-dark p-4 rounded-2xl shadow-sm border border-red-100 dark:border-red-900/30 flex items-center justify-center gap-2 text-red-600 dark:text-red-400 font-semibold hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors mt-8"
                         >
                             <LogOut className="w-5 h-5" />
                             Log Out

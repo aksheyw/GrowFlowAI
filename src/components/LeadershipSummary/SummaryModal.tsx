@@ -112,22 +112,22 @@ export default function SummaryModal({ isOpen, onClose, note, userId, onSummaryG
                         animate={{ y: 0 }}
                         exit={{ y: '100%' }}
                         transition={{ type: 'spring', damping: 25, stiffness: 300 }}
-                        className="bg-white w-full max-w-2xl h-[85vh] sm:h-[800px] sm:rounded-2xl rounded-t-2xl shadow-2xl flex flex-col relative z-10 overflow-hidden"
+                        className="bg-white dark:bg-ios-card-dark w-full max-w-2xl h-[85vh] sm:h-[800px] sm:rounded-2xl rounded-t-2xl shadow-2xl flex flex-col relative z-10 overflow-hidden"
                     >
                         {/* Header */}
-                        <div className="flex items-center justify-between p-4 border-b border-gray-100">
+                        <div className="flex items-center justify-between p-4 border-b border-gray-100 dark:border-ios-separator-dark">
                             <div className="flex items-center gap-3">
-                                <div className="w-10 h-10 rounded-xl bg-purple-50 flex items-center justify-center text-xl">
+                                <div className="w-10 h-10 rounded-xl bg-purple-50 dark:bg-purple-900/30 flex items-center justify-center text-xl">
                                     👔
                                 </div>
                                 <div>
-                                    <h2 className="text-lg font-bold text-gray-900">Leadership Summary</h2>
+                                    <h2 className="text-lg font-bold text-gray-900 dark:text-white">Leadership Summary</h2>
                                     <div className="flex items-center gap-2">
-                                        <span className="px-2 py-0.5 rounded-full bg-purple-100 text-purple-700 text-xs font-bold uppercase tracking-wider">
+                                        <span className="px-2 py-0.5 rounded-full bg-purple-100 dark:bg-purple-900/40 text-purple-700 dark:text-purple-400 text-xs font-bold uppercase tracking-wider">
                                             BETA
                                         </span>
                                         {summaryData && (
-                                            <span className="text-xs text-gray-500 flex items-center gap-1">
+                                            <span className="text-xs text-gray-500 dark:text-gray-400 flex items-center gap-1">
                                                 <Check className="w-3 h-3" />
                                                 Saved
                                             </span>
@@ -137,9 +137,9 @@ export default function SummaryModal({ isOpen, onClose, note, userId, onSummaryG
                             </div>
                             <button
                                 onClick={onClose}
-                                className="p-2 hover:bg-gray-100 rounded-full transition-colors"
+                                className="p-2 hover:bg-gray-100 dark:hover:bg-ios-surface-dark rounded-full transition-colors"
                             >
-                                <X className="w-5 h-5 text-gray-500" />
+                                <X className="w-5 h-5 text-gray-500 dark:text-gray-400" />
                             </button>
                         </div>
 
@@ -159,13 +159,13 @@ export default function SummaryModal({ isOpen, onClose, note, userId, onSummaryG
                                     <LoadingState />
                                 ) : error ? (
                                     <div className="h-full flex flex-col items-center justify-center text-center p-8">
-                                        <div className="w-12 h-12 bg-red-50 rounded-full flex items-center justify-center mb-4">
-                                            <AlertTriangle className="w-6 h-6 text-red-500" />
+                                        <div className="w-12 h-12 bg-red-50 dark:bg-red-900/30 rounded-full flex items-center justify-center mb-4">
+                                            <AlertTriangle className="w-6 h-6 text-red-500 dark:text-red-400" />
                                         </div>
-                                        <p className="text-red-600 font-medium mb-2">{error}</p>
+                                        <p className="text-red-600 dark:text-red-400 font-medium mb-2">{error}</p>
                                         <button
                                             onClick={() => regenerate()}
-                                            className="text-sm text-gray-500 underline hover:text-gray-700"
+                                            className="text-sm text-gray-500 dark:text-gray-400 underline hover:text-gray-700 dark:hover:text-gray-300"
                                         >
                                             Try Again
                                         </button>
@@ -180,11 +180,11 @@ export default function SummaryModal({ isOpen, onClose, note, userId, onSummaryG
                         </div>
 
                         {/* Footer */}
-                        <div className="p-4 border-t border-gray-100 bg-gray-50/50 flex items-center justify-between gap-3">
+                        <div className="p-4 border-t border-gray-100 dark:border-ios-separator-dark bg-gray-50/50 dark:bg-ios-surface-dark/50 flex items-center justify-between gap-3">
                             <button
                                 onClick={handleRegenerateClick}
                                 disabled={isLoading || isRegenerating}
-                                className="px-4 py-2.5 text-gray-600 font-medium hover:bg-gray-100 rounded-xl transition-colors flex items-center gap-2 disabled:opacity-50"
+                                className="px-4 py-2.5 text-gray-600 dark:text-gray-300 font-medium hover:bg-gray-100 dark:hover:bg-ios-card-dark rounded-xl transition-colors flex items-center gap-2 disabled:opacity-50"
                             >
                                 <RefreshCw className={`w-4 h-4 ${isRegenerating ? 'animate-spin' : ''}`} />
                                 Regenerate
@@ -207,20 +207,20 @@ export default function SummaryModal({ isOpen, onClose, note, userId, onSummaryG
                                     initial={{ opacity: 0 }}
                                     animate={{ opacity: 1 }}
                                     exit={{ opacity: 0 }}
-                                    className="absolute inset-0 z-20 bg-white/90 backdrop-blur-sm flex items-center justify-center p-6"
+                                    className="absolute inset-0 z-20 bg-white/90 dark:bg-ios-card-dark/90 backdrop-blur-sm flex items-center justify-center p-6"
                                 >
                                     <div className="text-center max-w-xs">
-                                        <div className="w-12 h-12 bg-yellow-50 rounded-full flex items-center justify-center mx-auto mb-4">
-                                            <AlertTriangle className="w-6 h-6 text-yellow-600" />
+                                        <div className="w-12 h-12 bg-yellow-50 dark:bg-yellow-900/30 rounded-full flex items-center justify-center mx-auto mb-4">
+                                            <AlertTriangle className="w-6 h-6 text-yellow-600 dark:text-yellow-400" />
                                         </div>
-                                        <h3 className="text-lg font-bold text-gray-900 mb-2">Regenerate Summary?</h3>
-                                        <p className="text-sm text-gray-600 mb-6">
+                                        <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-2">Regenerate Summary?</h3>
+                                        <p className="text-sm text-gray-600 dark:text-gray-400 mb-6">
                                             This will overwrite the existing summary with a new AI-generated version.
                                         </p>
                                         <div className="flex gap-3 justify-center">
                                             <button
                                                 onClick={() => setShowRegenerateConfirm(false)}
-                                                className="px-4 py-2 text-gray-600 font-medium hover:bg-gray-100 rounded-lg"
+                                                className="px-4 py-2 text-gray-600 dark:text-gray-300 font-medium hover:bg-gray-100 dark:hover:bg-ios-surface-dark rounded-lg"
                                             >
                                                 Cancel
                                             </button>

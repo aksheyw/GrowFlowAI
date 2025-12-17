@@ -98,8 +98,8 @@ export default function Toast({ toast, onRemove }: ToastProps) {
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
       className={`
-        bg-white rounded-2xl
-        shadow-2xl border border-gray-100
+        bg-white dark:bg-ios-card-dark rounded-2xl
+        shadow-2xl border border-gray-100 dark:border-ios-separator-dark
         overflow-hidden
         ${toast.onClick ? 'cursor-pointer' : ''}
         hover:shadow-3xl
@@ -121,13 +121,13 @@ export default function Toast({ toast, onRemove }: ToastProps) {
         <div className="flex-1 min-w-0">
           {/* Title (if present) */}
           {toast.title && (
-            <h4 className="font-semibold text-gray-900 mb-1 text-sm">
+            <h4 className="font-semibold text-gray-900 dark:text-white mb-1 text-sm">
               {toast.title}
             </h4>
           )}
 
           {/* Message */}
-          <p className={`text-sm text-gray-600 leading-relaxed ${!toast.title ? 'font-medium text-gray-900' : ''}`}>
+          <p className={`text-sm text-gray-600 dark:text-gray-400 leading-relaxed ${!toast.title ? 'font-medium text-gray-900 dark:text-white' : ''}`}>
             {toast.message}
           </p>
 
@@ -157,13 +157,13 @@ export default function Toast({ toast, onRemove }: ToastProps) {
           }}
           className="
             p-1 rounded-lg
-            hover:bg-gray-100
+            hover:bg-gray-100 dark:hover:bg-ios-surface-dark
             transition-colors duration-200
             flex-shrink-0
           "
           aria-label="Dismiss notification"
         >
-          <X className="w-4 h-4 text-gray-500" />
+          <X className="w-4 h-4 text-gray-500 dark:text-gray-400" />
         </button>
       </div>
 

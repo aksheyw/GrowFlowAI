@@ -137,24 +137,24 @@ export default function LeadershipSummaryDisplay({ summary }: LeadershipSummaryD
     };
 
     return (
-        <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden mb-8">
+        <div className="bg-white dark:bg-ios-card-dark rounded-2xl shadow-sm border border-gray-100 dark:border-ios-separator-dark overflow-hidden mb-8">
             {/* Header Section */}
-            <div className="p-6 border-b border-gray-100 bg-gradient-to-br from-slate-50 to-white">
+            <div className="p-6 border-b border-gray-100 dark:border-ios-separator-dark bg-gradient-to-br from-slate-50 to-white dark:from-ios-surface-dark dark:to-ios-card-dark">
                 <div className="flex items-center gap-3 mb-6">
-                    <div className="w-10 h-10 rounded-xl bg-slate-100 flex items-center justify-center text-slate-700 shadow-sm">
+                    <div className="w-10 h-10 rounded-xl bg-slate-100 dark:bg-slate-800 flex items-center justify-center text-slate-700 dark:text-slate-300 shadow-sm">
                         <Briefcase className="w-5 h-5" />
                     </div>
                     <div>
-                        <h3 className="text-lg font-bold text-gray-900 leading-tight">Leadership Brief</h3>
-                        <p className="text-xs font-medium text-gray-500 uppercase tracking-wide">Executive Summary</p>
+                        <h3 className="text-lg font-bold text-gray-900 dark:text-white leading-tight">Leadership Brief</h3>
+                        <p className="text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wide">Executive Summary</p>
                     </div>
                 </div>
 
                 <div className="space-y-6">
                     {/* TLDR */}
-                    <div className="bg-slate-50/50 p-4 rounded-xl border border-slate-100">
-                        <h4 className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-2">TL;DR</h4>
-                        <p className="text-gray-800 italic leading-relaxed">
+                    <div className="bg-slate-50/50 dark:bg-slate-900/30 p-4 rounded-xl border border-slate-100 dark:border-slate-800">
+                        <h4 className="text-xs font-bold text-gray-400 dark:text-gray-500 uppercase tracking-wider mb-2">TL;DR</h4>
+                        <p className="text-gray-800 dark:text-gray-200 italic leading-relaxed">
                             {summary.tldr || "No summary available."}
                         </p>
                     </div>
@@ -168,7 +168,7 @@ export default function LeadershipSummaryDisplay({ summary }: LeadershipSummaryD
                             {summary.decisions && summary.decisions.length > 0 ? (
                                 <ul className="space-y-2.5">
                                     {summary.decisions.map((decision, idx) => (
-                                        <li key={idx} className="flex items-start gap-2.5 text-sm text-gray-700 leading-snug">
+                                        <li key={idx} className="flex items-start gap-2.5 text-sm text-gray-700 dark:text-gray-300 leading-snug">
                                             <span className="mt-1.5 w-1.5 h-1.5 rounded-full bg-green-500 flex-shrink-0 shadow-sm" />
                                             {decision}
                                         </li>
@@ -187,7 +187,7 @@ export default function LeadershipSummaryDisplay({ summary }: LeadershipSummaryD
                             {summary.actionItems && summary.actionItems.length > 0 ? (
                                 <ul className="space-y-2.5">
                                     {summary.actionItems.map((item, idx) => (
-                                        <li key={idx} className="flex items-start gap-2.5 text-sm text-gray-700 leading-snug">
+                                        <li key={idx} className="flex items-start gap-2.5 text-sm text-gray-700 dark:text-gray-300 leading-snug">
                                             <span className="mt-1.5 w-1.5 h-1.5 rounded-full bg-amber-500 flex-shrink-0 shadow-sm" />
                                             {item}
                                         </li>
@@ -202,9 +202,9 @@ export default function LeadershipSummaryDisplay({ summary }: LeadershipSummaryD
             </div>
 
             {/* Formats Section */}
-            <div className="bg-gray-50/30">
+            <div className="bg-gray-50/30 dark:bg-ios-surface-dark/30">
                 {/* Tabs */}
-                <div className="flex items-center border-b border-gray-100 px-4 pt-2 gap-2 overflow-x-auto scrollbar-hide">
+                <div className="flex items-center border-b border-gray-100 dark:border-ios-separator-dark px-4 pt-2 gap-2 overflow-x-auto scrollbar-hide">
                     {['email', 'chat', 'document'].map((tab) => (
                         <button
                             key={tab}
@@ -212,8 +212,8 @@ export default function LeadershipSummaryDisplay({ summary }: LeadershipSummaryD
                             className={`
                                 flex items-center gap-2 px-4 py-3 rounded-t-lg text-sm font-medium transition-all relative
                                 ${activeTab === tab
-                                    ? 'bg-white text-green-800 shadow-[0_-2px_6px_rgba(0,0,0,0.02)] border-t border-x border-gray-100 z-10'
-                                    : 'text-gray-500 hover:text-gray-700 hover:bg-gray-100/50'
+                                    ? 'bg-white dark:bg-ios-card-dark text-green-800 dark:text-green-400 shadow-[0_-2px_6px_rgba(0,0,0,0.02)] border-t border-x border-gray-100 dark:border-ios-separator-dark z-10'
+                                    : 'text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 hover:bg-gray-100/50 dark:hover:bg-ios-card-dark/50'
                                 }
                             `}
                         >
@@ -221,13 +221,13 @@ export default function LeadershipSummaryDisplay({ summary }: LeadershipSummaryD
                             {tab === 'chat' && <MessageSquare className="w-4 h-4" />}
                             {tab === 'document' && <FileText className="w-4 h-4" />}
                             {tab.charAt(0).toUpperCase() + tab.slice(1)}
-                            {activeTab === tab && <div className="absolute bottom-[-1px] left-0 right-0 h-[1px] bg-white" />}
+                            {activeTab === tab && <div className="absolute bottom-[-1px] left-0 right-0 h-[1px] bg-white dark:bg-ios-card-dark" />}
                         </button>
                     ))}
                 </div>
 
                 {/* Content Area */}
-                <div className="bg-white min-h-[200px] max-h-[400px] overflow-y-auto p-6 border-b border-gray-100">
+                <div className="bg-white dark:bg-ios-card-dark min-h-[200px] max-h-[400px] overflow-y-auto p-6 border-b border-gray-100 dark:border-ios-separator-dark">
                     <AnimatePresence mode="wait">
                         <motion.div
                             key={activeTab}
@@ -238,18 +238,18 @@ export default function LeadershipSummaryDisplay({ summary }: LeadershipSummaryD
                         >
                             {activeTab === 'email' && (
                                 <div
-                                    className="font-sans text-sm text-gray-700 bg-gray-50 p-5 rounded-xl border border-gray-100 leading-relaxed"
+                                    className="font-sans text-sm text-gray-700 dark:text-gray-300 bg-gray-50 dark:bg-ios-surface-dark p-5 rounded-xl border border-gray-100 dark:border-ios-separator-dark leading-relaxed"
                                     dangerouslySetInnerHTML={{ __html: parseMarkdownToHtml(summary.emailFormat || "No email format available.") }}
                                 />
                             )}
                             {activeTab === 'chat' && (
-                                <div className="bg-blue-50/50 p-5 rounded-2xl rounded-tl-none inline-block max-w-full text-sm text-slate-800 whitespace-pre-wrap leading-relaxed border border-blue-100/50">
+                                <div className="bg-blue-50/50 dark:bg-blue-900/20 p-5 rounded-2xl rounded-tl-none inline-block max-w-full text-sm text-slate-800 dark:text-slate-200 whitespace-pre-wrap leading-relaxed border border-blue-100/50 dark:border-blue-800/30">
                                     {summary.chatFormat || "No chat format available."}
                                 </div>
                             )}
                             {activeTab === 'document' && (
                                 <div
-                                    className="prose prose-sm max-w-none text-gray-700 p-2"
+                                    className="prose prose-sm dark:prose-invert max-w-none text-gray-700 dark:text-gray-300 p-2"
                                     dangerouslySetInnerHTML={{ __html: parseMarkdownToHtml(summary.documentFormat || "No document format available.") }}
                                 />
                             )}
@@ -258,14 +258,14 @@ export default function LeadershipSummaryDisplay({ summary }: LeadershipSummaryD
                 </div>
 
                 {/* Copy Button Footer */}
-                <div className="p-4 bg-gray-50 border-t border-gray-100">
+                <div className="p-4 bg-gray-50 dark:bg-ios-surface-dark border-t border-gray-100 dark:border-ios-separator-dark">
                     <button
                         onClick={handleCopy}
                         className={`
                             w-full flex items-center justify-center gap-2 px-4 py-3 rounded-xl text-sm font-semibold transition-all duration-200
                             ${copied
-                                ? 'bg-green-100 text-green-800 border border-green-200'
-                                : 'bg-white text-gray-700 border border-gray-200 hover:border-green-300 hover:text-green-700 hover:shadow-sm'
+                                ? 'bg-green-100 dark:bg-green-900/40 text-green-800 dark:text-green-300 border border-green-200 dark:border-green-800'
+                                : 'bg-white dark:bg-ios-card-dark text-gray-700 dark:text-gray-300 border border-gray-200 dark:border-ios-separator-dark hover:border-green-300 hover:text-green-700 dark:hover:text-green-400 hover:shadow-sm'
                             }
                         `}
                     >

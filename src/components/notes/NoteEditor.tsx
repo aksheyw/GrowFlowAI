@@ -40,7 +40,7 @@ export default function NoteEditor({
                         onClick={() => setIsExpanded(!isExpanded)}
                         className="
                             p-2 rounded-xl
-                            text-green-600 bg-green-50 hover:bg-green-100
+                            text-green-600 dark:text-green-400 bg-green-50 dark:bg-green-900/30 hover:bg-green-100 dark:hover:bg-green-900/50
                             transition-all duration-200 shadow-sm
                         "
                         title={isExpanded ? "Exit Focus Mode" : "Enter Focus Mode"}
@@ -85,7 +85,7 @@ I need to schedule a code review session with the team, probably by end of week.
                     w-full p-6 sm:p-8
                     flex-1
                     text-base sm:text-lg leading-relaxed
-                    text-gray-900 placeholder:text-gray-400
+                    text-gray-900 dark:text-white placeholder:text-gray-400 dark:placeholder:text-gray-500
                     resize-none
                     focus:outline-none
                     font-normal

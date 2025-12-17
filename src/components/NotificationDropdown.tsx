@@ -87,8 +87,8 @@ export default function NotificationDropdown({
         notification-dropdown
         absolute right-0 mt-3
         w-[420px] max-w-[calc(100vw-2rem)]
-        bg-white rounded-2xl
-        shadow-2xl border border-gray-100
+        bg-white dark:bg-ios-card-dark rounded-2xl
+        shadow-2xl border border-gray-100 dark:border-ios-separator-dark
         overflow-hidden
         z-50
       "
@@ -99,11 +99,11 @@ export default function NotificationDropdown({
       {/* Header */}
       <div className="
         px-6 py-4 
-        border-b border-gray-100
-        bg-gradient-to-r from-gray-50 to-white
+        border-b border-gray-100 dark:border-ios-separator-dark
+        bg-gradient-to-r from-gray-50 to-white dark:from-ios-surface-dark dark:to-ios-card-dark
       ">
         <div className="flex items-center justify-between">
-          <h3 className="text-lg font-semibold text-gray-900">
+          <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
             Notifications
           </h3>
 
@@ -127,7 +127,7 @@ export default function NotificationDropdown({
 
         {/* Unread count indicator */}
         {unreadCount > 0 && (
-          <p className="text-xs text-gray-600 mt-1">
+          <p className="text-xs text-gray-600 dark:text-gray-400 mt-1">
             {unreadCount} unread {unreadCount === 1 ? 'notification' : 'notifications'}
           </p>
         )}
@@ -144,22 +144,22 @@ export default function NotificationDropdown({
             >
               <div className="
                 w-16 h-16 mx-auto mb-4
-                bg-gradient-to-br from-gray-100 to-gray-200
+                bg-gradient-to-br from-gray-100 to-gray-200 dark:from-ios-surface-dark dark:to-gray-700
                 rounded-2xl
                 flex items-center justify-center
               ">
                 <BellOff className="w-8 h-8 text-gray-400" />
               </div>
-              <h4 className="text-base font-semibold text-gray-900 mb-2">
+              <h4 className="text-base font-semibold text-gray-900 dark:text-white mb-2">
                 All caught up!
               </h4>
-              <p className="text-sm text-gray-600">
+              <p className="text-sm text-gray-600 dark:text-gray-400">
                 You have no new notifications
               </p>
             </motion.div>
           </div>
         ) : (
-          <div className="divide-y divide-gray-50">
+          <div className="divide-y divide-gray-50 dark:divide-ios-separator-dark">
             {notifications.map((notification, index) => (
               <NotificationItem
                 key={notification.id}
@@ -182,9 +182,9 @@ export default function NotificationDropdown({
           }}
           className="
             block w-full py-3 text-sm text-center font-medium
-            text-gray-500 hover:text-green-700 hover:bg-gray-50
-            transition-colors border-t border-gray-100 rounded-b-xl
-            sticky bottom-0 bg-white
+            text-gray-500 dark:text-gray-400 hover:text-green-700 dark:hover:text-green-400 hover:bg-gray-50 dark:hover:bg-ios-surface-dark
+            transition-colors border-t border-gray-100 dark:border-ios-separator-dark rounded-b-xl
+            sticky bottom-0 bg-white dark:bg-ios-card-dark
           "
         >
           View all notifications

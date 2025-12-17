@@ -83,7 +83,7 @@ export default function LeadershipGenerationProgress({ onComplete, hasData }: Le
     }, [hasData, onComplete, isAllComplete]);
 
     return (
-        <div className="bg-white rounded-2xl p-8 shadow-sm border border-gray-100 max-w-2xl mx-auto my-8 min-h-[400px] flex flex-col justify-center">
+        <div className="bg-white dark:bg-ios-card-dark rounded-2xl p-8 shadow-sm border border-gray-100 dark:border-ios-separator-dark max-w-2xl mx-auto my-8 min-h-[400px] flex flex-col justify-center">
             <div className="flex flex-col items-center justify-center mb-8 text-center">
                 <motion.div
                     initial={{ scale: 0.8, opacity: 0 }}
@@ -103,10 +103,10 @@ export default function LeadershipGenerationProgress({ onComplete, hasData }: Le
                         <Sparkles className="w-6 h-6 animate-pulse" />
                     )}
                 </motion.div>
-                <h3 className="text-xl font-bold text-gray-900 mb-2">
+                <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-2">
                     {isAllComplete ? 'Brief Generated!' : 'Synthesizing Leadership Brief...'}
                 </h3>
-                <p className="text-gray-500">
+                <p className="text-gray-500 dark:text-gray-400">
                     {isAllComplete
                         ? 'Your executive summary is ready for review.'
                         : 'Our AI is processing your meeting notes to generate an executive summary.'
@@ -127,7 +127,7 @@ export default function LeadershipGenerationProgress({ onComplete, hasData }: Le
                             transition={{ delay: step.id * 0.1 }}
                             className={`
                                 flex items-center gap-4 p-3 rounded-xl transition-colors duration-300
-                                ${isCurrent ? 'bg-slate-50 border border-slate-100' : ''}
+                                ${isCurrent ? 'bg-slate-50 dark:bg-ios-surface-dark border border-slate-100 dark:border-ios-separator-dark' : ''}
                             `}
                         >
                             <div className="flex-shrink-0 w-6 h-6 flex items-center justify-center">
@@ -137,17 +137,17 @@ export default function LeadershipGenerationProgress({ onComplete, hasData }: Le
                                         animate={{ scale: 1 }}
                                         transition={{ type: "spring", stiffness: 300, damping: 20 }}
                                     >
-                                        <CheckCircle2 className="w-6 h-6 text-green-500" />
+                                        <CheckCircle2 className="w-6 h-6 text-green-500 dark:text-green-400" />
                                     </motion.div>
                                 ) : isCurrent ? (
-                                    <Loader2 className="w-5 h-5 text-slate-600 animate-spin" />
+                                    <Loader2 className="w-5 h-5 text-slate-600 dark:text-slate-400 animate-spin" />
                                 ) : (
-                                    <div className="w-2 h-2 rounded-full bg-gray-200" />
+                                    <div className="w-2 h-2 rounded-full bg-gray-200 dark:bg-gray-700" />
                                 )}
                             </div>
                             <span className={`
                                 font-medium transition-colors duration-300
-                                ${isCompleted ? 'text-gray-900' : isCurrent ? 'text-slate-800' : 'text-gray-400'}
+                                ${isCompleted ? 'text-gray-900 dark:text-white' : isCurrent ? 'text-slate-800 dark:text-slate-200' : 'text-gray-400 dark:text-gray-500'}
                             `}>
                                 {step.text}
                             </span>

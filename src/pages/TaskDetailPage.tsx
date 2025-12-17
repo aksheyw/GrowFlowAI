@@ -243,7 +243,7 @@ export default function TaskDetailPage() {
 
 
   if (loading) return (
-    <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+    <div className="min-h-screen bg-gray-50 dark:bg-ios-bg-dark flex items-center justify-center">
       <Loader2 className="w-8 h-8 text-[#2D5016] animate-spin" />
     </div>
   );
@@ -251,18 +251,27 @@ export default function TaskDetailPage() {
   if (!task) return null;
 
   return (
-    <div className="min-h-screen bg-gray-50 font-sans pb-20 md:pb-0">
-      {/* Breadcrumb */}
-      <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
+    <div className="min-h-screen bg-gray-50 dark:bg-ios-bg-dark font-sans pb-20 md:pb-0">
+      {/* Navigation */}
+      <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
         <Button
           variant="ghost"
           onClick={() => navigate('/dashboard')}
-          className="flex items-center gap-2 text-sm text-gray-600 hover:text-gray-900 transition-colors group pl-0 hover:bg-transparent"
+          className="
+            pl-2 pr-4 py-2 h-auto text-sm font-medium
+            text-gray-600 dark:text-gray-300
+            hover:text-gray-900 dark:hover:text-white
+            hover:bg-white/50 dark:hover:bg-white/10
+            backdrop-blur-md
+            border border-transparent hover:border-gray-200 dark:hover:border-white/10
+            rounded-full
+            transition-all duration-200
+            active:scale-95
+            group
+          "
         >
-          <ArrowLeft className="w-4 h-4 group-hover:-translate-x-1 transition-transform" />
-          Dashboard
-          <span className="text-gray-400">/</span>
-          <span className="font-medium text-gray-900">Task Details</span>
+          <ArrowLeft className="w-4 h-4 mr-2 transition-transform group-hover:-translate-x-1" />
+          Back to Dashboard
         </Button>
       </div>
 
@@ -271,9 +280,9 @@ export default function TaskDetailPage() {
         <Card
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          className="p-4 sm:p-8 shadow-xl border-gray-100 relative overflow-hidden mb-6 sm:mb-8 group"
+          className="p-4 sm:p-8 shadow-xl border-gray-100 dark:border-ios-separator-dark relative overflow-hidden mb-6 sm:mb-8 group"
         >
-          <div className="absolute inset-0 bg-gradient-to-br from-green-50/50 to-emerald-50/50 pointer-events-none" />
+          <div className="absolute inset-0 bg-gradient-to-br from-green-50/50 to-emerald-50/50 dark:from-green-900/20 dark:to-emerald-900/20 pointer-events-none" />
 
           <div className="relative flex flex-col md:flex-row gap-4 sm:gap-8 items-start">
             {/* Large Emoji - Responsive sizing */}
@@ -314,14 +323,14 @@ export default function TaskDetailPage() {
                         handleDescriptionSave();
                       }
                     }}
-                    className="w-full text-xl sm:text-2xl md:text-3xl font-bold text-gray-900 bg-transparent border-b-2 border-[#6FA84C] focus:outline-none resize-none"
+                    className="w-full text-xl sm:text-2xl md:text-3xl font-bold text-gray-900 dark:text-white bg-transparent border-b-2 border-[#6FA84C] focus:outline-none resize-none"
                     rows={2}
                     autoFocus
                   />
                 ) : (
                   <h1
                     onClick={() => setIsEditingDescription(true)}
-                    className="text-xl sm:text-2xl md:text-3xl font-bold text-gray-900 cursor-pointer hover:text-[#2D5016] transition-colors flex items-start gap-3 group/title"
+                    className="text-xl sm:text-2xl md:text-3xl font-bold text-gray-900 dark:text-white cursor-pointer hover:text-[#2D5016] dark:hover:text-[#6FA84C] transition-colors flex items-start gap-3 group/title"
                   >
                     {task.description}
                     <Edit2 className="w-4 h-4 sm:w-5 sm:h-5 text-gray-400 opacity-0 group-hover/title:opacity-100 transition-opacity mt-1" />
@@ -332,17 +341,17 @@ export default function TaskDetailPage() {
               {/* Metadata Badges */}
               <div className="flex flex-wrap gap-2 sm:gap-4">
                 {/* Assignee */}
-                <div className="flex items-center gap-2 bg-white/80 px-2 py-1 sm:px-3 sm:py-1.5 rounded-xl border border-gray-200">
+                <div className="flex items-center gap-2 bg-white/80 dark:bg-ios-card-dark/80 px-2 py-1 sm:px-3 sm:py-1.5 rounded-xl border border-gray-200 dark:border-ios-separator-dark">
                   <User className="w-3 h-3 sm:w-4 sm:h-4 text-gray-500" />
-                  <span className="font-medium text-xs sm:text-sm text-gray-900">
+                  <span className="font-medium text-xs sm:text-sm text-gray-900 dark:text-white">
                     {task.assignee?.full_name || 'Unassigned'}
                   </span>
                 </div>
 
                 {/* Due Date */}
-                <div className="flex items-center gap-2 bg-white/80 px-2 py-1 sm:px-3 sm:py-1.5 rounded-xl border border-gray-200">
+                <div className="flex items-center gap-2 bg-white/80 dark:bg-ios-card-dark/80 px-2 py-1 sm:px-3 sm:py-1.5 rounded-xl border border-gray-200 dark:border-ios-separator-dark">
                   <Calendar className="w-3 h-3 sm:w-4 sm:h-4 text-gray-500" />
-                  <span className="font-medium text-xs sm:text-sm text-gray-900">
+                  <span className="font-medium text-xs sm:text-sm text-gray-900 dark:text-white">
                     {formatDeadline(task.deadline).text}
                   </span>
                 </div>
@@ -365,8 +374,8 @@ export default function TaskDetailPage() {
           <div className="lg:col-span-2 space-y-8">
 
             {/* Controls Card */}
-            <div className="bg-white rounded-2xl p-6 border border-gray-100 shadow-sm">
-              <h2 className="text-lg font-bold text-gray-900 mb-6 flex items-center gap-2">
+            <div className="bg-white dark:bg-ios-card-dark rounded-2xl p-6 border border-gray-100 dark:border-ios-separator-dark shadow-sm">
+              <h2 className="text-lg font-bold text-gray-900 dark:text-white mb-6 flex items-center gap-2">
                 <FileText className="w-5 h-5 text-[#6FA84C]" />
                 Task Controls
               </h2>
@@ -374,7 +383,7 @@ export default function TaskDetailPage() {
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
                 {/* Status */}
                 <div>
-                  <label className="block text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2">Status</label>
+                  <label className="block text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-2">Status</label>
                   <Select
                     value={task.status}
                     onChange={(value) => handleUpdate({ status: value as Task['status'] })}
@@ -388,7 +397,7 @@ export default function TaskDetailPage() {
 
                 {/* Assignee */}
                 <div>
-                  <label className="block text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2">Assignee</label>
+                  <label className="block text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-2">Assignee</label>
                   <Select
                     value={task.assignee_id || ''}
                     onChange={(value) => handleUpdate({ assignee_id: value || null })}
@@ -420,8 +429,8 @@ export default function TaskDetailPage() {
 
                 {/* Priority */}
                 <div>
-                  <label className="block text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2">Priority</label>
-                  <div className="flex bg-gray-50 p-1 rounded-xl border border-gray-200">
+                  <label className="block text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-2">Priority</label>
+                  <div className="flex bg-gray-50 dark:bg-ios-surface-dark p-1 rounded-xl border border-gray-200 dark:border-ios-separator-dark">
                     {['Low', 'Medium', 'High'].map((p) => (
                       <button
                         key={p}
@@ -429,8 +438,8 @@ export default function TaskDetailPage() {
                         className={`
                           flex-1 py-2 rounded-lg text-sm font-medium transition-all
                           ${task.priority === p
-                            ? 'bg-white text-gray-900 shadow-sm border border-gray-100'
-                            : 'text-gray-500 hover:text-gray-700'}
+                            ? 'bg-white dark:bg-ios-card-dark text-gray-900 dark:text-white shadow-sm border border-gray-100 dark:border-ios-separator-dark'
+                            : 'text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300'}
                         `}
                       >
                         {p === 'High' ? '🔥' : p === 'Medium' ? '⚡' : '📌'} {p}
@@ -443,50 +452,50 @@ export default function TaskDetailPage() {
 
             {/* Activity Timeline */}
             <Card>
-              <h2 className="text-lg font-bold text-gray-900 mb-6 flex items-center gap-2">
+              <h2 className="text-lg font-bold text-gray-900 dark:text-white mb-6 flex items-center gap-2">
                 <Clock className="w-5 h-5 text-[#6FA84C]" />
                 Activity Timeline
               </h2>
 
-              <div className="space-y-6 relative before:absolute before:left-[19px] before:top-2 before:bottom-2 before:w-0.5 before:bg-gray-100">
+              <div className="space-y-6 relative before:absolute before:left-[19px] before:top-2 before:bottom-2 before:w-0.5 before:bg-gray-100 dark:before:bg-ios-separator-dark">
                 {/* Created Event */}
                 <div className="relative flex gap-4">
-                  <div className="w-10 h-10 rounded-full bg-blue-50 border-2 border-white shadow-sm flex items-center justify-center z-10">
+                  <div className="w-10 h-10 rounded-full bg-blue-50 dark:bg-blue-900/30 border-2 border-white dark:border-ios-card-dark shadow-sm flex items-center justify-center z-10">
                     <Plus className="w-5 h-5 text-blue-600" />
                   </div>
                   <div>
-                    <p className="text-sm text-gray-900">
+                    <p className="text-sm text-gray-900 dark:text-white">
                       <span className="font-bold">{task.creator?.full_name || 'Someone'}</span> created this task
                     </p>
-                    <p className="text-xs text-gray-500">{formatTimeAgo(task.created_at)}</p>
+                    <p className="text-xs text-gray-500 dark:text-gray-400">{formatTimeAgo(task.created_at)}</p>
                   </div>
                 </div>
 
                 {/* Last Updated Event (if different) */}
                 {task.updated_at !== task.created_at && (
                   <div className="relative flex gap-4">
-                    <div className="w-10 h-10 rounded-full bg-yellow-50 border-2 border-white shadow-sm flex items-center justify-center z-10">
+                    <div className="w-10 h-10 rounded-full bg-yellow-50 dark:bg-yellow-900/30 border-2 border-white dark:border-ios-card-dark shadow-sm flex items-center justify-center z-10">
                       <Edit2 className="w-5 h-5 text-yellow-600" />
                     </div>
                     <div>
-                      <p className="text-sm text-gray-900">
+                      <p className="text-sm text-gray-900 dark:text-white">
                         Task was updated
                       </p>
-                      <p className="text-xs text-gray-500">{formatTimeAgo(task.updated_at)}</p>
+                      <p className="text-xs text-gray-500 dark:text-gray-400">{formatTimeAgo(task.updated_at)}</p>
                     </div>
                   </div>
                 )}
 
                 {/* Current Status Event */}
                 <div className="relative flex gap-4">
-                  <div className="w-10 h-10 rounded-full bg-green-50 border-2 border-white shadow-sm flex items-center justify-center z-10">
+                  <div className="w-10 h-10 rounded-full bg-green-50 dark:bg-green-900/30 border-2 border-white dark:border-ios-card-dark shadow-sm flex items-center justify-center z-10">
                     <CheckCircle2 className="w-5 h-5 text-green-600" />
                   </div>
                   <div>
-                    <p className="text-sm text-gray-900">
+                    <p className="text-sm text-gray-900 dark:text-white">
                       Current status is <span className="font-bold">{task.status}</span>
                     </p>
-                    <p className="text-xs text-gray-500">Just now</p>
+                    <p className="text-xs text-gray-500 dark:text-gray-400">Just now</p>
                   </div>
                 </div>
               </div>
@@ -499,7 +508,7 @@ export default function TaskDetailPage() {
 
             {/* Growth Progress */}
             <Card>
-              <h2 className="text-lg font-bold text-gray-900 mb-6 flex items-center gap-2">
+              <h2 className="text-lg font-bold text-gray-900 dark:text-white mb-6 flex items-center gap-2">
                 <PlantIcon className="w-5 h-5 text-[#6FA84C]" />
                 Growth Progress
               </h2>
@@ -508,24 +517,24 @@ export default function TaskDetailPage() {
 
             {/* Task Info */}
             <Card className="text-sm">
-              <h2 className="text-lg font-bold text-gray-900 mb-4">ℹ️ Task Info</h2>
+              <h2 className="text-lg font-bold text-gray-900 dark:text-white mb-4">ℹ️ Task Info</h2>
               <div className="space-y-4">
                 <div>
-                  <p className="text-gray-500 mb-1">Created</p>
-                  <p className="font-medium text-gray-900">{formatDateShort(task.created_at)}</p>
+                  <p className="text-gray-500 dark:text-gray-400 mb-1">Created</p>
+                  <p className="font-medium text-gray-900 dark:text-white">{formatDateShort(task.created_at)}</p>
                 </div>
                 <div>
-                  <p className="text-gray-500 mb-1">Created by</p>
+                  <p className="text-gray-500 dark:text-gray-400 mb-1">Created by</p>
                   <div className="flex items-center gap-2">
-                    <div className="w-5 h-5 rounded-full bg-gray-200 flex items-center justify-center text-[10px]">
+                    <div className="w-5 h-5 rounded-full bg-gray-200 dark:bg-gray-700 flex items-center justify-center text-[10px] dark:text-white">
                       {getInitials(task.creator?.full_name || 'Unknown')}
                     </div>
-                    <p className="font-medium text-gray-900">{task.creator?.full_name || 'Unknown'}</p>
+                    <p className="font-medium text-gray-900 dark:text-white">{task.creator?.full_name || 'Unknown'}</p>
                   </div>
                 </div>
                 {task.note && (
-                  <div className="pt-4 border-t border-gray-100">
-                    <p className="text-gray-500 mb-2">From meeting note</p>
+                  <div className="pt-4 border-t border-gray-100 dark:border-ios-separator-dark">
+                    <p className="text-gray-500 dark:text-gray-400 mb-2">From meeting note</p>
                     <button
                       onClick={() => navigate(`/note/${task.note_id}`)}
                       className="text-[#2D5016] font-medium hover:underline flex items-center gap-1"
@@ -542,19 +551,19 @@ export default function TaskDetailPage() {
             {/* Meeting Context Card */}
             {task.note && (
               <Card>
-                <h2 className="text-lg font-bold text-gray-900 mb-4 flex items-center gap-2">
+                <h2 className="text-lg font-bold text-gray-900 dark:text-white mb-4 flex items-center gap-2">
                   <FileText className="w-5 h-5 text-[#6FA84C]" />
                   Meeting Context
                 </h2>
 
-                <div className="bg-blue-50/50 rounded-xl p-4 border border-blue-100 mb-4">
-                  <h3 className="font-bold text-gray-900 mb-1">{task.note.meeting_title || 'Untitled Meeting'}</h3>
-                  <p className="text-xs text-gray-500 mb-2">
+                <div className="bg-blue-50/50 dark:bg-blue-900/20 rounded-xl p-4 border border-blue-100 dark:border-blue-800 mb-4">
+                  <h3 className="font-bold text-gray-900 dark:text-white mb-1">{task.note.meeting_title || 'Untitled Meeting'}</h3>
+                  <p className="text-xs text-gray-500 dark:text-gray-400 mb-2">
                     📅 {formatDateShort(task.note.meeting_date || task.note.created_at)} •
                     👥 {task.note.meeting_participants?.length || 0} people
                   </p>
                   {task.note.meeting_summary && (
-                    <p className="text-sm text-gray-700 line-clamp-2 italic">
+                    <p className="text-sm text-gray-700 dark:text-gray-300 line-clamp-2 italic">
                       "{cleanSummary(task.note.meeting_summary)}"
                     </p>
                   )}
@@ -562,14 +571,14 @@ export default function TaskDetailPage() {
 
                 {relatedTasks.length > 0 && (
                   <div className="space-y-3">
-                    <p className="text-xs font-semibold text-gray-500 uppercase">Related Tasks ({relatedTasks.length + 1})</p>
+                    <p className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase">Related Tasks ({relatedTasks.length + 1})</p>
 
                     {/* Current Task */}
-                    <div className="flex items-center gap-2 p-2 bg-green-50 border border-green-100 rounded-lg">
+                    <div className="flex items-center gap-2 p-2 bg-green-50 dark:bg-green-900/30 border border-green-100 dark:border-green-800 rounded-lg">
                       <span className="text-lg">{getPlantEmoji(task.status)}</span>
                       <div className="flex-1 min-w-0">
-                        <p className="text-sm font-medium text-gray-900 truncate">{task.description}</p>
-                        <p className="text-xs text-gray-500">{task.assignee?.full_name || 'Unassigned'}</p>
+                        <p className="text-sm font-medium text-gray-900 dark:text-white truncate">{task.description}</p>
+                        <p className="text-xs text-gray-500 dark:text-gray-400">{task.assignee?.full_name || 'Unassigned'}</p>
                       </div>
                       <span className="text-[10px] font-bold text-green-700 bg-green-100 px-1.5 py-0.5 rounded">YOU</span>
                     </div>
@@ -579,14 +588,14 @@ export default function TaskDetailPage() {
                       <button
                         key={sibling.id}
                         onClick={() => navigate(`/task/${sibling.id}`)}
-                        className="w-full flex items-center gap-2 p-2 hover:bg-gray-50 rounded-lg transition-colors text-left group"
+                        className="w-full flex items-center gap-2 p-2 hover:bg-gray-50 dark:hover:bg-ios-surface-dark rounded-lg transition-colors text-left group"
                       >
                         <span className="text-lg opacity-50 group-hover:opacity-100 transition-opacity">
                           {getPlantEmoji(sibling.status)}
                         </span>
                         <div className="flex-1 min-w-0">
-                          <p className="text-sm text-gray-600 group-hover:text-gray-900 truncate">{sibling.description}</p>
-                          <p className="text-xs text-gray-400">{sibling.assignee?.full_name || 'Unassigned'}</p>
+                          <p className="text-sm text-gray-600 dark:text-gray-400 group-hover:text-gray-900 dark:group-hover:text-white truncate">{sibling.description}</p>
+                          <p className="text-xs text-gray-400 dark:text-gray-500">{sibling.assignee?.full_name || 'Unassigned'}</p>
                         </div>
                       </button>
                     ))}
@@ -595,7 +604,7 @@ export default function TaskDetailPage() {
 
                 <button
                   onClick={() => navigate(`/note/${task.note_id}`)}
-                  className="w-full mt-4 py-2 text-sm font-medium text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
+                  className="w-full mt-4 py-2 text-sm font-medium text-blue-600 dark:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-900/30 rounded-lg transition-colors"
                 >
                   View Full Meeting Note
                 </button>
@@ -604,14 +613,14 @@ export default function TaskDetailPage() {
 
             {/* Quick Actions */}
             <Card>
-              <h2 className="text-lg font-bold text-gray-900 mb-4 flex items-center gap-2">
+              <h2 className="text-lg font-bold text-gray-900 dark:text-white mb-4 flex items-center gap-2">
                 ⚡ Quick Actions
               </h2>
 
               <div className="space-y-2">
                 <Button
                   onClick={() => handleUpdate({ status: 'Done' })}
-                  className="w-full justify-start gap-3 p-3 h-auto bg-gradient-to-r from-green-50 to-emerald-50 hover:from-green-100 hover:to-emerald-100 text-green-800 border-0"
+                  className="w-full justify-start gap-3 p-3 h-auto bg-gradient-to-r from-green-50 to-emerald-50 dark:from-green-900/30 dark:to-emerald-900/30 hover:from-green-100 hover:to-emerald-100 dark:hover:from-green-900/50 dark:hover:to-emerald-900/50 text-green-800 dark:text-green-400 border-0"
                 >
                   <CheckCircle2 className="w-5 h-5" />
                   Mark as Complete
@@ -621,7 +630,7 @@ export default function TaskDetailPage() {
                   <Button
                     onClick={handleSync}
                     disabled={isSyncing}
-                    className="w-full justify-start gap-3 p-3 h-auto bg-blue-50 hover:bg-blue-100 text-blue-700 border-0"
+                    className="w-full justify-start gap-3 p-3 h-auto bg-blue-50 dark:bg-blue-900/30 hover:bg-blue-100 dark:hover:bg-blue-900/50 text-blue-700 dark:text-blue-400 border-0"
                   >
                     {isSyncing ? <Loader2 className="w-5 h-5 animate-spin" /> : <CalendarPlus className="w-5 h-5" />}
                     Add to Calendar
@@ -646,7 +655,7 @@ export default function TaskDetailPage() {
                   Share Task
                 </Button>
 
-                <div className="h-px bg-gray-100 my-2" />
+                <div className="h-px bg-gray-100 dark:bg-ios-separator-dark my-2" />
 
                 <Button
                   variant="danger"
@@ -679,13 +688,13 @@ export default function TaskDetailPage() {
                 animate={{ scale: 1, opacity: 1 }}
                 exit={{ scale: 0.9, opacity: 0 }}
                 onClick={e => e.stopPropagation()}
-                className="bg-white rounded-3xl p-8 max-w-md w-full shadow-2xl"
+                className="bg-white dark:bg-ios-card-dark rounded-3xl p-8 max-w-md w-full shadow-2xl"
               >
                 <div className="w-16 h-16 mx-auto mb-6 bg-red-100 rounded-2xl flex items-center justify-center">
                   <AlertTriangle className="w-8 h-8 text-red-600" />
                 </div>
-                <h2 className="text-2xl font-bold text-gray-900 text-center mb-3">Delete this task?</h2>
-                <p className="text-gray-600 text-center mb-6">
+                <h2 className="text-2xl font-bold text-gray-900 dark:text-white text-center mb-3">Delete this task?</h2>
+                <p className="text-gray-600 dark:text-gray-400 text-center mb-6">
                   {task.google_event_id
                     ? 'This will also remove the event from your Google Calendar. This action cannot be undone.'
                     : 'This action cannot be undone.'}

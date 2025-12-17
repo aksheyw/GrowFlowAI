@@ -27,22 +27,22 @@ export default function TaskGrowthProgress({ status }: TaskGrowthProgressProps) 
                   w-6 h-6 rounded-full flex items-center justify-center border-2 flex-shrink-0
                   ${isCompleted
                                     ? 'bg-[#2D5016] border-[#2D5016] text-white'
-                                    : 'border-gray-300 text-transparent'}
+                                    : 'border-gray-300 dark:border-gray-600 text-transparent'}
                 `}>
                                 {isCompleted && <CheckCircle2 className="w-4 h-4" />}
                             </div>
                             <div>
-                                <div className={`font-medium ${isCurrent ? 'text-[#2D5016]' : 'text-gray-900'}`}>
+                                <div className={`font-medium ${isCurrent ? 'text-[#2D5016] dark:text-green-400' : 'text-gray-900 dark:text-white'}`}>
                                     {stage.label}
                                 </div>
-                                <div className="text-xs text-gray-500">{stage.sub}</div>
+                                <div className="text-xs text-gray-500 dark:text-gray-400">{stage.sub}</div>
                             </div>
                         </div>
                     );
                 })}
             </div>
 
-            <div className="h-2 bg-gray-100 rounded-full overflow-hidden">
+            <div className="h-2 bg-gray-100 dark:bg-ios-surface-dark rounded-full overflow-hidden">
                 <div
                     className="h-full bg-gradient-to-r from-[#2D5016] to-[#6FA84C] transition-all duration-500"
                     style={{ width: `${progress}%` }}

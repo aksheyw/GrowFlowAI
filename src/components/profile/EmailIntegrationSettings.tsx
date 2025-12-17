@@ -137,25 +137,25 @@ export default function EmailIntegrationSettings({ onBack }: Props) {
             <div className="flex items-center gap-4 mb-6">
                 <button
                     onClick={onBack}
-                    className="p-2 -ml-2 text-gray-600 hover:bg-gray-100 rounded-full transition-colors"
+                    className="p-2 -ml-2 text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-ios-surface-dark rounded-full transition-colors"
                 >
                     <ArrowLeft className="w-6 h-6" />
                 </button>
-                <h2 className="text-xl font-bold text-gray-900">Email Integration</h2>
+                <h2 className="text-xl font-bold text-gray-900 dark:text-white">Email Integration</h2>
             </div>
 
             {/* Content */}
-            <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
+            <div className="bg-white dark:bg-ios-card-dark rounded-2xl shadow-sm border border-gray-100 dark:border-ios-separator-dark overflow-hidden">
                 <div className="p-6">
                     <div className="flex items-center gap-3 mb-4">
-                        <div className="w-10 h-10 rounded-full bg-green-50 flex items-center justify-center text-[#2D5016]">
+                        <div className="w-10 h-10 rounded-full bg-green-50 dark:bg-green-900/30 flex items-center justify-center text-[#2D5016] dark:text-green-400">
                             <Mail className="w-5 h-5" />
                         </div>
-                        <h3 className="text-lg font-bold text-gray-900">Forwarding Setup</h3>
+                        <h3 className="text-lg font-bold text-gray-900 dark:text-white">Forwarding Setup</h3>
                     </div>
 
-                    <p className="text-gray-500 leading-relaxed mb-8 text-sm">
-                        Forward emails to <span className="font-semibold text-gray-900">growflowai@gmail.com</span> to instantly turn them into tasks. Add your personal email addresses below so we recognize you.
+                    <p className="text-gray-500 dark:text-gray-400 leading-relaxed mb-8 text-sm">
+                        Forward emails to <span className="font-semibold text-gray-900 dark:text-white">growflowai@gmail.com</span> to instantly turn them into tasks. Add your personal email addresses below so we recognize you.
                     </p>
 
                     <div className="space-y-6">
@@ -166,7 +166,7 @@ export default function EmailIntegrationSettings({ onBack }: Props) {
                                 value={newEmail}
                                 onChange={(e) => setNewEmail(e.target.value)}
                                 placeholder="Add Allowed Email Address"
-                                className="flex-1 px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#6FA84C]/20 focus:border-[#6FA84C] transition-all placeholder:text-gray-400 text-sm"
+                                className="flex-1 px-4 py-3 bg-gray-50 dark:bg-ios-surface-dark border border-gray-200 dark:border-ios-separator-dark rounded-xl focus:outline-none focus:ring-2 focus:ring-[#6FA84C]/20 focus:border-[#6FA84C] transition-all placeholder:text-gray-400 text-sm text-gray-900 dark:text-white"
                                 onKeyDown={(e) => e.key === 'Enter' && handleAddEmail()}
                             />
                             <button
@@ -186,7 +186,7 @@ export default function EmailIntegrationSettings({ onBack }: Props) {
                         {/* List Area */}
                         <div className="space-y-3">
                             {allowedEmails.length === 0 ? (
-                                <div className="text-center py-8 bg-gray-50 rounded-xl border border-dashed border-gray-200">
+                                <div className="text-center py-8 bg-gray-50 dark:bg-ios-surface-dark rounded-xl border border-dashed border-gray-200 dark:border-ios-separator-dark">
                                     <Sprout className="w-8 h-8 text-gray-300 mx-auto mb-2" />
                                     <p className="text-sm text-gray-400">No personal emails added yet</p>
                                 </div>
@@ -194,9 +194,9 @@ export default function EmailIntegrationSettings({ onBack }: Props) {
                                 allowedEmails.map((email, idx) => (
                                     <div
                                         key={idx}
-                                        className="flex items-center justify-between p-4 bg-gray-50 rounded-xl border border-gray-100 group hover:border-gray-200 transition-colors"
+                                        className="flex items-center justify-between p-4 bg-gray-50 dark:bg-ios-surface-dark rounded-xl border border-gray-100 dark:border-ios-separator-dark group hover:border-gray-200 dark:hover:border-gray-600 transition-colors"
                                     >
-                                        <span className="text-gray-700 font-medium text-sm">{email}</span>
+                                        <span className="text-gray-700 dark:text-gray-300 font-medium text-sm">{email}</span>
                                         <button
                                             onClick={() => handleRemoveEmail(email)}
                                             disabled={loading}

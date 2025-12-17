@@ -240,21 +240,21 @@ export default function DashboardPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-gray-50 to-green-50/30 flex items-center justify-center">
+      <div className="min-h-screen bg-gradient-to-br from-gray-50 to-green-50/30 dark:from-ios-bg-dark dark:to-ios-bg-dark flex items-center justify-center">
         <motion.div
           className="text-center"
           initial={{ opacity: 0, scale: 0.9 }}
           animate={{ opacity: 1, scale: 1 }}
         >
           <div className="text-8xl mb-4 animate-spin">🌱</div>
-          <p className="text-gray-600">Loading your garden...</p>
+          <p className="text-gray-600 dark:text-gray-400">Loading your garden...</p>
         </motion.div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-50 to-green-50/30 pb-32 md:pb-0">
+    <div className="min-h-screen bg-gradient-to-br from-gray-50 to-green-50/30 dark:from-ios-bg-dark dark:to-ios-bg-dark pb-32 md:pb-0">
       {/* Main Content */}
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8">
         {/* Header Section */}
@@ -265,8 +265,8 @@ export default function DashboardPage() {
             className="flex flex-col md:flex-row md:items-end justify-between gap-6"
           >
             <div>
-              <h2 className="text-2xl sm:text-4xl font-bold text-gray-900 mb-1 sm:mb-2">{greeting}</h2>
-              <p className="text-gray-600 text-sm sm:text-base">
+              <h2 className="text-2xl sm:text-4xl font-bold text-gray-900 dark:text-white mb-1 sm:mb-2">{greeting}</h2>
+              <p className="text-gray-600 dark:text-gray-400 text-sm sm:text-base">
                 {activeTab === 'tasks'
                   ? `You have ${taskCounts.active} active ${taskCounts.active === 1 ? 'task' : 'tasks'} to tend`
                   : `You have ${notes.length} meeting ${notes.length === 1 ? 'note' : 'notes'} recorded`
@@ -275,14 +275,14 @@ export default function DashboardPage() {
             </div>
 
             {/* Segmented Control */}
-            <div className="bg-white/50 backdrop-blur-sm p-1 rounded-xl border border-gray-200/50 flex items-center gap-1 w-full md:w-auto">
+            <div className="bg-white/50 dark:bg-ios-card-dark/50 backdrop-blur-sm p-1 rounded-xl border border-gray-200/50 dark:border-ios-separator-dark flex items-center gap-1 w-full md:w-auto">
               {(['tasks', 'notes'] as const).map((tab) => (
                 <button
                   key={tab}
                   onClick={() => setActiveTab(tab)}
                   className={`
                     relative flex-1 md:flex-none px-6 py-2.5 rounded-lg text-sm font-semibold transition-colors z-10
-                    ${activeTab === tab ? 'text-white' : 'text-gray-600 hover:text-gray-900'}
+                    ${activeTab === tab ? 'text-white' : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white'}
                   `}
                 >
                   {activeTab === tab && (
@@ -357,8 +357,8 @@ export default function DashboardPage() {
               {notes.length === 0 ? (
                 <div className="flex flex-col items-center justify-center py-20 text-center">
                   <div className="text-6xl mb-6">📝</div>
-                  <h3 className="text-xl font-bold text-gray-900 mb-2">No notes yet</h3>
-                  <p className="text-gray-500 max-w-md mb-8">
+                  <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-2">No notes yet</h3>
+                  <p className="text-gray-500 dark:text-gray-400 max-w-md mb-8">
                     Paste your first meeting note to start growing your knowledge base.
                   </p>
                   <Button

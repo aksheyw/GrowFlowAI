@@ -292,7 +292,7 @@ export default function MeetingNoteDetailPage() {
     // --- RENDER ---
     if (isLoading) {
         return (
-            <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+            <div className="min-h-screen bg-gray-50 dark:bg-ios-bg-dark flex items-center justify-center">
                 <Loader2 className="w-8 h-8 text-green-600 animate-spin" />
             </div>
         );
@@ -300,12 +300,12 @@ export default function MeetingNoteDetailPage() {
 
     if (error) {
         return (
-            <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
+            <div className="min-h-screen bg-gray-50 dark:bg-ios-bg-dark flex items-center justify-center p-4">
                 <div className="text-center">
                     {/* Utilized AlertTriangle here to fix unused variable warning */}
                     <AlertTriangle className="w-12 h-12 text-red-500 mx-auto mb-4" />
-                    <h3 className="text-lg font-bold text-gray-900">Something went wrong</h3>
-                    <p className="text-gray-600 mb-4">{error}</p>
+                    <h3 className="text-lg font-bold text-gray-900 dark:text-white">Something went wrong</h3>
+                    <p className="text-gray-600 dark:text-gray-400 mb-4">{error}</p>
                     <Button onClick={() => navigate('/dashboard')}>Back to Dashboard</Button>
                 </div>
             </div>
@@ -315,12 +315,28 @@ export default function MeetingNoteDetailPage() {
     if (!note) return null;
 
     return (
-        <div className="min-h-screen bg-gradient-to-br from-gray-50 to-blue-50/30">
+        <div className="min-h-screen bg-gradient-to-br from-gray-50 to-blue-50/30 dark:from-ios-bg-dark dark:to-ios-bg-dark">
             <main className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
                 {/* Header */}
                 <div className="mb-6">
-                    <Button variant="ghost" onClick={() => navigate('/dashboard?view=notes')} className="pl-0 hover:bg-transparent">
-                        <ArrowLeft className="w-4 h-4 mr-2" /> Back to Meeting Notes
+                    <Button
+                        variant="ghost"
+                        onClick={() => navigate('/dashboard?view=notes')}
+                        className="
+              pl-2 pr-4 py-2 h-auto text-sm font-medium
+              text-gray-600 dark:text-gray-300
+              hover:text-gray-900 dark:hover:text-white
+              hover:bg-white/50 dark:hover:bg-white/10
+              backdrop-blur-md
+              border border-transparent hover:border-gray-200 dark:hover:border-white/10
+              rounded-full
+              transition-all duration-200
+              active:scale-95
+              group
+            "
+                    >
+                        <ArrowLeft className="w-4 h-4 mr-2 transition-transform group-hover:-translate-x-1" />
+                        Back to Meeting Notes
                     </Button>
                 </div>
 
@@ -355,12 +371,12 @@ export default function MeetingNoteDetailPage() {
                             <LeadershipSummaryDisplay summary={note.leadership_brief} />
                         ) : (
                             /* Empty State */
-                            <div className="bg-white rounded-2xl p-8 shadow-sm border border-gray-100 text-center">
-                                <div className="w-16 h-16 rounded-2xl bg-blue-50 flex items-center justify-center mx-auto mb-6">
+                            <div className="bg-white dark:bg-ios-card-dark rounded-2xl p-8 shadow-sm border border-gray-100 dark:border-ios-separator-dark text-center">
+                                <div className="w-16 h-16 rounded-2xl bg-blue-50 dark:bg-blue-900/30 flex items-center justify-center mx-auto mb-6">
                                     <Briefcase className="w-8 h-8 text-blue-600" />
                                 </div>
-                                <h3 className="text-xl font-bold text-gray-900 mb-3">No summary available</h3>
-                                <p className="text-gray-500 mb-8 max-w-md mx-auto">
+                                <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-3">No summary available</h3>
+                                <p className="text-gray-500 dark:text-gray-400 mb-8 max-w-md mx-auto">
                                     Generate a concise executive summary, decisions, and action items from this meeting.
                                 </p>
                                 <Button
@@ -387,13 +403,13 @@ export default function MeetingNoteDetailPage() {
 
                             {/* Plant Your Seeds (Only if no tasks & has summary) */}
                             {tasks.length === 0 && note.leadership_brief && (
-                                <div className="bg-white rounded-2xl p-6 shadow-sm border border-green-100 text-center relative overflow-hidden">
+                                <div className="bg-white dark:bg-ios-card-dark rounded-2xl p-6 shadow-sm border border-green-100 dark:border-green-800 text-center relative overflow-hidden">
                                     <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-green-400 to-emerald-500" />
-                                    <div className="w-12 h-12 rounded-xl bg-green-50 flex items-center justify-center mx-auto mb-4">
+                                    <div className="w-12 h-12 rounded-xl bg-green-50 dark:bg-green-900/30 flex items-center justify-center mx-auto mb-4">
                                         <Sprout className="w-6 h-6 text-green-600" />
                                     </div>
-                                    <h3 className="text-lg font-semibold text-gray-900 mb-2">Plant Your Seeds</h3>
-                                    <p className="text-sm text-gray-500 mb-6">
+                                    <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">Plant Your Seeds</h3>
+                                    <p className="text-sm text-gray-500 dark:text-gray-400 mb-6">
                                         You have a summary, but no trackable tasks yet.
                                     </p>
                                     <Button
@@ -434,16 +450,16 @@ export default function MeetingNoteDetailPage() {
                             initial={{ opacity: 0, scale: 0.95 }}
                             animate={{ opacity: 1, scale: 1 }}
                             exit={{ opacity: 0, scale: 0.95 }}
-                            className="bg-white rounded-2xl p-6 w-full max-w-md shadow-xl relative z-10"
+                            className="bg-white dark:bg-ios-card-dark rounded-2xl p-6 w-full max-w-md shadow-xl relative z-10"
                         >
                             <div className="flex items-center gap-4 mb-4 text-red-600">
-                                <div className="w-10 h-10 rounded-full bg-red-50 flex items-center justify-center">
+                                <div className="w-10 h-10 rounded-full bg-red-50 dark:bg-red-900/30 flex items-center justify-center">
                                     {/* Utilized Trash2 icon here for the delete modal header */}
                                     <Trash2 className="w-6 h-6" />
                                 </div>
-                                <h3 className="text-lg font-bold text-gray-900">Delete Meeting?</h3>
+                                <h3 className="text-lg font-bold text-gray-900 dark:text-white">Delete Meeting?</h3>
                             </div>
-                            <p className="text-gray-600 mb-6">
+                            <p className="text-gray-600 dark:text-gray-400 mb-6">
                                 Are you sure you want to delete this meeting note? This will also delete all <strong>{tasks.length} associated tasks</strong>. This action cannot be undone.
                             </p>
                             <div className="flex gap-3 justify-end">

@@ -40,14 +40,15 @@ export default function ScrollToTop() {
             z-40
             w-12 
             h-12 
-            bg-white/80 backdrop-blur-md
+            bg-white/80 dark:bg-ios-card-dark/80 backdrop-blur-md
             rounded-full 
-            shadow-lg shadow-gray-200/50
-            border border-white/50
+            shadow-lg shadow-gray-200/50 dark:shadow-black/50
+            border border-white/50 dark:border-ios-separator-dark
             flex 
             items-center 
             justify-center
-            hover:bg-white hover:scale-110
+            text-gray-700 dark:text-white
+            hover:bg-white dark:hover:bg-ios-surface-dark hover:scale-110
             active:scale-95
             transition-all duration-300
             bottom-[calc(100px+env(safe-area-inset-bottom,16px))]

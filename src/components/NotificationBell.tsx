@@ -61,8 +61,8 @@ export default function NotificationBell() {
           relative p-2.5 rounded-xl
           transition-colors duration-200
           ${isOpen
-            ? 'bg-gray-200'
-            : 'hover:bg-gray-100'
+            ? 'bg-gray-200 dark:bg-ios-surface-dark'
+            : 'hover:bg-gray-100 dark:hover:bg-ios-surface-dark'
           }
         `}
         aria-label="Notifications"
@@ -70,7 +70,7 @@ export default function NotificationBell() {
         aria-haspopup="true"
       >
         {/* Bell Icon */}
-        <Bell className="w-6 h-6 text-gray-700" />
+        <Bell className="w-6 h-6 text-gray-700 dark:text-gray-300" />
 
         {/* Unread Badge */}
         <AnimatePresence>
@@ -88,7 +88,7 @@ export default function NotificationBell() {
                 text-white text-xs font-bold
                 flex items-center justify-center
                 shadow-lg shadow-red-500/50
-                ring-2 ring-white
+                ring-2 ring-white dark:ring-ios-card-dark
               "
             >
               {unreadCount > 9 ? '9+' : unreadCount}

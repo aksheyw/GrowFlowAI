@@ -43,7 +43,7 @@ export default function PremiumFilterBar({
       transition={{ duration: 0.4, delay: 0.4 }}
       className="mb-8 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4"
     >
-      <div className="flex items-center gap-2 p-1.5 bg-gray-100 rounded-2xl overflow-x-auto w-full sm:w-auto">
+      <div className="flex items-center gap-2 p-1.5 bg-gray-100 dark:bg-ios-surface-dark rounded-2xl overflow-x-auto w-full sm:w-auto">
         {filters.map((filter) => (
           <button
             key={filter.id}
@@ -54,7 +54,7 @@ export default function PremiumFilterBar({
               transition-all duration-200 ease-out
               ${activeFilter === filter.id
                 ? 'text-white'
-                : 'text-gray-600 hover:text-gray-900'
+                : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white'
               }
             `}
           >
@@ -78,7 +78,7 @@ export default function PremiumFilterBar({
                     px-2 py-0.5 rounded-full text-xs font-semibold
                     ${activeFilter === filter.id
                       ? 'bg-white/20 text-white'
-                      : 'bg-gray-200 text-gray-700'
+                      : 'bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300'
                     }
                   `}
                 >
@@ -91,13 +91,13 @@ export default function PremiumFilterBar({
       </div>
 
       <div className="flex items-center gap-2">
-        <span className="text-sm text-gray-600">Sort by:</span>
+        <span className="text-sm text-gray-600 dark:text-gray-400">Sort by:</span>
         <Menu as="div" className="relative">
           <Menu.Button className="
             flex items-center gap-2 px-4 py-2
-            bg-white rounded-xl border border-gray-200
-            text-sm font-medium text-gray-700
-            hover:border-gray-300 hover:bg-gray-50
+            bg-white dark:bg-ios-card-dark rounded-xl border border-gray-200 dark:border-ios-separator-dark
+            text-sm font-medium text-gray-700 dark:text-gray-300
+            hover:border-gray-300 dark:hover:border-gray-600 hover:bg-gray-50 dark:hover:bg-ios-surface-dark
             transition-all duration-200
           ">
             <span>{currentSortLabel}</span>
@@ -115,8 +115,8 @@ export default function PremiumFilterBar({
           >
             <Menu.Items className="
               absolute right-0 mt-2 w-40
-              bg-white rounded-xl shadow-lg
-              border border-gray-100
+              bg-white dark:bg-ios-card-dark rounded-xl shadow-lg
+              border border-gray-100 dark:border-ios-separator-dark
               focus:outline-none z-20
               overflow-hidden
             ">
@@ -128,8 +128,8 @@ export default function PremiumFilterBar({
                       className={`
                         w-full px-4 py-2.5 text-left text-sm
                         flex items-center justify-between
-                        ${active ? 'bg-gray-50 text-gray-900' : 'text-gray-700'}
-                        ${sortBy === option.value ? 'bg-green-50 text-green-700 font-medium' : ''}
+                        ${active ? 'bg-gray-50 dark:bg-ios-surface-dark text-gray-900 dark:text-white' : 'text-gray-700 dark:text-gray-400'}
+                        ${sortBy === option.value ? 'bg-green-50 dark:bg-green-900/30 text-green-700 dark:text-green-400 font-medium' : ''}
                       `}
                     >
                       {option.label}

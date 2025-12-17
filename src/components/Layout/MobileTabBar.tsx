@@ -46,7 +46,7 @@ export default function MobileTabBar() {
         <>
             {/* Background extending behind Android nav bar - provides contrast */}
             <div
-                className="md:hidden fixed bottom-0 left-0 right-0 z-40 bg-gray-200"
+                className="md:hidden fixed bottom-0 left-0 right-0 z-40 bg-gray-200 dark:bg-ios-bg-dark"
                 style={{
                     height: 'env(safe-area-inset-bottom, 0px)',
                     minHeight: '20px'
@@ -55,7 +55,7 @@ export default function MobileTabBar() {
 
             {/* Actual tab bar - positioned above safe area */}
             <nav
-                className="md:hidden fixed left-0 right-0 z-50 bg-white border-t border-gray-200 shadow-[0_-4px_20px_-4px_rgba(0,0,0,0.15)]"
+                className="md:hidden fixed left-0 right-0 z-50 bg-white dark:bg-ios-card-dark border-t border-gray-200 dark:border-ios-separator-dark shadow-[0_-4px_20px_-4px_rgba(0,0,0,0.15)]"
                 style={{
                     bottom: 'max(env(safe-area-inset-bottom, 0px), 16px)'
                 }}
