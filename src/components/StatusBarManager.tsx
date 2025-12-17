@@ -17,20 +17,21 @@ export default function StatusBarManager() {
             try {
                 if (isAuthPage) {
                     // Force Light Mode Status Bar for Auth Pages (White BG, Dark Text)
-                    // Style.Dark => Dark Text
-                    await StatusBar.setStyle({ style: Style.Dark });
+                    // Style.Light => Dark Text (for light backgrounds)
+                    await StatusBar.setStyle({ style: Style.Light });
                     await StatusBar.setBackgroundColor({ color: '#FFFFFF' });
                 } else {
                     // Follow Theme
                     if (isDark) {
                         // Dark Mode: Black BG, Light Text
-                        // Style.Light => Light Text
-                        await StatusBar.setStyle({ style: Style.Light });
+                        // Style.Dark => Light Text (for dark backgrounds)
+                        await StatusBar.setStyle({ style: Style.Dark });
                         await StatusBar.setBackgroundColor({ color: '#000000' });
                     } else {
                         // Light Mode: Gray BG, Dark Text
-                        await StatusBar.setStyle({ style: Style.Dark });
-                        await StatusBar.setBackgroundColor({ color: '#F2F2F7' }); // iOS System Gray 6
+                        // Style.Light => Dark Text
+                        await StatusBar.setStyle({ style: Style.Light });
+                        await StatusBar.setBackgroundColor({ color: '#F2F2F7' }); // System Gray 6
                     }
                 }
             } catch (error) {
