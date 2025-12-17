@@ -1,6 +1,7 @@
 import React, { createContext, useContext, useEffect, useState } from 'react';
 import { Capacitor } from '@capacitor/core';
 import { StatusBar, Style } from '@capacitor/status-bar';
+import { supabase } from '../lib/supabase';
 
 type Theme = 'light' | 'dark' | 'system';
 
@@ -97,7 +98,45 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
     const setTheme = (newTheme: Theme) => {
         localStorage.setItem('theme_preference', newTheme);
         setThemeState(newTheme);
+
+        // Persist to Supabase if user is logged in
+        supabase.auth.getUser().then(({ data: { user } }) => {
+            if (user) {
+                supabase.from('profiles')
+                    .update({ theme_preference: newTheme })
+                    .eq('id', user.id)
+                    .then(({ error }) => {
+                        if (error) console.error('Failed to save theme preference:', error);
+                    });
+            }
+        });
     };
+
+    // 3. Listen for Auth Changes to fetch persistent theme
+    useEffect(() => {
+        const { data: authListener } = supabase.auth.onAuthStateChange(async (event, session) => {
+            if (event === 'SIGNED_IN' && session?.user) {
+                const { data, error } = await supabase
+                    .from('profiles')
+                    .select('theme_preference')
+                    .eq('id', session.user.id)
+                    .single();
+
+                if (!error && data?.theme_preference) {
+                    const pref = data.theme_preference as Theme;
+                    // Only update if different from local storage to avoid flicker/loops
+                    if (pref !== localStorage.getItem('theme_preference')) {
+                        setThemeState(pref);
+                        localStorage.setItem('theme_preference', pref);
+                    }
+                }
+            }
+        });
+
+        return () => {
+            authListener.subscription.unsubscribe();
+        };
+    }, []);
 
     return (
         <ThemeContext.Provider value={{ theme, setTheme, isDark }}>

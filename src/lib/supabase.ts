@@ -18,6 +18,7 @@ export type Profile = {
   created_at: string;
   updated_at: string;
   auto_calendar_sync?: boolean;
+  theme_preference?: 'light' | 'dark' | 'system';
 };
 
 export type Note = {

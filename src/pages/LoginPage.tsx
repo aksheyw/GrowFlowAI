@@ -1,6 +1,8 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
+import { Capacitor } from '@capacitor/core';
+import { StatusBar, Style } from '@capacitor/status-bar';
 import { useAuth } from '../contexts/AuthContext';
 import { useToast } from '../contexts/ToastContext';
 import AuthInput from '../components/AuthInput';
@@ -13,6 +15,15 @@ export default function LoginPage() {
   const { signIn } = useAuth();
   const { addToast } = useToast();
   const navigate = useNavigate();
+
+  // Force Light Mode Status Bar on Login Page
+  useEffect(() => {
+    if (Capacitor.isNativePlatform()) {
+      // Style.Dark means Dark TEXT (for light backgrounds)
+      StatusBar.setStyle({ style: Style.Dark }).catch(() => { });
+      StatusBar.setBackgroundColor({ color: '#FFFFFF' }).catch(() => { });
+    }
+  }, []);
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -37,7 +48,7 @@ export default function LoginPage() {
   }
 
   return (
-    <div className="min-h-screen flex bg-white">
+    <div className="min-h-screen flex bg-white overscroll-none">
       {/* Left side - Illustration */}
       <div className="hidden lg:flex lg:w-[55%] bg-[#F2F5F1] items-center justify-center p-16 relative overflow-hidden">
         {/* Background decoration */}
