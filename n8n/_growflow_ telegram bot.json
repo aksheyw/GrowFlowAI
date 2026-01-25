@@ -1,0 +1,1734 @@
+{
+  "name": "<growflow> telegram bot",
+  "nodes": [
+    {
+      "parameters": {
+        "chatId": "={{ $('Telegram Trigger').item.json.message.from.id }}",
+        "text": "Notes processed by GrowFlowAI and sent to your dashboard! ✅",
+        "additionalFields": {
+          "appendAttribution": false
+        }
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        4384,
+        160
+      ],
+      "id": "cf30a9b1-192b-43c3-babe-c72f24caeb38",
+      "name": "Send a text message",
+      "webhookId": "a3038d2e-bf27-44ae-9f70-f25043edd089",
+      "credentials": {
+        "telegramApi": {
+          "id": "NHCi8iPo8pOCyV1I",
+          "name": "GrowFlow"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "values": {
+          "number": [
+            {
+              "name": "=user_id",
+              "value": "={{ $('Telegram Trigger').item.json.message.from.id }}"
+            }
+          ]
+        },
+        "options": {
+          "dotNotation": false
+        }
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 1,
+      "position": [
+        3936,
+        160
+      ],
+      "id": "2fe6a738-829d-495f-ade1-3c7364b8c8de",
+      "name": "Combine Note Data for Bolt"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "=https://exkzusmktvaxpfayjycm.supabase.co/functions/v1/webhook-telegram-note",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"telegram_id\": {{ $('Telegram Trigger').item.json.message.from.id }},\n  \"note_text\": {{ JSON.stringify($('Normalize Message Data').item.json.text) }},\n  \"first_name\": {{ JSON.stringify($('Telegram Trigger').item.json.message.from.first_name) }},\n  \"last_name\": {{ JSON.stringify($('Telegram Trigger').item.json.message.from.last_name || \"\") }}\n}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.3,
+      "position": [
+        4160,
+        160
+      ],
+      "id": "48835885-e090-48ca-ab25-3333f2ffa8d7",
+      "name": "Send Structured Data to Bolt"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "version": 2,
+            "leftValue": "",
+            "caseSensitive": true,
+            "typeValidation": "strict"
+          },
+          "conditions": [
+            {
+              "id": "55106668-f76b-4aee-b0ca-326b6a12a702",
+              "leftValue": "={{ $json.message.from.username }}",
+              "rightValue": "{{ALLOWED_USERNAME}}",
+              "operator": {
+                "type": "string",
+                "operation": "equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        144,
+        -48
+      ],
+      "id": "1477bbc0-faf6-4cdb-a951-e42f050e8232",
+      "name": "If"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=Extract structured data from the following meeting notes. Identify the meeting title, date, participants, summary, and action items with assignee, deadline, and priority.\n\nINPUT NOTES:={{ $json.text }}",
+        "options": {
+          "systemMessage": "You are a highly specialized AI assistant focused on transforming unstructured meeting notes into structured JSON data. Your single and only purpose is to perform this extraction.\n\n### INSTRUCTIONS:\n1.  **Read and Analyze:** Carefully read the text provided under the 'INPUT NOTES' section.\n2.  **Strict JSON Output:** You MUST respond ONLY with a single, complete, and valid JSON object. DO NOT include any explanatory text, markdown formatting (like ```json), or notes before or after the JSON object.\n3.  **Schema Adherence:** Your output JSON structure MUST strictly match the schema defined by the tool. If a field exists in the schema but data is not present in the notes, you must still include the field with an empty string (\"\") or an empty array ([]), as appropriate for the data type.\n4.  **Priority Values:** For the 'priority' field in action items, you must only use one of the following exact string values: \"low\", \"medium\", or \"high\".\n\n### EXTRACTION FIELDS:\n* **meeting_title:** The main subject or title of the meeting.\n* **meeting_date:** The date the meeting occurred.\n* **participants:** A list of every person who attended.\n* **summary:** A concise, factual summary of the key discussion points and decisions.\n* **tasks:** An array of action items, each containing:\n    * **description:** The specific action required.\n    * **assignee:** The person responsible for the action.\n    * **deadline:** The due date for the action.\n    * **priority:** The importance level, strictly one of: \"low\", \"medium\", or \"high\".\n\n### INPUT NOTES:\n {{ $json.message.text }}"
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3,
+      "position": [
+        3584,
+        160
+      ],
+      "id": "64a37f70-333d-4a7f-9e68-9b9bcd2b12eb",
+      "name": "AI Agent"
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "mode": "list",
+          "value": "gpt-4.1-mini"
+        },
+        "builtInTools": {},
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1.3,
+      "position": [
+        3600,
+        384
+      ],
+      "id": "4c368915-2cc5-44b2-9281-c9c547e1ec47",
+      "name": "OpenAI Chat Model",
+      "credentials": {
+        "openAiApi": {
+          "id": "TJm1Ph1vGD2513AH",
+          "name": "OpenAi account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "sessionIdType": "customKey",
+        "sessionKey": "=={{ $json.chatId }}",
+        "contextWindowLength": 10
+      },
+      "type": "@n8n/n8n-nodes-langchain.memoryBufferWindow",
+      "typeVersion": 1.3,
+      "position": [
+        3728,
+        384
+      ],
+      "id": "53fbc93f-5bd9-45e4-870b-ce754fc5d637",
+      "name": "Simple Memory2"
+    },
+    {
+      "parameters": {
+        "updates": [
+          "message",
+          "callback_query"
+        ],
+        "additionalFields": {}
+      },
+      "type": "n8n-nodes-base.telegramTrigger",
+      "typeVersion": 1.2,
+      "position": [
+        -80,
+        -48
+      ],
+      "id": "504340bd-c204-47f9-920e-4b07d1c77471",
+      "name": "Telegram Trigger",
+      "webhookId": "8fe62c27-14c6-4ae5-ad80-796621560294",
+      "credentials": {
+        "telegramApi": {
+          "id": "NHCi8iPo8pOCyV1I",
+          "name": "GrowFlow"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "resource": "file",
+        "fileId": "={{ $json.message.voice.file_id }}",
+        "additionalFields": {}
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        592,
+        -192
+      ],
+      "id": "cfcaed13-2686-4c34-bf96-afdf17963fcd",
+      "name": "Get Voice File Info",
+      "webhookId": "279148de-8b08-47e5-bde7-ad5382ffe35f",
+      "credentials": {
+        "telegramApi": {
+          "id": "NHCi8iPo8pOCyV1I",
+          "name": "GrowFlow"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "resource": "audio",
+        "operation": "transcribe",
+        "options": {
+          "temperature": 0
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.openAi",
+      "typeVersion": 2,
+      "position": [
+        1264,
+        -192
+      ],
+      "id": "9fa42134-e073-436f-bc29-6f17e75bacf1",
+      "name": "Transcribe Voice (Whisper)",
+      "credentials": {
+        "openAiApi": {
+          "id": "TJm1Ph1vGD2513AH",
+          "name": "OpenAi account"
+        }
+      }
+    },
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        2560,
+        -48
+      ],
+      "id": "8990dd72-7c93-4c25-ad4f-ef258f98b25a",
+      "name": "Merge"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "d459a607-b365-433c-a593-e1d035b93d50",
+              "name": "text",
+              "value": "=={{ $json.text || $json.message.text }}",
+              "type": "string"
+            },
+            {
+              "id": "80f2649c-97f8-4816-9918-9b55dce78c18",
+              "name": "messageType",
+              "value": "={{ $('Telegram Trigger').item.json.message.voice ? 'voice' : ($('Telegram Trigger').item.json.message.photo ? 'photo' : 'text') }}",
+              "type": "string"
+            },
+            {
+              "id": "88e1cdb9-766d-47c9-b365-af8f2511ae30",
+              "name": "username",
+              "value": "=={{ $('Telegram Trigger').item.json.message.from.username || $('Telegram Trigger').item.json.message.from.first_name }}",
+              "type": "string"
+            },
+            {
+              "id": "60a74b89-83b9-46a2-ac0b-0b7f699ee420",
+              "name": "chatId",
+              "value": "=={{ $('Telegram Trigger').item.json.message.chat.id }}",
+              "type": "string"
+            },
+            {
+              "id": "780e0af2-ae9d-43cb-854e-5574d6ef92f8",
+              "name": "firstName",
+              "value": "=={{ $('Telegram Trigger').item.json.message.from.first_name }}",
+              "type": "string"
+            },
+            {
+              "id": "27fefb31-a705-407e-84f7-554a174ed770",
+              "name": "lastName",
+              "value": "=={{ $('Telegram Trigger').item.json.message.from.last_name || '' }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        2784,
+        -48
+      ],
+      "id": "9c42bddc-18f5-451a-93fe-19a61cbbfd95",
+      "name": "Normalize Message Data"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "d71c98ef-a8d4-4c33-8c35-abe5087bd276",
+              "name": "downloadUrl",
+              "value": "=https://api.telegram.org/file/bot{{TELEGRAM_BOT_TOKEN}}/{{ $json.result.file_path }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        816,
+        -192
+      ],
+      "id": "e0ecafac-1599-453f-af5b-beaba8434606",
+      "name": "Build Download URL"
+    },
+    {
+      "parameters": {
+        "url": "={{ $('Build Download URL').first().json.downloadUrl }}",
+        "options": {
+          "response": {
+            "response": {
+              "responseFormat": "file"
+            }
+          }
+        }
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.3,
+      "position": [
+        1040,
+        -192
+      ],
+      "id": "1cd1caa0-79d2-4915-8f2b-1a1e64dee235",
+      "name": "Build Download URL1"
+    },
+    {
+      "parameters": {
+        "rules": {
+          "values": [
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "loose",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.message.voice }}",
+                    "rightValue": "",
+                    "operator": {
+                      "type": "object",
+                      "operation": "exists",
+                      "singleValue": true
+                    },
+                    "id": "d5c82fc8-ff34-477a-89cd-a15baceddd50"
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "Voice"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "loose",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "id": "16fe6d60-c690-45cb-83b5-4583a6e8e1c0",
+                    "leftValue": "={{ $json.message.photo }}",
+                    "rightValue": "",
+                    "operator": {
+                      "type": "array",
+                      "operation": "notEmpty",
+                      "singleValue": true
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "Photo"
+            }
+          ]
+        },
+        "looseTypeValidation": true,
+        "options": {
+          "fallbackOutput": "extra"
+        }
+      },
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3.3,
+      "position": [
+        368,
+        -64
+      ],
+      "id": "522888cd-dc3e-494f-9c52-0aca3c33d055",
+      "name": "Switch"
+    },
+    {
+      "parameters": {
+        "resource": "file",
+        "fileId": "={{ $json.message.photo[$json.message.photo.length - 1].file_id }}",
+        "additionalFields": {}
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        992,
+        160
+      ],
+      "id": "93a3aa3b-ad90-4dfb-a70e-9ca657ab7f9e",
+      "name": "Get Photo File",
+      "webhookId": "9e6bb84b-2bb6-4f0d-a163-5064018ea4c6",
+      "credentials": {
+        "telegramApi": {
+          "id": "NHCi8iPo8pOCyV1I",
+          "name": "GrowFlow"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "resource": "image",
+        "operation": "analyze",
+        "modelId": {
+          "__rl": true,
+          "value": "chatgpt-4o-latest",
+          "mode": "list",
+          "cachedResultName": "CHATGPT-4O-LATEST"
+        },
+        "text": "=You are an intelligent AI assistant that understands images AND user intent. Your job is to:\n\n1. Analyze the image content (invitation, flyer, document, handwritten note, etc.)\n2. Read and understand the user's message to determine their intent\n3. Extract structured information based on the content type\n\nUSER'S MESSAGE: \n{{$json.message.text || $json.message.caption || \"User sent an image without text\"}}\n\nIMAGE CONTEXT:\nAnalyze this image and determine what type of content it contains.\n\nDETECTION RULES:\n- If image shows event details (date, time, venue, invitation) → content_type: \"calendar_event\"\n- If image contains tasks, to-dos, action items → content_type: \"task_list\"  \n- If image is meeting notes, brainstorm, or information → content_type: \"meeting_note\"\n- If unclear or general document → content_type: \"document\"\n\nUSER INTENT SIGNALS:\n- \"add to calendar\", \"create event\", \"save date\", \"remind me\" → Intent: calendar_event\n- \"create task\", \"add to tasks\", \"to-do\" → Intent: task\n- \"save this\", \"remember this\", \"note\" → Intent: note\n\nEXTRACTION REQUIREMENTS:\n\nFOR CALENDAR EVENTS (invitations, save-the-dates):\nExtract:\n- event_title: Clear, concise title (e.g., \"50th Wedding Anniversary - Savita & Romesh\")\n- event_date: YYYY-MM-DD format\n- event_time: HH:MM format (24-hour)\n- event_end_time: HH:MM format (infer 2-3 hours if not specified)\n- venue: Full location/address\n- hosts: Array of host names\n- rsvp_info: Contact details for RSVP\n- event_type: \"wedding\", \"conference\", \"meeting\", \"party\", etc.\n- notes: Any additional context\n\nFOR TASKS:\nExtract:\n- tasks: Array of task objects with:\n  - description: Clear, actionable task\n  - assignee: Person responsible (or \"user\" if it's for the sender)\n  - deadline: YYYY-MM-DD (or null if not mentioned)\n  - priority: \"low\", \"medium\", or \"high\"\n\nFOR MEETING NOTES:\nExtract:\n- meeting_title: Inferred title\n- date: YYYY-MM-DD\n- participants: Array of names\n- summary: 2-3 sentence summary\n- key_points: Array of main discussion points\n- action_items: Array of tasks (same structure as above)\n- decisions: Array of decisions made\n\nIMPORTANT RULES:\n1. If the user says \"add to calendar\" or similar, FORCE content_type to \"calendar_event\" even if image looks like a task\n2. Clean up ALL OCR artifacts (**, ==, extra spaces, formatting issues)\n3. If date is mentioned as \"11TH DECEMBER 2025\", convert to \"2025-12-11\"\n4. If time is \"7PM\", convert to \"19:00\"\n5. Make titles human-readable, not just OCR dumps\n\nOUTPUT FORMAT (JSON):\n{\n  \"content_type\": \"calendar_event\" | \"task_list\" | \"meeting_note\" | \"document\",\n  \"user_intent\": \"calendar\" | \"task\" | \"note\" | \"unclear\",\n  \"confidence\": \"high\" | \"medium\" | \"low\",\n  \"extracted_data\": {\n    // Structure varies based on content_type (see above)\n  },\n  \"summary\": \"Brief human-readable summary of what was extracted\"\n}\n\nEXAMPLES:\n\nExample 1 - Wedding Invitation:\nUser message: \"I have to attend an event sharing invite for reference. Add this to my calendar\"\nImage: Wedding invitation for Savita & Romesh\n\nOutput:\n{\n  \"content_type\": \"calendar_event\",\n  \"user_intent\": \"calendar\",\n  \"confidence\": \"high\",\n  \"extracted_data\": {\n    \"event_title\": \"50th Wedding Anniversary - Savita & Romesh\",\n    \"event_date\": \"2025-12-11\",\n    \"event_time\": \"19:00\",\n    \"event_end_time\": \"22:00\",\n    \"venue\": \"Party Cottage, The Delhi Gymkhana Club\",\n    \"hosts\": [\"Savita\", \"Romesh\"],\n    \"rsvp_info\": \"Isha & Sharad - 9820040578\",\n    \"event_type\": \"wedding_anniversary\",\n    \"notes\": \"50 years of love, laughter, a lifetime of memories\"\n  },\n  \"summary\": \"Wedding anniversary celebration for Savita & Romesh on December 11, 2025 at 7 PM\"\n}\n\nExample 2 - Meeting Notes:\nUser message: \"Meeting notes from today's standup\"\nImage: Handwritten notes with action items\n\nOutput:\n{\n  \"content_type\": \"meeting_note\",\n  \"user_intent\": \"note\",\n  \"confidence\": \"high\",\n  \"extracted_data\": {\n    \"meeting_title\": \"Team Standup\",\n    \"date\": \"2025-12-09\",\n    \"participants\": [\"Alex\", \"Jordan\", \"Akshey\"],\n    \"summary\": \"Discussed sprint priorities and blockers\",\n    \"key_points\": [\n      \"Sprint 23 goals reviewed\",\n      \"Blocker identified in API integration\",\n      \"Need to schedule design review\"\n    ],\n    \"action_items\": [\n      {\n        \"description\": \"Complete user authentication module\",\n        \"assignee\": \"Alex\",\n        \"deadline\": \"2025-12-12\",\n        \"priority\": \"high\"\n      },\n      {\n        \"description\": \"Submit dashboard redesign mockups\",\n        \"assignee\": \"Jordan\",\n        \"deadline\": \"2025-12-15\",\n        \"priority\": \"medium\"\n      }\n    ],\n    \"decisions\": [\"Decided to push v2 features to next sprint\"]\n  },\n  \"summary\": \"Team standup with 2 action items assigned to Alex and Jordan\"\n}\n\nNOW ANALYZE THE IMAGE AND USER MESSAGE ABOVE.\nReturn ONLY valid JSON, no additional text or markdown formatting.",
+        "inputType": "base64",
+        "options": {
+          "detail": "high",
+          "maxTokens": 4096
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.openAi",
+      "typeVersion": 2,
+      "position": [
+        1184,
+        160
+      ],
+      "id": "75a4bffb-78a1-4ff7-85ca-27af813f90a2",
+      "name": "Vision Transcribe (GPT-4o)",
+      "credentials": {
+        "openAiApi": {
+          "id": "TJm1Ph1vGD2513AH",
+          "name": "OpenAi account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "85b33696-afd4-4fa4-9d2c-573729404a4e",
+              "name": "text",
+              "value": "={{ $json['0'].content[0].text }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        2368,
+        128
+      ],
+      "id": "4de3fd0e-697c-4927-8a6b-a604252d7a24",
+      "name": "Format Vision Output"
+    },
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "cronExpression",
+              "expression": "=30 4 * * 1-5"
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.2,
+      "position": [
+        -48,
+        1024
+      ],
+      "id": "2c36ddb7-01aa-445b-be5b-eafb63e7cc51",
+      "name": "Daily 9 AM Trigger"
+    },
+    {
+      "parameters": {
+        "content": "Triggers The Gardener daily at 9 AM to send task digests",
+        "height": 480,
+        "width": 1376
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        -240,
+        800
+      ],
+      "id": "31ffa2f5-6f78-4c59-9fd4-3d6210353f82",
+      "name": "Sticky Note"
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "SELECT \n  t.id as task_id,\n  t.description,\n  t.deadline,\n  t.priority,\n  t.status,\n  p.full_name,\n  p.telegram_id,\n  CASE WHEN t.deadline IS NULL THEN 'no_deadline' ELSE 'has_deadline' END as deadline_type\nFROM tasks t\nINNER JOIN profiles p ON t.assignee_id = p.id\nWHERE \n  t.status NOT IN ('Done')\n  AND p.telegram_id IS NOT NULL\n  AND p.telegram_id != ''\n  AND (t.snoozed_until IS NULL OR t.snoozed_until <= NOW())\n  AND (t.deadline <= CURRENT_DATE OR t.deadline IS NULL)\nORDER BY \n  t.deadline IS NULL,\n  p.telegram_id, \n  t.deadline ASC, \n  CASE t.priority \n    WHEN 'High' THEN 1 \n    WHEN 'Medium' THEN 2 \n    ELSE 3 \n  END",
+        "options": {
+          "queryBatching": "single",
+          "largeNumbersOutput": "text"
+        }
+      },
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        176,
+        1024
+      ],
+      "id": "6799d0e4-9f5b-4b07-8291-2997ced1fb4a",
+      "name": "Fetch Due Tasks",
+      "credentials": {
+        "postgres": {
+          "id": "09liPm2D3IesUdjT",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "version": 2,
+            "leftValue": "",
+            "caseSensitive": true,
+            "typeValidation": "strict"
+          },
+          "conditions": [
+            {
+              "id": "62fd3979-24ca-483b-a9a3-5fd34fa2bc4f",
+              "leftValue": "={{ $json.task_id ? 1 : 0 }}",
+              "rightValue": 1,
+              "operator": {
+                "type": "number",
+                "operation": "equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        400,
+        1024
+      ],
+      "id": "a1617d16-a218-499e-98a2-95e45433bb83",
+      "name": "Has Tasks?"
+    },
+    {
+      "parameters": {
+        "jsCode": "// Get all items from the input\nconst items = $input.all();\n\nif (!items || items.length === 0) {\n  return [];\n}\n\n// Emoji definitions using Unicode escapes\nconst EMOJI = {\n  seedling: '\\u{1F331}',    // 🌱\n  fire: '\\u{1F525}',        // 🔥\n  star: '\\u{2B50}',         // ⭐\n  herb: '\\u{1F33F}',        // 🌿\n  leaf: '\\u{1F343}',        // 🍃 (for low priority)\n  warning: '\\u{26A0}\\u{FE0F}', // ⚠️\n  calendar: '\\u{1F4C5}',    // 📅\n  clipboard: '\\u{1F4CB}',   // 📋\n  plant: '\\u{1FAB4}',       // 🪴\n  tada: '\\u{1F389}'         // 🎉\n};\n\n// Group tasks by telegram_id\nconst grouped = {};\n\nfor (const item of items) {\n  const chatId = item.json.telegram_id;\n  const fullName = item.json.full_name || 'there';\n\n  if (!chatId) continue;\n\n  if (!grouped[chatId]) {\n    grouped[chatId] = {\n      chat_id: chatId,\n      first_name: fullName.split(' ')[0],\n      dueTasks: [],\n      noDeadlineTasks: []\n    };\n  }\n\n  const task = {\n    description: item.json.description,\n    deadline: item.json.deadline,\n    priority: item.json.priority || 'Medium',\n    status: item.json.status\n  };\n\n  if (item.json.deadline === null || item.json.deadline_type === 'no_deadline') {\n    grouped[chatId].noDeadlineTasks.push(task);\n  } else {\n    grouped[chatId].dueTasks.push(task);\n  }\n}\n\n// Format messages for each user\nconst output = [];\n\nfor (const chatId in grouped) {\n  const user = grouped[chatId];\n  const dueCount = user.dueTasks.length;\n  const backlogCount = user.noDeadlineTasks.length;\n  \n  if (dueCount === 0 && backlogCount === 0) continue;\n\n  let message = EMOJI.seedling + ' *Good morning ' + user.first_name + '!*\\n\\n';\n\n  if (dueCount > 0) {\n    message += 'You have *' + dueCount + ' seed' + (dueCount > 1 ? 's' : '') + '* to water today:\\n\\n';\n\n    const priorityOrder = { 'High': 0, 'high': 0, 'Medium': 1, 'medium': 1, 'Low': 2, 'low': 2 };\n    user.dueTasks.sort((a, b) => {\n      const priorityDiff = (priorityOrder[a.priority] ?? 2) - (priorityOrder[b.priority] ?? 2);\n      if (priorityDiff !== 0) return priorityDiff;\n      return new Date(a.deadline) - new Date(b.deadline);\n    });\n\n    user.dueTasks.forEach((task, index) => {\n      const deadline = new Date(task.deadline);\n      const today = new Date();\n      today.setHours(0, 0, 0, 0);\n      deadline.setHours(0, 0, 0, 0);\n\n      const diffDays = Math.floor((deadline - today) / (1000 * 60 * 60 * 24));\n      let deadlineText = '';\n\n      if (diffDays < 0) {\n        deadlineText = EMOJI.warning + ' Overdue by ' + Math.abs(diffDays) + ' day' + (Math.abs(diffDays) > 1 ? 's' : '');\n      } else if (diffDays === 0) {\n        deadlineText = EMOJI.calendar + ' Due today';\n      } else {\n        deadlineText = EMOJI.calendar + ' Due in ' + diffDays + ' day' + (diffDays > 1 ? 's' : '');\n      }\n\n       let priorityEmoji = EMOJI.leaf;  // Default to low\n      if (task.priority === 'High' || task.priority === 'high') {\n        priorityEmoji = EMOJI.fire;\n      } else if (task.priority === 'Medium' || task.priority === 'medium') {\n        priorityEmoji = EMOJI.star;\n      }\n\n      let statusEmoji = '';\n      const statusLower = (task.status || '').toLowerCase();\n      if (statusLower === 'in progress' || statusLower === 'in_progress') {\n        statusEmoji = ' ' + EMOJI.herb;\n      }\n\n      message += (index + 1) + '. ' + priorityEmoji + ' ' + task.description + statusEmoji + '\\n';\n      message += '   ' + deadlineText + '\\n\\n';\n    });\n  } else {\n    message += 'No urgent tasks due today! ' + EMOJI.tada + '\\n\\n';\n  }\n\n  if (backlogCount > 0) {\n    message += EMOJI.clipboard + ' *Backlog:* ' + backlogCount + ' task' + (backlogCount > 1 ? 's' : '') + ' without deadline' + (backlogCount > 1 ? 's' : '') + '\\n';\n    message += '   → Check your GrowFlow dashboard to prioritize\\n\\n';\n  }\n\n  message += EMOJI.plant + ' _Water your tasks, watch your garden grow!_';\n\n  output.push({\n    json: {\n      chat_id: user.chat_id,\n      first_name: user.first_name,\n      task_count: dueCount,\n      backlog_count: backlogCount,\n      message_text: message\n    }\n  });\n}\n\nreturn output;"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        624,
+        928
+      ],
+      "id": "16abdba0-dd58-4b08-8491-bcafaa11e773",
+      "name": "Group & Format Messages"
+    },
+    {
+      "parameters": {
+        "chatId": "={{ $json.chat_id }}",
+        "text": "={{ $json.message_text }}",
+        "additionalFields": {
+          "appendAttribution": false,
+          "disable_notification": false,
+          "parse_mode": "HTML"
+        }
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        848,
+        928
+      ],
+      "id": "c90e3c49-17ba-40be-9cca-0964d858a7de",
+      "name": "Send Task Digest",
+      "webhookId": "8019eb34-4ab1-43b9-9473-ba122d3f63e1",
+      "credentials": {
+        "telegramApi": {
+          "id": "NHCi8iPo8pOCyV1I",
+          "name": "GrowFlow"
+        }
+      }
+    },
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.noOp",
+      "typeVersion": 1,
+      "position": [
+        624,
+        1120
+      ],
+      "id": "b70322d9-c0d2-4a54-a8bc-b8f5c6d98c38",
+      "name": "Rename to: No Tasks - Stop"
+    },
+    {
+      "parameters": {
+        "content": "Telegram Chat - Text + Voice + Picture",
+        "height": 1056,
+        "width": 5088,
+        "color": 3
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        -272,
+        -544
+      ],
+      "id": "6e89ee70-6d5e-4c74-af29-bdba0bd83885",
+      "name": "Sticky Note1"
+    },
+    {
+      "parameters": {
+        "modelId": {
+          "__rl": true,
+          "value": "gpt-4o-mini",
+          "mode": "list",
+          "cachedResultName": "GPT-4O-MINI"
+        },
+        "responses": {
+          "values": [
+            {
+              "content": "=You are a message classifier for GrowFlow, a note-taking and task management app.\n\nAnalyze the user's message and classify it as either:\n\n1. \"QUESTION\" - User is asking about their past notes, meetings, tasks, or seeking information from their saved data.\n   Examples:\n   - \"What did we discuss in the last meeting?\"\n   - \"Who is working on the marketing project?\"\n   - \"What are my upcoming deadlines?\"\n   - \"Tell me about my notes\"\n   - \"What did Sarah say?\"\n   - \"Summarize my recent meetings\"\n\n2. \"NOTE\" - User is sharing NEW information, meeting notes, or content to be saved and processed.\n   Examples:\n   - \"Meeting with John today. We discussed the Q4 roadmap...\"\n   - \"Had a call with the client. They want to increase budget...\"\n   - \"Notes from standup: Alice is working on...\"\n   - \"Team sync: Decided to postpone the launch...\"\n   - Any content that looks like meeting notes or information to record\n\nUser message:\n{{ $json.text }}\n\nRespond with ONLY one word: QUESTION or NOTE"
+            }
+          ]
+        },
+        "builtInTools": {},
+        "options": {
+          "maxTokens": 100,
+          "temperature": 0
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.openAi",
+      "typeVersion": 2.1,
+      "position": [
+        3008,
+        -48
+      ],
+      "id": "2410a8e6-740e-400b-96bf-09bbd8e4b4e7",
+      "name": "Traffic Controller",
+      "credentials": {
+        "openAiApi": {
+          "id": "TJm1Ph1vGD2513AH",
+          "name": "OpenAi account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "rules": {
+          "values": [
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "loose",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.output[0].content[0].text.trim() }}",
+                    "rightValue": "=QUESTION",
+                    "operator": {
+                      "type": "string",
+                      "operation": "contains"
+                    },
+                    "id": "e5e4f4a7-2518-4bf3-8717-c991945a9786"
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "Question"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "loose",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "id": "de5d7963-8ac8-4705-87d6-d4dd1550c13e",
+                    "leftValue": "={{ $json.output[0].content[0].text.trim() }}",
+                    "rightValue": "=NOTE",
+                    "operator": {
+                      "type": "string",
+                      "operation": "contains"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "Note"
+            }
+          ]
+        },
+        "looseTypeValidation": true,
+        "options": {
+          "fallbackOutput": "extra"
+        }
+      },
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3.3,
+      "position": [
+        3360,
+        -64
+      ],
+      "id": "c0be9039-3ec2-4b14-9f1e-dbc7daff57d3",
+      "name": "Route Question or Note"
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "SELECT id FROM profiles WHERE telegram_id = '{{ $('Telegram Trigger').item.json.message.from.id }}' LIMIT 1",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        3648,
+        -192
+      ],
+      "id": "2c355b7b-3f8e-4eef-9395-63534e8b442b",
+      "name": "Get User ID from Telegram",
+      "credentials": {
+        "postgres": {
+          "id": "09liPm2D3IesUdjT",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://n8n.srv1134430.hstgr.cloud/webhook/chat",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"query\": {{ JSON.stringify($('Normalize Message Data').item.json.text) }},\n  \"user_id\": \"{{ $json.id }}\"\n}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.3,
+      "position": [
+        4160,
+        -288
+      ],
+      "id": "365ab862-06aa-410a-874a-4eab9e35f680",
+      "name": "Call The Gardener"
+    },
+    {
+      "parameters": {
+        "chatId": "={{ $('Telegram Trigger').item.json.message.from.id }}",
+        "text": "=🌱 *The Gardener says:*  {{ $json.answer }}",
+        "additionalFields": {
+          "appendAttribution": false,
+          "parse_mode": "Markdown"
+        }
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        4608,
+        -384
+      ],
+      "id": "e6233ca7-f695-421c-b177-22d3b945f63c",
+      "name": "Send Gardener Answer",
+      "webhookId": "f0a147fd-dbf7-4d93-bd6d-bc15e8754ce5",
+      "credentials": {
+        "telegramApi": {
+          "id": "NHCi8iPo8pOCyV1I",
+          "name": "GrowFlow"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "version": 2,
+            "leftValue": "",
+            "caseSensitive": true,
+            "typeValidation": "strict"
+          },
+          "conditions": [
+            {
+              "id": "121628fb-4337-49ce-acf2-49de2e559a6f",
+              "leftValue": "{{ $json.id }}",
+              "rightValue": "=",
+              "operator": {
+                "type": "string",
+                "operation": "notEmpty"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        3936,
+        -192
+      ],
+      "id": "0a6406dc-2ca6-4751-b31d-4e231a796272",
+      "name": "User Found?"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "version": 2,
+            "leftValue": "",
+            "caseSensitive": true,
+            "typeValidation": "loose"
+          },
+          "conditions": [
+            {
+              "id": "a3355b77-4d09-49f0-b19e-315bdad56ec3",
+              "leftValue": "={{ $json.answer }}",
+              "rightValue": "",
+              "operator": {
+                "type": "string",
+                "operation": "notEmpty"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {
+          "ignoreCase": false
+        }
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        4384,
+        -288
+      ],
+      "id": "9f4cde1a-858b-4052-8d00-67f9ae52df2c",
+      "name": "Gardener Success?"
+    },
+    {
+      "parameters": {
+        "chatId": "={{ $('Telegram Trigger').item.json.message.from.id }}",
+        "text": "🌱 I don't recognize your account yet. Please register in GrowFlow first, then try again!",
+        "additionalFields": {
+          "parse_mode": "MarkdownV2"
+        }
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        4160,
+        -96
+      ],
+      "id": "589be52a-083f-48da-b295-525700157e00",
+      "name": "Send User Not Found",
+      "webhookId": "0bbda42a-4546-497b-806a-6abd0f07b3fa",
+      "credentials": {
+        "telegramApi": {
+          "id": "NHCi8iPo8pOCyV1I",
+          "name": "GrowFlow"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "chatId": "={{ $('Telegram Trigger').item.json.message.from.id }}",
+        "text": "🌱 I had trouble searching your garden. Please try rephrasing your question or try again later.",
+        "additionalFields": {
+          "parse_mode": "MarkdownV2"
+        }
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        4608,
+        -192
+      ],
+      "id": "cd2601d0-7ab2-446b-9f62-0b745041ddfb",
+      "name": "Send Gardener Error",
+      "webhookId": "9b720ad6-9246-4136-93ee-d89952d5df10",
+      "credentials": {
+        "telegramApi": {
+          "id": "NHCi8iPo8pOCyV1I",
+          "name": "GrowFlow"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.openai.com/v1/chat/completions",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "openAiApi",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({\n  \"model\": \"gpt-4o-mini\",\n  \"messages\": [\n    {\n      \"role\": \"system\",\n      \"content\": \"You are an Expert Editor for voice notes. Your job is to transform raw, rambling voice transcripts into polished, actionable content.\\n\\n## YOUR TRANSFORMATION RULES:\\n\\n### 1. CLEANUP (Remove Noise)\\n- Remove ALL filler words: um, uh, like, you know, so, basically, actually, literally, right, I mean, sort of, kind of\\n- Remove false starts and stammering\\n- Fix grammatical errors\\n- Remove redundant phrases and repetitions\\n\\n### 2. INTENT RESOLUTION (Handle Self-Corrections)\\n- When the speaker corrects themselves (e.g., \\\"call John... wait, no, email him instead\\\"), ONLY output the final intent (\\\"Email John\\\")\\n- When the speaker says \\\"cancel that\\\", \\\"scratch that\\\", \\\"never mind\\\", \\\"actually\\\", \\\"wait\\\", \\\"no\\\" - discard the preceding statement\\n- Always use the LAST stated intention when there are multiple versions\\n\\n### 3. EXTRACTION (Structure the Content)\\nSeparate the content into two categories:\\n\\n**Summary of Ideas:** A clean, well-written paragraph capturing the key thoughts, observations, and ideas (non-actionable content)\\n\\n**Actionable Tasks:** A list of clear, specific tasks extracted from the recording. Each task should:\\n- Start with an action verb\\n- Be specific and concrete\\n- Include any mentioned deadlines or assignees\\n- Be achievable and measurable\\n\\n## OUTPUT FORMAT:\\nReturn ONLY valid JSON with this exact structure:\\n{\\n  \\\"summary\\\": \\\"Clean paragraph summarizing ideas and observations...\\\",\\n  \\\"tasks\\\": [\\n    \\\"Task 1 description\\\",\\n    \\\"Task 2 description\\\"\\n  ],\\n  \\\"raw_cleaned\\\": \\\"The full transcript after cleanup (no filler words, grammatically correct)\\\"\\n}\\n\\nIf there are no actionable tasks, return an empty array for tasks.\\nIf there's no summary content (only tasks), return empty string for summary.\\n\\nIMPORTANT: Return ONLY the JSON object, no markdown code blocks, no explanations.\"\n    },\n    {\n      \"role\": \"user\",\n      \"content\": \"Transform this voice transcript into structured content:\\n\\n\" + $json.text\n    }\n  ],\n  \"temperature\": 0.3,\n  \"max_tokens\": 2000\n}) }}",
+        "options": {
+          "response": {
+            "response": {
+              "responseFormat": "json"
+            }
+          }
+        }
+      },
+      "id": "voice-rambling-processor",
+      "name": "Voice Rambling Processor",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        1488,
+        -192
+      ],
+      "credentials": {
+        "openAiApi": {
+          "id": "TJm1Ph1vGD2513AH",
+          "name": "OpenAi account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "text-field",
+              "name": "text",
+              "type": "string",
+              "value": "={{ JSON.parse($json.choices[0].message.content).raw_cleaned || $json.choices[0].message.content }}"
+            },
+            {
+              "id": "summary-field",
+              "name": "voice_summary",
+              "type": "string",
+              "value": "={{ JSON.parse($json.choices[0].message.content).summary || '' }}"
+            },
+            {
+              "id": "tasks-field",
+              "name": "voice_tasks",
+              "type": "array",
+              "value": "={{ JSON.parse($json.choices[0].message.content).tasks || [] }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "parse-voice-rambling",
+      "name": "Parse Voice Rambling",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        1712,
+        -192
+      ]
+    },
+    {
+      "parameters": {
+        "rules": {
+          "values": [
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "loose",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ JSON.parse($json['0'].content[0].text).content_type }}",
+                    "rightValue": "calendar_event",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    },
+                    "id": "a1e56cdd-cd6e-4bb1-bb21-44b71a6a2e49"
+                  }
+                ],
+                "combinator": "and"
+              }
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "loose",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "id": "765a9ec4-8c95-4a03-bfbc-caf588a52f5d",
+                    "leftValue": "={{ JSON.parse($json['0'].content[0].text).content_type }}",
+                    "rightValue": "meeting_note",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals",
+                      "name": "filter.operator.equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              }
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "loose",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "id": "b91907af-1502-4f64-b813-a5940c965ed5",
+                    "leftValue": "={{ JSON.parse($json['0'].content[0].text).content_type }}",
+                    "rightValue": "task_list",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals",
+                      "name": "filter.operator.equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              }
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "loose",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "id": "1002865b-a822-4b1c-aeb5-13ca012a0309",
+                    "leftValue": "={{ true }}",
+                    "rightValue": "true",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals",
+                      "name": "filter.operator.equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              }
+            }
+          ]
+        },
+        "looseTypeValidation": true,
+        "options": {}
+      },
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3.4,
+      "position": [
+        1584,
+        128
+      ],
+      "id": "c7c08ea8-8b52-4ef2-9292-629ea8c301ee",
+      "name": "Switch1"
+    },
+    {
+      "parameters": {
+        "calendar": {
+          "__rl": true,
+          "value": "{{ALLOWED_EMAIL}}",
+          "mode": "list",
+          "cachedResultName": "{{ALLOWED_EMAIL}}"
+        },
+        "start": "={{ $json.original_data.event_date }}T{{ $json.original_data.event_time }}:00+05:30",
+        "end": "={{ $json.original_data.event_date }}T{{ $json.original_data.event_end_time }}:00+05:30",
+        "additionalFields": {
+          "color": "9",
+          "description": "={{ $json.original_data.notes }}\n\nHosts: {{ $json.original_data.hosts.join(', ') }}\n\nRSVP: {{ $json.original_data.rsvp_info }}",
+          "location": "={{ $json.original_data.venue }}",
+          "summary": "={{ $json.summary }}"
+        }
+      },
+      "type": "n8n-nodes-base.googleCalendar",
+      "typeVersion": 1.3,
+      "position": [
+        1808,
+        336
+      ],
+      "id": "774cf472-fb1a-4d4b-b6ed-bb87195cc88b",
+      "name": "Create an event",
+      "credentials": {
+        "googleCalendarOAuth2Api": {
+          "id": "x6YTBVLvslN4z0kq",
+          "name": "Google Calendar account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "// Parse the JSON string from Vision output\nconst parsed = JSON.parse($input.first().json['0'].content[0].text);\nconst data = parsed.extracted_data;\n\n// Calculate end time if not provided\nconst calculateEndTime = (startTime) => {\n  if (!startTime) return \"22:00\";\n  const [hours, minutes] = startTime.split(':');\n  const endHour = (parseInt(hours) + 3) % 24;\n  return `${String(endHour).padStart(2, '0')}:${minutes}`;\n};\n\nconst eventData = {\n  summary: data.event_title || 'Untitled Event',\n  start_datetime: `${data.event_date}T${data.event_time}:00+05:30`,\n  end_datetime: `${data.event_date}T${data.event_end_time || calculateEndTime(data.event_time)}:00+05:30`,\n  location: data.venue || '',\n  description: `${data.notes || ''}\\n\\nHosts: ${data.hosts ? data.hosts.join(', ') : 'Unknown'}\\n\\nRSVP: ${data.rsvp_info || 'N/A'}\\n\\n---\\nAdded via GrowFlow from Telegram`,\n  color: '5',\n  original_data: data\n};\n\nreturn { json: eventData };"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1632,
+        336
+      ],
+      "id": "10046eff-c056-4655-8861-11b7b568f3e4",
+      "name": "Prepare Event Data"
+    },
+    {
+      "parameters": {
+        "chatId": "={{ $('Telegram Trigger').item.json.message.chat.id }}",
+        "text": "=✅ *Calendar event created successfully!*\n\n📅 *{{ $('Prepare Event Data').item.json.summary }}*\n\n📍 *Location:* {{ $('Prepare Event Data').item.json.location }}\n\n🗓️ *Date:* {{ $('Prepare Event Data').item.json.start_datetime.split('T')[0] }}\n\n🕐 *Time:* {{ $('Prepare Event Data').item.json.start_datetime.split('T')[1].split(':')[0] }}:{{ $('Prepare Event Data').item.json.start_datetime.split('T')[1].split(':')[1] }} - {{ $('Prepare Event Data').item.json.end_datetime.split('T')[1].split(':')[0] }}:{{ $('Prepare Event Data').item.json.end_datetime.split('T')[1].split(':')[1] }}\n\n🔗 [View in Google Calendar]({{ $json.event_link }})\n\n💡 *Added to your calendar. You'll receive reminders before the event.*\n\n🌱 _Powered by GrowFlow_",
+        "additionalFields": {
+          "appendAttribution": false,
+          "parse_mode": "Markdown"
+        }
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        3056,
+        336
+      ],
+      "id": "948053c7-f134-410a-a6ac-aed99085d2a5",
+      "name": "Telegram Success Confirmation",
+      "webhookId": "7be194f1-6948-490f-a859-45514c3418a4",
+      "credentials": {
+        "telegramApi": {
+          "id": "NHCi8iPo8pOCyV1I",
+          "name": "GrowFlow"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const eventData = $('calendar_events insert').item.json;\n\nconst escape = (text) => {\n  return text.replace(/[_*[\\]()~`>#+\\-=|{}.!]/g, '\\\\$&');\n};\n\nconst startDateTime = new Date(eventData.event_date + 'T' + eventData.event_time);\nconst endDateTime = new Date(eventData.event_date + 'T' + eventData.event_end_time);\n\nconst dateOptions = { year: 'numeric', month: 'long', day: 'numeric' };\nconst formattedDate = startDateTime.toLocaleDateString('en-US', dateOptions);\n\nconst timeOptions = { hour: 'numeric', minute: '2-digit', hour12: true };\nconst startTime = startDateTime.toLocaleTimeString('en-US', timeOptions);\nconst endTime = endDateTime.toLocaleTimeString('en-US', timeOptions);\n\nconst message = `✅ *Calendar event created successfully\\\\!*\n\n📅 *${escape(eventData.event_title)}*\n\n📍 *Location:* ${escape(eventData.venue || 'Not specified')}\n\n🗓️ *Date:* ${escape(formattedDate)}\n\n🕐 *Time:* ${escape(startTime)} \\\\- ${escape(endTime)}\n\n🔗 [View in Google Calendar]($('Create an event').first().json.htmlLink)\n\n🌱 *Reminder task added to your GrowFlow dashboard*\n\n💡 *You'll receive reminders before the event\\\\.*\n\n🌱 _Powered by GrowFlow_`;\n\nreturn {\n  json: {\n    message: message,\n    chat_id: eventData.telegram_id\n  }\n};"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        2848,
+        336
+      ],
+      "id": "6521db39-e8a7-4c54-ac14-99ae0a0d4907",
+      "name": "Format Confirmation Message"
+    },
+    {
+      "parameters": {
+        "jsCode": "const eventData = $('Prepare Event Data').item.json;\nconst calendarEvent = $('Create an event').item.json; // Get from Google Calendar node\nconst telegramData = $('Telegram Trigger').item.json;\n\nconst extractTime = (datetime) => datetime.split('T')[1].split('+')[0].substring(0, 5);\n\nreturn {\n  json: {\n    telegram_id: String(telegramData.message.from.id),\n    event_title: eventData.summary,\n    event_date: eventData.start_datetime.split('T')[0],\n    event_time: extractTime(eventData.start_datetime),\n    event_end_time: extractTime(eventData.end_datetime),\n    venue: eventData.location,\n    hosts: eventData.original_data.hosts || [],\n    rsvp_info: eventData.original_data.rsvp_info,\n    event_type: eventData.original_data.event_type,\n    notes: eventData.original_data.notes,\n    google_calendar_event_id: calendarEvent.id,\n    google_calendar_link: calendarEvent.htmlLink,\n    source: 'telegram_image'\n  }\n};"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        2432,
+        336
+      ],
+      "id": "19a65013-3ad9-4765-9cc2-5b402ac54389",
+      "name": "Prepare DB Insert Data"
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "INSERT INTO tasks (\n  description,\n  user_id,\n  assignee_id,\n  deadline\n) VALUES (\n  'Attend: ' || '{{ $('Prepare Event Data').item.json.summary }}',\n  (SELECT id FROM profiles WHERE telegram_id = '{{ $('Telegram Trigger').item.json.message.from.id }}' LIMIT 1),\n  (SELECT id FROM profiles WHERE telegram_id = '{{ $('Telegram Trigger').item.json.message.from.id }}' LIMIT 1),\n  '{{ $('Prepare Event Data').item.json.original_data.event_date }}'\n)\nRETURNING *;",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        2224,
+        352
+      ],
+      "id": "5bdd9cf6-7a69-4bda-8752-651f9f563ccc",
+      "name": "Execute a SQL query1",
+      "credentials": {
+        "postgres": {
+          "id": "09liPm2D3IesUdjT",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "INSERT INTO calendar_events (\n  telegram_id,\n  event_title,\n  event_date,\n  event_time,\n  event_end_time,\n  venue,\n  hosts,\n  rsvp_info,\n  event_type,\n  notes,\n  google_calendar_event_id,\n  google_calendar_link,\n  source\n) VALUES (\n  '{{ $json.telegram_id }}',\n  '{{ $json.event_title }}',\n  '{{ $json.event_date }}',\n  '{{ $json.event_time }}',\n  '{{ $json.event_end_time }}',\n  '{{ $json.venue }}',\n  ARRAY['{{ $json.hosts.join(\"','\") }}'],\n  '{{ $json.rsvp_info }}',\n  '{{ $json.event_type }}',\n  '{{ $json.notes }}',\n  '{{ $json.google_calendar_event_id }}',\n  '{{ $('Create an event').first().json.htmlLink }}',\n  '{{ $json.source }}'\n)\nRETURNING *;",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        2640,
+        336
+      ],
+      "id": "568dfad0-2853-4c93-931c-590959f82003",
+      "name": "calendar_events insert",
+      "credentials": {
+        "postgres": {
+          "id": "09liPm2D3IesUdjT",
+          "name": "Postgres account"
+        }
+      }
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Combine Note Data for Bolt": {
+      "main": [
+        [
+          {
+            "node": "Send Structured Data to Bolt",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Send Structured Data to Bolt": {
+      "main": [
+        [
+          {
+            "node": "Send a text message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If": {
+      "main": [
+        [
+          {
+            "node": "Switch",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenAI Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Simple Memory2": {
+      "ai_memory": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_memory",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Agent": {
+      "main": [
+        [
+          {
+            "node": "Combine Note Data for Bolt",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Telegram Trigger": {
+      "main": [
+        [
+          {
+            "node": "If",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get Voice File Info": {
+      "main": [
+        [
+          {
+            "node": "Build Download URL",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Merge": {
+      "main": [
+        [
+          {
+            "node": "Normalize Message Data",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Normalize Message Data": {
+      "main": [
+        [
+          {
+            "node": "Traffic Controller",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Build Download URL": {
+      "main": [
+        [
+          {
+            "node": "Build Download URL1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Build Download URL1": {
+      "main": [
+        [
+          {
+            "node": "Transcribe Voice (Whisper)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Switch": {
+      "main": [
+        [
+          {
+            "node": "Get Voice File Info",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Get Photo File",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Merge",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "Get Photo File": {
+      "main": [
+        [
+          {
+            "node": "Vision Transcribe (GPT-4o)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Vision Transcribe (GPT-4o)": {
+      "main": [
+        [
+          {
+            "node": "Switch1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Format Vision Output": {
+      "main": [
+        [
+          {
+            "node": "Merge",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Fetch Due Tasks": {
+      "main": [
+        [
+          {
+            "node": "Has Tasks?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Has Tasks?": {
+      "main": [
+        [
+          {
+            "node": "Group & Format Messages",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Rename to: No Tasks - Stop",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Group & Format Messages": {
+      "main": [
+        [
+          {
+            "node": "Send Task Digest",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Daily 9 AM Trigger": {
+      "main": [
+        [
+          {
+            "node": "Fetch Due Tasks",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Traffic Controller": {
+      "main": [
+        [
+          {
+            "node": "Route Question or Note",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Route Question or Note": {
+      "main": [
+        [
+          {
+            "node": "Get User ID from Telegram",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "AI Agent",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "AI Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get User ID from Telegram": {
+      "main": [
+        [
+          {
+            "node": "User Found?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Call The Gardener": {
+      "main": [
+        [
+          {
+            "node": "Gardener Success?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Send Gardener Answer": {
+      "main": [
+        []
+      ]
+    },
+    "User Found?": {
+      "main": [
+        [
+          {
+            "node": "Call The Gardener",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Send User Not Found",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Gardener Success?": {
+      "main": [
+        [
+          {
+            "node": "Send Gardener Answer",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Send Gardener Error",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Transcribe Voice (Whisper)": {
+      "main": [
+        [
+          {
+            "node": "Voice Rambling Processor",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Voice Rambling Processor": {
+      "main": [
+        [
+          {
+            "node": "Parse Voice Rambling",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Parse Voice Rambling": {
+      "main": [
+        [
+          {
+            "node": "Merge",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Switch1": {
+      "main": [
+        [
+          {
+            "node": "Prepare Event Data",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Format Vision Output",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Format Vision Output",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [],
+        [],
+        [],
+        [],
+        [],
+        []
+      ]
+    },
+    "Prepare Event Data": {
+      "main": [
+        [
+          {
+            "node": "Create an event",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Create an event": {
+      "main": [
+        [
+          {
+            "node": "Execute a SQL query1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Format Confirmation Message": {
+      "main": [
+        [
+          {
+            "node": "Telegram Success Confirmation",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Prepare DB Insert Data": {
+      "main": [
+        [
+          {
+            "node": "calendar_events insert",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Execute a SQL query1": {
+      "main": [
+        [
+          {
+            "node": "Prepare DB Insert Data",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "calendar_events insert": {
+      "main": [
+        [
+          {
+            "node": "Format Confirmation Message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1",
+    "availableInMCP": false,
+    "callerPolicy": "workflowsFromSameOwner"
+  },
+  "versionId": "4a3dbb55-09a9-435e-883a-0c94d5c69f8d",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "9a0376150a47982d06d87f3d7b6f2e06c89151a12e910f0aa4cd9ac8d5b9fe72"
+  },
+  "id": "IUBn7Hl4KqTEvk4b",
+  "tags": []
+}

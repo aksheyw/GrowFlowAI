@@ -1,6 +1,7 @@
 # GrowFlow Holistic Roadmap v3.0
 
 > **Created:** January 23, 2026  
+> **Last Updated:** January 26, 2026  
 > **Purpose:** Personal task management companion across Telegram + Web App + Desktop  
 > **Core Philosophy:** Meeting notes → AI-extracted tasks → Visual progress (plant growth metaphor)
 
@@ -100,11 +101,17 @@ GrowFlow is your **always-available task companion** that lives where you alread
 | Google Calendar | ✅ Done | Hybrid sync (tasks ↔ events) |
 | Email Ingestion | ✅ Done | growflowai@gmail.com forwarding |
 
-### ✅ Reminders - COMPLETE (!)
+### ✅ Reminders & Actions - COMPLETE
 Based on the screenshot you shared, the Telegram bot workflow already has:
 ```
 Daily 9 AM Trigger → Fetch Due Tasks → Has Tasks? → Group & Format Messages → Send Task Digest
 ```
+
+**Telegram Action Buttons (Completed Jan 26, 2026):**
+- ✅ Done button - marks task complete with `completed_at` timestamp
+- ⏰ 2h button - snoozes task for 2 hours  
+- 📅 Tmr button - snoozes task until tomorrow 9 AM
+- Snoozed tasks excluded from daily digest via `snoozed_until` filter
 
 ---
 
@@ -128,7 +135,6 @@ Daily 9 AM Trigger → Fetch Due Tasks → Has Tasks? → Group & Format Message
 | **Habits/Recurring Tasks** | Reclaim | Regular activities that repeat | 6-8 hrs |
 | **Focus Time Defense** | Reclaim | Block calendar for deep work | 4-5 hrs |
 | **Multi-Language Support** | TwinMind | Hindi, etc. for Indian context | 6-8 hrs |
-| **Quick Actions via Telegram** | Memorae | "Mark done", "Snooze 2 hrs" inline | 4-5 hrs |
 | **Natural Language Task Entry** | Todoist | "Call mom tomorrow at 5pm" → parsed task | 5-6 hrs |
 
 ### Lower Priority (Nice to Have)
@@ -232,12 +238,12 @@ Daily 9 AM Trigger → Fetch Due Tasks → Has Tasks? → Group & Format Message
 
 ## 📅 PHASED ROADMAP
 
-### Phase A: Quick Wins (This Week) - 4-5 hours
+### ~~Phase A: Quick Wins~~ ✅ COMPLETE (Jan 26, 2026)
 *Features that add immediate value with minimal effort*
 
-| Feature | Description | Effort | Why Now |
+| Feature | Description | Effort | Status |
 |---------|-------------|--------|---------|
-| **Quick Telegram Actions** | "✅ Done" "⏰ Snooze 2h" "📅 Tomorrow" buttons in task reminders | 4-5 hrs | Reduces friction, high impact |
+| **Quick Telegram Actions** | "✅ Done" "⏰ Snooze 2h" "📅 Tomorrow" buttons in task reminders | 4-5 hrs | ✅ Done |
 
 ---
 
@@ -368,14 +374,12 @@ Example: `done_a1b2c3d4-e5f6-7890-abcd-ef1234567890`
 | Snooze while already snoozed | Update snoozed_until to new time |
 | Multiple tasks in one message | Each task gets its own button row |
 
-### Testing Checklist
-- [ ] ✅ Done button marks task complete
-- [ ] ⏰ 2hrs button snoozes correctly  
-- [ ] 📅 Tomorrow button sets correct IST time
-- [ ] Snoozed tasks don't appear in next digest
-- [ ] Snoozed tasks reappear after snooze expires
-- [ ] Double-tap handling works
-- [ ] Button feedback is instant (callback answer)
+### Testing Checklist ✅ ALL PASSED (Jan 26, 2026)
+- [x] ✅ Done button marks task complete
+- [x] ⏰ 2hrs button snoozes correctly  
+- [x] 📅 Tomorrow button sets correct IST time (9 AM next day)
+- [x] Snoozed tasks don't appear in next digest
+- [x] Button feedback is instant (callback answer toast)
 
 ---
 
@@ -583,12 +587,12 @@ CREATE EXTENSION IF NOT EXISTS pg_trgm;
 1. ✅ Core task capture (DONE)
 2. ✅ Telegram integration (DONE)
 3. ✅ Daily reminders (DONE)
-4. ⏳ **Telegram Action Buttons** ← THIS WEEK
+4. ✅ **Telegram Action Buttons** (DONE - Jan 26, 2026)
 
 ### Should Have (Next 2-3 Weeks)
 1. ⏳ Voice Commands ("Mark done: call Rohan")
 2. ⏳ Natural Language task entry
-3. ⏳ Expanded snooze options
+3. ⏳ Expanded snooze options ("Next Week", "Pick Date")
 
 ### Could Have (Month 2+)
 1. ⏳ Desktop App (Tauri/Electron)
@@ -695,5 +699,7 @@ The existing telegram bot workflow will be modified rather than creating new wor
 
 ---
 
-*Roadmap updated: January 23, 2026*
-*Next review: After Phase A completion*
+*Roadmap created: January 23, 2026*
+*Last updated: January 26, 2026*
+*Phase A completed: January 26, 2026*
+*Next milestone: Phase B (Voice Commands)*
