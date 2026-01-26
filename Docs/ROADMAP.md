@@ -536,11 +536,11 @@ CREATE EXTENSION IF NOT EXISTS pg_trgm;
 ### Phase C: User Experience Polish (Week 4) - 8-10 hours
 *Make the existing features feel premium*
 
-| Feature | Description | Effort | Impact |
+| Feature | Description | Effort | Status |
 |---------|-------------|--------|--------|
-| **Snooze Options Expanded** | Add "Next Week", "Pick Date" options | 2-3 hrs | Flexibility |
-| **Reasoning Transparency** | Show why AI set priority/deadline | 4-5 hrs | Trust building |
-| **Task Edit via Telegram** | "Change deadline to Monday" command | 2-3 hrs | Power users |
+| **Snooze Options Expanded** | Add "1 Week", "Pick Date" with AI parsing | 4-5 hrs | ✅ Done (Jan 26) |
+| **Reasoning Transparency** | Show why AI set priority/deadline | 4-5 hrs | ⏳ Pending |
+| **Task Edit via Telegram** | "Change deadline to Monday" command | 2-3 hrs | ⏳ Pending |
 
 ### Phase D: Desktop App (Month 2) - 20-25 hours
 *Native experience for power users*
@@ -592,7 +592,7 @@ CREATE EXTENSION IF NOT EXISTS pg_trgm;
 ### Should Have (Next 2-3 Weeks)
 1. ⏳ Voice Commands ("Mark done: call Rohan")
 2. ⏳ Natural Language task entry
-3. ⏳ Expanded snooze options ("Next Week", "Pick Date")
+3. ✅ **Expanded Snooze Options** (DONE - Jan 26, 2026) - 1 Week, Pick Date with AI parsing
 
 ### Could Have (Month 2+)
 1. ⏳ Desktop App (Tauri/Electron)
@@ -702,4 +702,5 @@ The existing telegram bot workflow will be modified rather than creating new wor
 *Roadmap created: January 23, 2026*
 *Last updated: January 26, 2026*
 *Phase A completed: January 26, 2026*
+*Expanded Snooze Options (Phase C) completed: January 26, 2026*
 *Next milestone: Phase B (Voice Commands)*
