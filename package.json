@@ -1,8 +1,16 @@
 {
-  "name": "vite-react-typescript-starter",
+  "name": "growflow-ai",
+  "description": "AI task-management companion that turns meeting notes (Telegram, web, email) into trackable tasks visualised as growing plants.",
+  "version": "0.1.0",
   "private": true,
-  "version": "0.0.1",
   "type": "module",
+  "license": "MIT",
+  "author": "Akshey Walia",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/aksheyw/GrowFlowAI.git"
+  },
+  "homepage": "https://github.com/aksheyw/GrowFlowAI#readme",
   "scripts": {
     "dev": "vite",
     "build": "vite build",

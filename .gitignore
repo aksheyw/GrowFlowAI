@@ -34,3 +34,9 @@ keystore.properties
 
 # Build outputs
 dist/
+
+# Bolt.new scaffold residue
+.bolt/
+
+# Local plan/agent scratch
+.agent/

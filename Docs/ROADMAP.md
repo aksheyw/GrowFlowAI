@@ -264,10 +264,10 @@ No urgent tasks due today! 🎉
 🌱 *Good morning Akshey!*
 
 📋 *Due Today:*
-1. Call Rohan Choudhary (High) - Saturday 11am
+1. Call Sam Patel (High) - Saturday 11am
    [✅ Done] [⏰ 2hrs] [📅 Tomorrow]
 
-2. Ping Sujoy Ghosh on WhatsApp (Medium) - Sunday 2pm
+2. Ping Alex Kim on WhatsApp (Medium) - Sunday 2pm
    [✅ Done] [⏰ 2hrs] [📅 Tomorrow]
 
 📋 *Backlog:* 1 task without deadline
@@ -388,7 +388,7 @@ Example: `done_a1b2c3d4-e5f6-7890-abcd-ef1234567890`
 
 | Feature | Description | Effort | Builds On |
 |---------|-------------|--------|-----------|
-| **Voice Commands** | "Mark done: call Rohan" via voice note → executes action | 6-8 hrs | Existing voice transcription |
+| **Voice Commands** | "Mark done: call Sam" via voice note → executes action | 6-8 hrs | Existing voice transcription |
 | **Natural Language Input** | "Remind me to call mom tomorrow 5pm" → parsed task | 5-6 hrs | Existing AI processing |
 
 ---
@@ -407,13 +407,13 @@ User sends voice note → AI detects if it's a COMMAND or a NOTE → Executes ac
 
 | Voice Input | Detected Intent | Action |
 |-------------|-----------------|--------|
-| "Mark done call Rohan" | `COMMAND:COMPLETE` | Find task matching "call Rohan", mark complete |
+| "Mark done call Sam" | `COMMAND:COMPLETE` | Find task matching "call Sam", mark complete |
 | "Complete the budget review task" | `COMMAND:COMPLETE` | Find task matching "budget review", mark complete |
-| "Snooze ping Sujoy until tomorrow" | `COMMAND:SNOOZE` | Find task, set snoozed_until = tomorrow 9 AM |
+| "Snooze ping Alex until tomorrow" | `COMMAND:SNOOZE` | Find task, set snoozed_until = tomorrow 9 AM |
 | "Delete the meeting notes task" | `COMMAND:DELETE` | Find task, set status = 'deleted' |
 | "Change priority of proposal to high" | `COMMAND:UPDATE` | Find task, update priority |
 | "What tasks do I have today?" | `COMMAND:QUERY` | Return today's task list |
-| "Need to call Rohan on Saturday..." | `NOTE:CREATE` | Normal flow - create task |
+| "Need to call Sam on Saturday..." | `NOTE:CREATE` | Normal flow - create task |
 
 ### Technical Implementation
 
@@ -438,8 +438,8 @@ Return JSON:
 }
 
 Examples:
-Input: "Mark done the call Rohan task"
-Output: {"type": "COMMAND", "action": "COMPLETE", "task_identifier": "call Rohan", "confidence": 0.95}
+Input: "Mark done the call Sam task"
+Output: {"type": "COMMAND", "action": "COMPLETE", "task_identifier": "call Sam", "confidence": 0.95}
 
 Input: "I need to prepare the quarterly report by Friday"
 Output: {"type": "NOTE", "action": null, "task_identifier": null, "confidence": 0.90}
@@ -508,18 +508,18 @@ CREATE EXTENSION IF NOT EXISTS pg_trgm;
 
 | Scenario | Bot Response |
 |----------|--------------|
-| Task found & completed | "✅ Done! Marked complete: *Call Rohan Choudhary*\n🌺 Your plant has bloomed!" |
-| Task found & snoozed | "⏰ Snoozed: *Call Rohan Choudhary*\nI'll remind you tomorrow at 9 AM" |
-| Task not found | "❓ I couldn't find a task matching '*call rohan*'\n\nDid you mean one of these?\n• Call Rohan Choudhary (due Saturday)\n• Review Rohan's proposal (due Monday)" |
+| Task found & completed | "✅ Done! Marked complete: *Call Sam Patel*\n🌺 Your plant has bloomed!" |
+| Task found & snoozed | "⏰ Snoozed: *Call Sam Patel*\nI'll remind you tomorrow at 9 AM" |
+| Task not found | "❓ I couldn't find a task matching '*call sam*'\n\nDid you mean one of these?\n• Call Sam Patel (due Saturday)\n• Review Sam's proposal (due Monday)" |
 | Low confidence | "🤔 I'm not sure if you want me to:\n• Create a new task, or\n• Mark an existing task complete\n\nCould you clarify?" |
-| Query response | "📋 *Your tasks for today:*\n1. Call Rohan Choudhary (High)\n2. Ping Sujoy on WhatsApp (Medium)" |
+| Query response | "📋 *Your tasks for today:*\n1. Call Sam Patel (High)\n2. Ping Alex on WhatsApp (Medium)" |
 
 ### Confidence Thresholds
 
 | Confidence | Behavior |
 |------------|----------|
 | > 0.85 | Execute immediately |
-| 0.6 - 0.85 | Execute but confirm: "I marked 'Call Rohan' as done. Was that right?" |
+| 0.6 - 0.85 | Execute but confirm: "I marked 'Call Sam' as done. Was that right?" |
 | < 0.6 | Ask for clarification |
 
 ### Edge Cases
@@ -590,7 +590,7 @@ CREATE EXTENSION IF NOT EXISTS pg_trgm;
 4. ✅ **Telegram Action Buttons** (DONE - Jan 26, 2026)
 
 ### Should Have (Next 2-3 Weeks)
-1. ⏳ Voice Commands ("Mark done: call Rohan")
+1. ⏳ Voice Commands ("Mark done: call Sam")
 2. ⏳ Natural Language task entry
 3. ✅ **Expanded Snooze Options** (DONE - Jan 26, 2026) - 1 Week, Pick Date with AI parsing
 

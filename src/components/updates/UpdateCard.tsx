@@ -1,4 +1,3 @@
-import { motion } from 'framer-motion';
 import { User, Clock, FileText, Sparkles, Activity, Bell } from 'lucide-react';
 import { UpdateNotification, UpdateNotificationType } from '../../types';
 

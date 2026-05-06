@@ -186,9 +186,6 @@ export default function TaskDetailPage() {
   async function handleDelete() {
     if (!task) return;
 
-    const message = task.google_event_id
-      ? 'Are you sure you want to delete this task? This will also remove the event from your Google Calendar.'
-      : 'Are you sure you want to delete this task? This action cannot be undone.';
 
     // We already have a modal, so we might not need window.confirm if the modal text is updated dynamically.
     // However, the current modal has static text. Let's update the modal text instead of using window.confirm here,

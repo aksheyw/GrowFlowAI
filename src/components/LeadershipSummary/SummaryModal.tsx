@@ -41,7 +41,7 @@ export default function SummaryModal({ isOpen, onClose, note, userId, onSummaryG
         title: note.meeting_title || 'Untitled Meeting',
         userId: userId,
         date: note.meeting_date || undefined
-    }, note.leadership_summary, onSummaryGenerated);
+    }, note.leadership_brief, onSummaryGenerated);
 
     useEffect(() => {
         if (isOpen && !summaryData && !isLoading && !error) {
