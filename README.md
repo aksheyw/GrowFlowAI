@@ -5,7 +5,17 @@
 GrowFlowAI is a personal AI task-management companion. Forward a meeting note via Telegram, web, or email — the AI extracts WHO does WHAT by WHEN, drops them into a Supabase task store, and visualises each task as a plant that grows the more you tend it. Every morning at 9am, the Telegram bot sends a digest with inline `✅ Done` / `⏰ Snooze` / `📅 Tomorrow` buttons.
 
 <p align="center">
-  <img src="public/logo.png" alt="GrowFlowAI logo" width="120" />
+  <img src="public/logo.png" alt="GrowFlowAI logo" width="100" />
+</p>
+
+<p align="center">
+  <a href="public/screenshots/dashboard.png">
+    <img src="public/screenshots/dashboard.png" alt="GrowFlowAI dashboard — tasks visualised as plants" width="800" />
+  </a>
+</p>
+
+<p align="center">
+  <em>Tasks as plants. They grow as you make progress.</em>
 </p>
 
 ---
@@ -178,6 +188,31 @@ Docs/                  ROADMAP.md, SKILLS.md
 ```
 
 ---
+
+## Screenshots
+
+<table>
+  <tr>
+    <td align="center">
+      <img src="public/screenshots/task-detail.png" alt="Task detail — hero plant and inline editing" width="380" />
+      <br/><sub>Task detail · hero plant + inline editing</sub>
+    </td>
+    <td align="center">
+      <img src="public/screenshots/meeting-note.png" alt="Meeting note with AI summary and extracted tasks" width="380" />
+      <br/><sub>Meeting note · AI summary + extracted tasks</sub>
+    </td>
+  </tr>
+  <tr>
+    <td align="center">
+      <img src="public/screenshots/telegram-digest.png" alt="Daily 9am Telegram digest with action buttons" width="380" />
+      <br/><sub>Telegram digest · Done / Snooze / Tomorrow buttons</sub>
+    </td>
+    <td align="center">
+      <img src="public/screenshots/mobile.png" alt="Android app with bottom tab bar" width="380" />
+      <br/><sub>Android (Capacitor) · bottom tab bar</sub>
+    </td>
+  </tr>
+</table>
 
 ## Status
 
