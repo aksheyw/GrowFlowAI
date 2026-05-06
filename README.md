@@ -2,6 +2,20 @@
 
 > **Your meeting notes, turned into tasks that grow like plants.**
 
+<p align="center">
+  <a href="https://grow-flow-ai.vercel.app">
+    <img src="https://img.shields.io/badge/Live_Demo-grow--flow--ai.vercel.app-22c55e?style=for-the-badge&logo=vercel&logoColor=white" alt="Live demo" />
+  </a>
+  &nbsp;
+  <img src="https://img.shields.io/badge/License-MIT-blue?style=for-the-badge" alt="MIT License" />
+  &nbsp;
+  <img src="https://img.shields.io/badge/React-18-61dafb?style=for-the-badge&logo=react&logoColor=white" alt="React 18" />
+  &nbsp;
+  <img src="https://img.shields.io/badge/Supabase-Edge_Functions-3ecf8e?style=for-the-badge&logo=supabase&logoColor=white" alt="Supabase" />
+  &nbsp;
+  <img src="https://img.shields.io/badge/Capacitor-Android-119EFF?style=for-the-badge&logo=capacitor&logoColor=white" alt="Capacitor Android" />
+</p>
+
 GrowFlowAI is a personal AI task-management companion. Forward a meeting note via Telegram, web, or email — the AI extracts WHO does WHAT by WHEN, drops them into a Supabase task store, and visualises each task as a plant that grows the more you tend it. Every morning at 9am, the Telegram bot sends a digest with inline `✅ Done` / `⏰ Snooze` / `📅 Tomorrow` buttons.
 
 <p align="center">
