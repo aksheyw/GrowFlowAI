@@ -40,3 +40,6 @@ dist/
 
 # Local plan/agent scratch
 .agent/
+
+# Internal Claude Code wiki / notes — never expose publicly
+.claude/
