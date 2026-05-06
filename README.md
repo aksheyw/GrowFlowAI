@@ -203,30 +203,31 @@ Docs/                  ROADMAP.md, SKILLS.md
 
 ---
 
-## Screenshots
+## Screenshots — the full pipeline
 
-<table>
-  <tr>
-    <td align="center">
-      <img src="public/screenshots/task-detail.png" alt="Task detail — hero plant and inline editing" width="380" />
-      <br/><sub>Task detail · hero plant + inline editing</sub>
-    </td>
-    <td align="center">
-      <img src="public/screenshots/meeting-note.png" alt="Meeting note with AI summary and extracted tasks" width="380" />
-      <br/><sub>Meeting note · AI summary + extracted tasks</sub>
-    </td>
-  </tr>
-  <tr>
-    <td align="center">
-      <img src="public/screenshots/telegram-digest.png" alt="Daily 9am Telegram digest with action buttons" width="380" />
-      <br/><sub>Telegram digest · Done / Snooze / Tomorrow buttons</sub>
-    </td>
-    <td align="center">
-      <img src="public/screenshots/mobile.png" alt="Android app with bottom tab bar" width="380" />
-      <br/><sub>Android (Capacitor) · bottom tab bar</sub>
-    </td>
-  </tr>
-</table>
+**1. Multi-modal capture** — paste, upload audio, record voice, or photo.
+
+<p align="center">
+  <img src="public/screenshots/multi-input.png" alt="Capture surfaces: text, audio upload, voice recording, photo OCR" width="800" />
+</p>
+
+**2. AI extraction in real time** — watching the leadership brief get synthesised.
+
+<p align="center">
+  <img src="public/screenshots/ai-processing.png" alt="AI synthesising the leadership brief: analysing transcript, extracting decisions, identifying risks, formatting" width="800" />
+</p>
+
+**3. Meeting note → tasks** — original notes on the left, AI-extracted tasks on the right, generate-summary actions in the middle.
+
+<p align="center">
+  <img src="public/screenshots/meeting-note.png" alt="Meeting note detail with original notes, action panel, and extracted tasks" width="800" />
+</p>
+
+**4. Executive leadership brief** — BLUF format, decisions, risks, actions, with email/chat/document output formats.
+
+<p align="center">
+  <img src="public/screenshots/leadership-brief.png" alt="Leadership brief output: executive summary, decisions, risks and actions, multiple output formats" width="800" />
+</p>
 
 ## Status
 
