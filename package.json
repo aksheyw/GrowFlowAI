@@ -17,6 +17,8 @@
     "lint": "eslint .",
     "preview": "vite preview",
     "typecheck": "tsc --noEmit -p tsconfig.app.json",
+    "test": "vitest run",
+    "test:watch": "vitest",
     "generate:assets": "capacitor-assets generate --android"
   },
   "dependencies": {
@@ -58,7 +60,8 @@
     "tailwindcss": "^3.4.1",
     "typescript": "^5.5.3",
     "typescript-eslint": "^8.3.0",
-    "vite": "^5.4.21"
+    "vite": "^5.4.21",
+    "vitest": "^2.1.0"
   },
   "overrides": {
     "tar": "^7.5.14"
