@@ -7,6 +7,10 @@
     <img src="https://img.shields.io/badge/Live_Demo-grow--flow--ai.vercel.app-22c55e?style=for-the-badge&logo=vercel&logoColor=white" alt="Live demo" />
   </a>
   &nbsp;
+  <a href="https://github.com/aksheyw/GrowFlowAI/actions/workflows/ci.yml">
+    <img src="https://github.com/aksheyw/GrowFlowAI/actions/workflows/ci.yml/badge.svg" alt="CI" />
+  </a>
+  &nbsp;
   <img src="https://img.shields.io/badge/License-MIT-blue?style=for-the-badge" alt="MIT License" />
   &nbsp;
   <img src="https://img.shields.io/badge/React-18-61dafb?style=for-the-badge&logo=react&logoColor=white" alt="React 18" />
