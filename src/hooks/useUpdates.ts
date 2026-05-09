@@ -1,5 +1,5 @@
 import { useState, useCallback, useMemo, useEffect } from 'react';
-import { UpdateNotification } from '../types';
+import { UpdateNotification, UpdateNotificationType } from '../types';
 import { useAuth } from '../contexts/AuthContext';
 import { supabase } from '../lib/supabase';
 
@@ -63,8 +63,18 @@ export function useUpdates() {
 
             if (error) throw error;
 
-            const mappedNotifications: UpdateNotification[] = (data || []).map((n: any) => {
-                let type: any = 'system_alert';
+            type NotificationRow = {
+                id: string;
+                recipient_id: string;
+                type: string;
+                message: string;
+                task_id: string;
+                read: boolean;
+                created_at: string;
+            };
+
+            const mappedNotifications: UpdateNotification[] = (data || []).map((n: NotificationRow) => {
+                let type: UpdateNotificationType = 'system_alert';
                 if (n.type === 'assigned') type = 'task_assigned';
                 else if (n.type === 'updated') type = 'task_updated';
                 else if (n.type === 'completed') type = 'task_updated'; // Map completed to updated for now

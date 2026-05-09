@@ -52,7 +52,7 @@ export default function TaskCard({ task, onStatusChange, onDelete, onMeetingClic
       showToast({ type: 'success', title: 'Added to Calendar', message: 'Task has been synced to your Google Calendar.' });
       // Note: In a real app, we'd expect the task prop to update via realtime subscription or parent refresh
       // For now, we'll just show the success toast
-    } catch (error) {
+    } catch {
       showToast({ type: 'error', title: 'Sync Failed', message: 'Could not add task to calendar.' });
     } finally {
       setIsSyncing(false);

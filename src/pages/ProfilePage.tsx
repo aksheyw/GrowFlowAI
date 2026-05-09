@@ -13,7 +13,8 @@ import {
     Sprout,
     Shield,
     Mail,
-    Calendar
+    Calendar,
+    type LucideIcon
 } from 'lucide-react';
 import EmailIntegrationSettings from '../components/profile/EmailIntegrationSettings';
 import { useAuth } from '../contexts/AuthContext';
@@ -94,9 +95,9 @@ export default function ProfilePage() {
     };
 
     interface MenuItem {
-        icon: any;
+        icon: LucideIcon;
         label: string;
-        action: () => void | Promise<void> | any;
+        action: () => void | Promise<void>;
         badge?: string;
         toggle?: boolean;
         value?: boolean;
@@ -177,7 +178,7 @@ export default function ProfilePage() {
                 {
                     icon: HelpCircle,
                     label: 'Help & Support',
-                    action: () => showToast({ type: 'success', title: 'Help', message: 'Contact support@growflow.app for assistance.' })
+                    action: () => { showToast({ type: 'success', title: 'Help', message: 'Contact support@growflow.app for assistance.' }); }
                 }
             ]
         }

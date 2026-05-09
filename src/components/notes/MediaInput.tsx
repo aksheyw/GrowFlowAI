@@ -45,15 +45,15 @@ export default function MediaInput({
         bg-gray-50/50 dark:bg-ios-surface-dark
         overflow-x-auto no-scrollbar
       ">
-                {[
+                {([
                     { id: 'text', icon: Type, label: 'Text' },
                     { id: 'audio', icon: UploadCloud, label: 'Upload Audio' },
                     { id: 'record', icon: Mic, label: 'Record' },
                     { id: 'photo', icon: Camera, label: 'Photo' }
-                ].map((mode) => (
+                ] as const).map((mode) => (
                     <button
                         key={mode.id}
-                        onClick={() => setInputMode(mode.id as any)}
+                        onClick={() => setInputMode(mode.id)}
                         className={`
               flex items-center gap-2 px-4 py-2 rounded-xl
               text-sm font-medium whitespace-nowrap

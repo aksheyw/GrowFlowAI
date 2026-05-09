@@ -54,7 +54,7 @@ export default function TaskDetailModal({ task, onClose, onUpdate, onDelete }: T
             });
             // Ideally we'd update the task object here to reflect the new google_event_id
             // For now, the toast confirms the action.
-        } catch (error) {
+        } catch {
             showToast({
                 type: 'error',
                 title: 'Sync Failed',

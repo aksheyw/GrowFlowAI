@@ -172,7 +172,7 @@ export default function TaskDetailPage() {
       });
       // Refresh task data to get the new google_event_id
       loadTaskAndProfiles();
-    } catch (error) {
+    } catch {
       showToast({
         type: 'error',
         title: 'Sync Failed',

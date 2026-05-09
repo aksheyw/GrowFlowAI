@@ -5,7 +5,16 @@ let ffmpeg: FFmpeg | null = null;
 let ffmpegLoaded = false;
 
 // Progress callback type
-type ProgressCallback = (progress: number, stage: string) => void;
+export type CompressionStage =
+    | 'loading'
+    | 'preparing'
+    | 'compressing'
+    | 'finalizing'
+    | 'complete'
+    | 'uploading'
+    | 'transcribing';
+
+type ProgressCallback = (progress: number, stage: CompressionStage) => void;
 
 // Initialize FFmpeg (lazy load)
 async function initFFmpeg(onProgress?: ProgressCallback): Promise<FFmpeg> {
@@ -83,7 +92,7 @@ export async function compressAudioForTranscription(
     await ffmpegInstance.deleteFile(outputFileName);
 
     // Create new File object
-    const compressedBlob = new Blob([data as any], { type: 'audio/mpeg' });
+    const compressedBlob = new Blob([data as BlobPart], { type: 'audio/mpeg' });
     const compressedFile = new File(
         [compressedBlob],
         file.name.replace(/\.[^/.]+$/, '_compressed.mp3'),

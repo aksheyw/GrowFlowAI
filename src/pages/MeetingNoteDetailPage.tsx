@@ -99,9 +99,9 @@ export default function MeetingNoteDetailPage() {
                 if (tasksErr) console.error('Task fetch error:', tasksErr);
                 setTasks(tasksData || []);
 
-            } catch (err: any) {
+            } catch (err: unknown) {
                 console.error('Load Error:', err);
-                setError(err.message || "Failed to load note");
+                setError(err instanceof Error ? err.message : "Failed to load note");
             } finally {
                 setIsLoading(false);
             }
@@ -243,7 +243,7 @@ export default function MeetingNoteDetailPage() {
         }
     }
 
-    function handleSummaryGenerated(summaryData: any) {
+    function handleSummaryGenerated(summaryData: NonNullable<Note['leadership_brief']>) {
         if (note) {
             setNote(prev => prev ? { ...prev, leadership_brief: summaryData } : null);
             setIsSynthesizing(false);

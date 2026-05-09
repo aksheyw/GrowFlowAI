@@ -126,7 +126,7 @@ export default function LeadershipSummaryDisplay({ summary }: LeadershipSummaryD
                 setCopied(true);
                 showToast({ type: 'success', title: 'Copied (Plain Text)', message: 'Copied as plain text.' });
                 setTimeout(() => setCopied(false), 2000);
-            } catch (fallbackErr) {
+            } catch {
                 showToast({
                     type: 'error',
                     title: 'Copy failed',

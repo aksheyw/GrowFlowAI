@@ -16,6 +16,7 @@ import {
     formatFileSize,
     estimateCompressedSize
 } from '../utils/audioCompression';
+import type { CompressionStage } from '../utils/audioCompression';
 
 const EXAMPLE_NOTES = `Team standup meeting - Nov 19  
 Attendees: Alex, Jordan, and myself
@@ -61,9 +62,7 @@ export const useNoteProcessing = () => {
     const [isTranscribing, setIsTranscribing] = useState(false);
     const [audioFileName, setAudioFileName] = useState<string | null>(null);
     const [compressionProgress, setCompressionProgress] = useState(0);
-    const [compressionStage, setCompressionStage] = useState<
-        'loading' | 'preparing' | 'compressing' | 'finalizing' | 'complete' | 'uploading' | 'transcribing'
-    >('loading');
+    const [compressionStage, setCompressionStage] = useState<CompressionStage>('loading');
     const [showCompressionModal, setShowCompressionModal] = useState(false);
     const [originalFileSize, setOriginalFileSize] = useState('');
     const [estimatedCompressedSize, setEstimatedCompressedSize] = useState('');
@@ -185,7 +184,7 @@ export const useNoteProcessing = () => {
                 // Compress the file
                 fileToUpload = await compressAudioForTranscription(file, (progress, stage) => {
                     setCompressionProgress(progress);
-                    setCompressionStage(stage as any);
+                    setCompressionStage(stage);
                 });
 
                 addToast(

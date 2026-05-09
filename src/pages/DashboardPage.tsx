@@ -127,7 +127,7 @@ export default function DashboardPage() {
       if (task) {
         setSelectedTask(task);
         // Clean up URL without refreshing
-        const newUrl = window.location.pathname + window.location.search.replace(/[\?&]task_id=[^&]+/, '').replace(/^&/, '?');
+        const newUrl = window.location.pathname + window.location.search.replace(/[?&]task_id=[^&]+/, '').replace(/^&/, '?');
         window.history.replaceState({}, '', newUrl);
       }
     }
