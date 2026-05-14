@@ -240,3 +240,13 @@ Personal project, actively developed. Used daily by me. Not multi-tenant yet —
 ## License
 
 [MIT](LICENSE) © 2026 Akshey Walia
+
+---
+
+<div align="center">
+
+**Built by [Akshey Walia](https://www.linkedin.com/in/aksheywalia/)** · [LinkedIn](https://www.linkedin.com/in/aksheywalia/) · [aksheywalia.in](https://aksheywalia.in)
+
+*Director-level Product Manager. I build products that ship.*
+
+</div>
