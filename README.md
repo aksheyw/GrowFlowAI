@@ -2,57 +2,67 @@
 
 > **Your meeting notes, turned into tasks that grow like plants.**
 
+[![Live demo](https://img.shields.io/badge/Live_Demo-grow--flow--ai.vercel.app-22c55e?style=for-the-badge&logo=vercel&logoColor=white)](https://grow-flow-ai.vercel.app)
+[![CI](https://github.com/aksheyw/GrowFlowAI/actions/workflows/ci.yml/badge.svg)](https://github.com/aksheyw/GrowFlowAI/actions/workflows/ci.yml)
+[![License: MIT](https://img.shields.io/badge/License-MIT-blue?style=for-the-badge)](LICENSE)
+
+Forward a meeting note via Telegram, web, or email — AI extracts WHO does WHAT by WHEN, drops them into a Supabase task store, and visualises each task as a plant that grows the more you tend it. Every morning at 9am, the Telegram bot sends a digest with one-tap `✅ Done` / `⏰ Snooze` / `📅 Tomorrow` buttons.
+
 <p align="center">
   <a href="https://grow-flow-ai.vercel.app">
-    <img src="https://img.shields.io/badge/Live_Demo-grow--flow--ai.vercel.app-22c55e?style=for-the-badge&logo=vercel&logoColor=white" alt="Live demo" />
+    <img src="public/screenshots/dashboard.png" alt="GrowFlowAI dashboard — tasks visualised as plants" width="900" />
   </a>
-  &nbsp;
-  <a href="https://github.com/aksheyw/GrowFlowAI/actions/workflows/ci.yml">
-    <img src="https://github.com/aksheyw/GrowFlowAI/actions/workflows/ci.yml/badge.svg" alt="CI" />
-  </a>
-  &nbsp;
-  <img src="https://img.shields.io/badge/License-MIT-blue?style=for-the-badge" alt="MIT License" />
-  &nbsp;
-  <img src="https://img.shields.io/badge/React-18-61dafb?style=for-the-badge&logo=react&logoColor=white" alt="React 18" />
-  &nbsp;
-  <img src="https://img.shields.io/badge/Supabase-Edge_Functions-3ecf8e?style=for-the-badge&logo=supabase&logoColor=white" alt="Supabase" />
-  &nbsp;
-  <img src="https://img.shields.io/badge/Capacitor-Android-119EFF?style=for-the-badge&logo=capacitor&logoColor=white" alt="Capacitor Android" />
-</p>
-
-GrowFlowAI is a personal AI task-management companion. Forward a meeting note via Telegram, web, or email — the AI extracts WHO does WHAT by WHEN, drops them into a Supabase task store, and visualises each task as a plant that grows the more you tend it. Every morning at 9am, the Telegram bot sends a digest with inline `✅ Done` / `⏰ Snooze` / `📅 Tomorrow` buttons.
-
-<p align="center">
-  <img src="public/logo.png" alt="GrowFlowAI logo" width="100" />
+  <br>
+  <em>The dashboard. Each task grows as you make progress on it.</em>
 </p>
 
 <p align="center">
-  <a href="public/screenshots/dashboard.png">
-    <img src="public/screenshots/dashboard.png" alt="GrowFlowAI dashboard — tasks visualised as plants" width="800" />
-  </a>
-</p>
-
-<p align="center">
-  <em>Tasks as plants. They grow as you make progress.</em>
+  <a href="https://grow-flow-ai.vercel.app"><b>🚀 Try the live demo →</b></a>
 </p>
 
 ---
 
-## Why I built this
+## How the pipeline works
 
-I spend most of my day in meetings, and most action items I commit to in those meetings end up forgotten — buried under notes I never re-read. I wanted something that:
+GrowFlowAI turns unstructured chaos (voice notes, meeting transcripts, whiteboard photos) into tracked tasks in seconds. Each step below is a real screenshot from the live app:
 
-- Lived where I already work (Telegram, mostly)
-- Required zero structured input (paste a transcript, forward an email, send a voice note — that's it)
-- Made progress feel rewarding without being gimmicky (hence the plant metaphor — tasks visibly grow as you make progress on them)
+### 1. Multi-modal capture — paste, upload, record, or photo
 
-I built it as a side-project to push myself end-to-end on a real product: web + Android (via Capacitor) + a Telegram bot orchestrated through n8n + AI processing on Supabase Edge Functions. It is opinionated, single-user, and actively in use.
+<p align="center">
+  <img src="public/screenshots/multi-input.png" alt="Capture surfaces: text paste, audio upload, voice recording, photo OCR" width="900" />
+</p>
+
+### 2. AI extraction in real time — watch the leadership brief get synthesised
+
+<p align="center">
+  <img src="public/screenshots/ai-processing.png" alt="AI synthesising the leadership brief: analysing transcript, extracting decisions, identifying risks, formatting" width="900" />
+</p>
+
+### 3. Meeting note → tasks — original notes left, AI-extracted tasks right
+
+<p align="center">
+  <img src="public/screenshots/meeting-note.png" alt="Meeting note detail with original notes, action panel, and extracted tasks" width="900" />
+</p>
+
+### 4. Executive leadership brief — BLUF format with decisions, risks, actions
+
+<p align="center">
+  <img src="public/screenshots/leadership-brief.png" alt="Leadership brief output: executive summary, decisions, risks and actions, multiple output formats" width="900" />
+</p>
 
 ---
 
-## What it does
+## What makes it different
 
-**Capture surfaces** — every one of these creates a structured task in seconds:
+- ✅ **Lives where you already work** — Telegram-first, no new app to learn. Web + Android are convenience layers.
+- ✅ **Zero structured input** — paste a transcript, forward an email, send a voice note. AI figures out the structure.
+- ✅ **Plant metaphor with substance** — task status (`Not Started → In Progress → Done`) maps to plant growth stages; progress feels rewarding without being gimmicky.
+- ✅ **Opinionated single-user build** — actively used daily, not a half-finished SaaS shell. RLS-enforced architecture means it's also ready for multi-tenancy when needed.
+- ✅ **Production end-to-end** — web + Android (Capacitor) + Telegram bot (n8n) + AI processing (Supabase Edge Functions + Whisper/Vision/GPT-4o-mini).
+
+---
+
+## Capture surfaces (every one creates a structured task in seconds)
 
 | Surface | Input | What happens |
 |---------|-------|--------------|
@@ -207,31 +217,17 @@ Docs/                  ROADMAP.md, SKILLS.md
 
 ---
 
-## Screenshots — the full pipeline
+## Why I built this
 
-**1. Multi-modal capture** — paste, upload audio, record voice, or photo.
+I spend most of my day in meetings, and most action items I commit to in those meetings end up forgotten — buried under notes I never re-read. I wanted something that:
 
-<p align="center">
-  <img src="public/screenshots/multi-input.png" alt="Capture surfaces: text, audio upload, voice recording, photo OCR" width="800" />
-</p>
+- Lived where I already work (Telegram, mostly)
+- Required zero structured input (paste a transcript, forward an email, send a voice note — that's it)
+- Made progress feel rewarding without being gimmicky (hence the plant metaphor — tasks visibly grow as you make progress on them)
 
-**2. AI extraction in real time** — watching the leadership brief get synthesised.
+I built it as a side-project to push myself end-to-end on a real product: web + Android (via Capacitor) + a Telegram bot orchestrated through n8n + AI processing on Supabase Edge Functions. It is opinionated, single-user, and actively in use.
 
-<p align="center">
-  <img src="public/screenshots/ai-processing.png" alt="AI synthesising the leadership brief: analysing transcript, extracting decisions, identifying risks, formatting" width="800" />
-</p>
-
-**3. Meeting note → tasks** — original notes on the left, AI-extracted tasks on the right, generate-summary actions in the middle.
-
-<p align="center">
-  <img src="public/screenshots/meeting-note.png" alt="Meeting note detail with original notes, action panel, and extracted tasks" width="800" />
-</p>
-
-**4. Executive leadership brief** — BLUF format, decisions, risks, actions, with email/chat/document output formats.
-
-<p align="center">
-  <img src="public/screenshots/leadership-brief.png" alt="Leadership brief output: executive summary, decisions, risks and actions, multiple output formats" width="800" />
-</p>
+---
 
 ## Status
 
