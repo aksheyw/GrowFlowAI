@@ -243,6 +243,6 @@ Personal project, actively developed. Used daily by me. Not multi-tenant yet —
 
 **Built by [Akshey Walia](https://www.linkedin.com/in/aksheywalia/)** · [LinkedIn](https://www.linkedin.com/in/aksheywalia/) · [aksheywalia.in](https://aksheywalia.in)
 
-*Director-level Product Manager. I build products that ship.*
+*Senior Product Leader · Consumer Platforms at 250M+ Device Scale · AI Product Building · 0-to-1*
 
 </div>
