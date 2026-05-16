@@ -58,7 +58,7 @@ GrowFlowAI turns unstructured chaos (voice notes, meeting transcripts, whiteboar
 - ✅ **Zero structured input** — paste a transcript, forward an email, send a voice note. AI figures out the structure.
 - ✅ **Plant metaphor with substance** — task status (`Not Started → In Progress → Done`) maps to plant growth stages; progress feels rewarding without being gimmicky.
 - ✅ **Opinionated single-user build** — actively used daily, not a half-finished SaaS shell. RLS-enforced architecture means it's also ready for multi-tenancy when needed.
-- ✅ **Production end-to-end** — web + Android (Capacitor) + Telegram bot (n8n) + AI processing (Supabase Edge Functions + Whisper/Vision/GPT-4o-mini).
+- ✅ **Production end-to-end** — web + Android (Capacitor) + Telegram bot (n8n) + AI processing (Supabase Edge Functions + OpenAI Whisper, Vision, and a configurable LLM).
 
 ---
 
@@ -134,7 +134,7 @@ GrowFlowAI turns unstructured chaos (voice notes, meeting transcripts, whiteboar
 | Routing | **react-router 7** | Latest, file-style routes |
 | Mobile | **Capacitor 7 + PWA** (`vite-plugin-pwa`) | One codebase, web + Android |
 | Backend | **Supabase** (Auth + Postgres + Edge Functions + pgvector) | Single platform, RLS, Deno edge runtime |
-| AI | **OpenAI GPT-4o-mini, Whisper, Vision** (via n8n) | Task extraction, voice transcription, OCR |
+| AI | **OpenAI** — LLM (configurable model), Whisper, Vision — via n8n | Task extraction, voice transcription, OCR |
 | Automation | **n8n on Hostinger VPS** | Visual flows for Telegram bot + email + cron |
 | Quality | **TypeScript strict + ESLint** | Cheap safety net |
 
