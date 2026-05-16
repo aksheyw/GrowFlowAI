@@ -128,11 +128,11 @@ GrowFlowAI turns unstructured chaos (voice notes, meeting transcripts, whiteboar
 
 | Layer | Choice | Why |
 |-------|--------|-----|
-| Frontend | **React 18 + Vite + TypeScript** | Fast dev loop, type safety, modern build |
+| Frontend | **React + Vite + TypeScript** | Fast dev loop, type safety, modern build |
 | Styling | **Tailwind + Framer Motion** | Utility-first + buttery animations |
 | State / data | **TanStack Query + Supabase Realtime** | Server-state + push updates with one library |
-| Routing | **react-router 7** | Latest, file-style routes |
-| Mobile | **Capacitor 7 + PWA** (`vite-plugin-pwa`) | One codebase, web + Android |
+| Routing | **react-router** | File-style routes |
+| Mobile | **Capacitor + PWA** (`vite-plugin-pwa`) | One codebase, web + Android |
 | Backend | **Supabase** (Auth + Postgres + Edge Functions + pgvector) | Single platform, RLS, Deno edge runtime |
 | AI | **OpenAI** — LLM (configurable model), Whisper, Vision — via n8n | Task extraction, voice transcription, OCR |
 | Automation | **n8n on Hostinger VPS** | Visual flows for Telegram bot + email + cron |
