@@ -6,11 +6,11 @@
 [![CI](https://github.com/aksheyw/GrowFlowAI/actions/workflows/ci.yml/badge.svg)](https://github.com/aksheyw/GrowFlowAI/actions/workflows/ci.yml)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue?style=for-the-badge)](LICENSE)
 
-Forward a meeting note via Telegram, web, or email — AI extracts WHO does WHAT by WHEN, drops them into a Supabase task store, and visualises each task as a plant that grows the more you tend it. Every morning at 9am, the Telegram bot sends a digest with one-tap `✅ Done` / `⏰ Snooze` / `📅 Tomorrow` buttons.
+Forward a meeting note via Telegram, web, or email, and AI extracts WHO does WHAT by WHEN, drops them into a Supabase task store, and visualises each task as a plant that grows the more you tend it. Every morning at 9am, the Telegram bot sends a digest with one-tap `✅ Done` / `⏰ Snooze` / `📅 Tomorrow` buttons.
 
 <p align="center">
   <a href="https://grow-flow-ai.vercel.app">
-    <img src="public/screenshots/dashboard.png" alt="GrowFlowAI dashboard — tasks visualised as plants" width="900" />
+    <img src="public/screenshots/dashboard.png" alt="GrowFlowAI dashboard: tasks visualised as plants" width="900" />
   </a>
   <br>
   <em>The dashboard. Each task grows as you make progress on it.</em>
@@ -24,27 +24,27 @@ Forward a meeting note via Telegram, web, or email — AI extracts WHO does WHAT
 
 ## How the pipeline works
 
-GrowFlowAI turns unstructured chaos (voice notes, meeting transcripts, whiteboard photos) into tracked tasks in seconds. Each step below is a real screenshot from the live app:
+GrowFlowAI turns raw meeting notes, voice memos, and whiteboard photos into tracked tasks in seconds. Each step below is a real screenshot from the live app:
 
-### 1. Multi-modal capture — paste, upload, record, or photo
+### 1. Multi-modal capture: paste, upload, record, or photo
 
 <p align="center">
   <img src="public/screenshots/multi-input.png" alt="Capture surfaces: text paste, audio upload, voice recording, photo OCR" width="900" />
 </p>
 
-### 2. AI extraction in real time — watch the leadership brief get synthesised
+### 2. AI extraction in real time: watch the leadership brief get synthesised
 
 <p align="center">
   <img src="public/screenshots/ai-processing.png" alt="AI synthesising the leadership brief: analysing transcript, extracting decisions, identifying risks, formatting" width="900" />
 </p>
 
-### 3. Meeting note → tasks — original notes left, AI-extracted tasks right
+### 3. Meeting note → tasks: original notes left, AI-extracted tasks right
 
 <p align="center">
   <img src="public/screenshots/meeting-note.png" alt="Meeting note detail with original notes, action panel, and extracted tasks" width="900" />
 </p>
 
-### 4. Executive leadership brief — BLUF format with decisions, risks, actions
+### 4. Executive leadership brief: summary-first (BLUF) format with decisions, risks, actions
 
 <p align="center">
   <img src="public/screenshots/leadership-brief.png" alt="Leadership brief output: executive summary, decisions, risks and actions, multiple output formats" width="900" />
@@ -54,11 +54,11 @@ GrowFlowAI turns unstructured chaos (voice notes, meeting transcripts, whiteboar
 
 ## What makes it different
 
-- ✅ **Lives where you already work** — Telegram-first, no new app to learn. Web + Android are convenience layers.
-- ✅ **Zero structured input** — paste a transcript, forward an email, send a voice note. AI figures out the structure.
-- ✅ **Plant metaphor with substance** — task status (`Not Started → In Progress → Done`) maps to plant growth stages; progress feels rewarding without being gimmicky.
-- ✅ **Opinionated single-user build** — actively used daily, not a half-finished SaaS shell. RLS-enforced architecture means it's also ready for multi-tenancy when needed.
-- ✅ **Production end-to-end** — web + Android (Capacitor) + Telegram bot (n8n) + AI processing (Supabase Edge Functions + OpenAI Whisper, Vision, and a configurable LLM).
+- ✅ **Lives where you already work:** Telegram-first, no new app to learn. Web + Android are convenience layers.
+- ✅ **Zero structured input:** paste a transcript, forward an email, send a voice note. AI figures out the structure.
+- ✅ **Plant metaphor with substance:** task status (`Not Started → In Progress → Done`) maps to plant growth stages; progress feels rewarding without being gimmicky.
+- ✅ **Opinionated single-user build:** I use it daily, and the RLS-enforced architecture (row-level security, the database enforces who sees what) means it's ready for multi-tenancy when needed.
+- ✅ **Production end-to-end:** web + Android (Capacitor) + Telegram bot (n8n) + AI processing (Supabase Edge Functions + OpenAI Whisper, Vision, and a configurable LLM).
 
 ---
 
@@ -77,7 +77,7 @@ GrowFlowAI turns unstructured chaos (voice notes, meeting transcripts, whiteboar
 
 - A dashboard of tasks, each rendered as a plant whose growth stage tracks status (`Not Started → In Progress → Done`)
 - A meeting note detail page with AI-generated 2–3 sentence summary, related tasks, and an exec-style leadership brief (TL;DR + decisions + action items in email/chat/document formats)
-- "The Gardener" — chat-with-your-data RAG over all your past notes (pgvector embeddings, semantic search)
+- "The Gardener": ask questions across all your past notes (RAG over pgvector embeddings, semantic search)
 - Daily 9am Telegram digest of due/overdue tasks with one-tap action buttons
 - Hybrid Google Calendar sync (tasks ↔ calendar events)
 
@@ -129,12 +129,12 @@ GrowFlowAI turns unstructured chaos (voice notes, meeting transcripts, whiteboar
 | Layer | Choice | Why |
 |-------|--------|-----|
 | Frontend | **React + Vite + TypeScript** | Fast dev loop, type safety, modern build |
-| Styling | **Tailwind + Framer Motion** | Utility-first + buttery animations |
+| Styling | **Tailwind + Framer Motion** | Utility-first + smooth animations |
 | State / data | **TanStack Query + Supabase Realtime** | Server-state + push updates with one library |
 | Routing | **react-router** | File-style routes |
 | Mobile | **Capacitor + PWA** (`vite-plugin-pwa`) | One codebase, web + Android |
 | Backend | **Supabase** (Auth + Postgres + Edge Functions + pgvector) | Single platform, RLS, Deno edge runtime |
-| AI | **OpenAI** — LLM (configurable model), Whisper, Vision — via n8n | Task extraction, voice transcription, OCR |
+| AI | **OpenAI**: LLM (configurable model), Whisper, and Vision, via n8n | Task extraction, voice transcription, OCR |
 | Automation | **n8n on Hostinger VPS** | Visual flows for Telegram bot + email + cron |
 | Quality | **TypeScript strict + ESLint** | Cheap safety net |
 
@@ -142,7 +142,7 @@ GrowFlowAI turns unstructured chaos (voice notes, meeting transcripts, whiteboar
 
 ## Local setup
 
-> Recruiters: feel free to skip this — the [code](src/), [edge functions](supabase/functions/), and [migrations](supabase/migrations/) are the interesting bits.
+> Recruiters: feel free to skip this since the [code](src/), [edge functions](supabase/functions/), and [migrations](supabase/migrations/) are the interesting bits.
 
 ### Prerequisites
 - Node 18+
@@ -177,7 +177,7 @@ npx supabase secrets set OPENAI_API_KEY=sk-...
 npm run dev
 ```
 
-For the **Telegram bot** experience, see [`n8n/README.md`](n8n/README.md) — it walks through importing the sanitised workflow templates and wiring up your Telegram + Supabase + OpenAI credentials.
+For the **Telegram bot** experience, see [`n8n/README.md`](n8n/README.md), which walks through importing the sanitised workflow templates and wiring up your Telegram + Supabase + OpenAI credentials.
 
 For the **Android** build:
 
@@ -219,19 +219,15 @@ Docs/                  ROADMAP.md, SKILLS.md
 
 ## Why I built this
 
-I spend most of my day in meetings, and most action items I commit to in those meetings end up forgotten — buried under notes I never re-read. I wanted something that:
+I spend most of my day in meetings, and most action items I commit to in those meetings end up forgotten, buried under notes I never re-read. So I wanted a tool that sits inside Telegram where my day already happens, takes whatever I throw at it and works out the structure on its own, and makes the follow-through feel like something worth doing, which is where the growing plants came from.
 
-- Lived where I already work (Telegram, mostly)
-- Required zero structured input (paste a transcript, forward an email, send a voice note — that's it)
-- Made progress feel rewarding without being gimmicky (hence the plant metaphor — tasks visibly grow as you make progress on them)
-
-I built it as a side-project to push myself end-to-end on a real product: web + Android (via Capacitor) + a Telegram bot orchestrated through n8n + AI processing on Supabase Edge Functions. It is opinionated, single-user, and actively in use.
+I built it as a side-project to push myself end-to-end on a real product: web + Android (via Capacitor) + a Telegram bot orchestrated through n8n + AI processing on Supabase Edge Functions.
 
 ---
 
 ## Status
 
-Personal project, actively developed. Used daily by me. Not multi-tenant yet — single-user model with RLS. See [`Docs/ROADMAP.md`](Docs/ROADMAP.md) for what's built vs. what's planned.
+Personal project, actively developed. Used daily by me. Not multi-tenant yet: single-user model with RLS. See [`Docs/ROADMAP.md`](Docs/ROADMAP.md) for what's built vs. what's planned.
 
 ## License
 
