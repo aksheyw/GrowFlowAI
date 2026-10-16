@@ -1,0 +1,63 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 330" width="900" height="330" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif">
+  <rect x="0" y="0" width="900" height="330" fill="#FFFFFF"/>
+  <text x="450" y="34" text-anchor="middle" font-size="19" font-weight="700" fill="#1B2A4A">How a meeting note becomes a task</text>
+
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto">
+      <path d="M0,0 L10,5 L0,10 z" fill="#0B6E5F"/>
+    </marker>
+  </defs>
+
+  <!-- column labels -->
+  <text x="120" y="70" text-anchor="middle" font-size="12" font-weight="700" fill="#5B6169" letter-spacing="1">1. YOU SEND A NOTE</text>
+  <text x="450" y="70" text-anchor="middle" font-size="12" font-weight="700" fill="#5B6169" letter-spacing="1">2. AI READS IT</text>
+  <text x="780" y="70" text-anchor="middle" font-size="12" font-weight="700" fill="#5B6169" letter-spacing="1">3. YOU GET TASKS</text>
+
+  <!-- inputs -->
+  <rect x="20" y="86" width="200" height="66" rx="10" fill="#F3F5F9" stroke="#B9BEC6"/>
+  <text x="120" y="113" text-anchor="middle" font-size="15" font-weight="700" fill="#1B2A4A">Web app</text>
+  <text x="120" y="135" text-anchor="middle" font-size="12.5" fill="#5B6169">type, paste, record, photo</text>
+
+  <rect x="20" y="166" width="200" height="66" rx="10" fill="#F3F5F9" stroke="#B9BEC6"/>
+  <text x="120" y="193" text-anchor="middle" font-size="15" font-weight="700" fill="#1B2A4A">Telegram chat</text>
+  <text x="120" y="215" text-anchor="middle" font-size="12.5" fill="#5B6169">text, voice note, photo</text>
+
+  <rect x="20" y="246" width="200" height="66" rx="10" fill="#F3F5F9" stroke="#B9BEC6"/>
+  <text x="120" y="273" text-anchor="middle" font-size="15" font-weight="700" fill="#1B2A4A">Email</text>
+  <text x="120" y="295" text-anchor="middle" font-size="12.5" fill="#5B6169">forward the note</text>
+
+  <!-- arrows in -->
+  <line x1="222" y1="119" x2="294" y2="180" stroke="#0B6E5F" stroke-width="2" marker-end="url(#arrow)"/>
+  <line x1="222" y1="199" x2="294" y2="199" stroke="#0B6E5F" stroke-width="2" marker-end="url(#arrow)"/>
+  <line x1="222" y1="279" x2="294" y2="218" stroke="#0B6E5F" stroke-width="2" marker-end="url(#arrow)"/>
+
+  <!-- middle -->
+  <rect x="300" y="86" width="300" height="226" rx="12" fill="#E6F4F1" stroke="#0E9384" stroke-width="1.5"/>
+  <text x="450" y="118" text-anchor="middle" font-size="13" fill="#0B6E5F">Voice and photos become text first</text>
+  <text x="450" y="137" text-anchor="middle" font-size="12" fill="#5B6169">(speech-to-text and image reading)</text>
+  <line x1="330" y1="156" x2="570" y2="156" stroke="#B9BEC6"/>
+  <text x="450" y="186" text-anchor="middle" font-size="15" font-weight="700" fill="#1B2A4A">AI pulls out</text>
+  <text x="450" y="216" text-anchor="middle" font-size="20" font-weight="700" fill="#0B6E5F">WHO · WHAT · WHEN</text>
+  <text x="450" y="244" text-anchor="middle" font-size="12.5" fill="#5B6169">assignee, task, deadline, priority</text>
+  <line x1="330" y1="262" x2="570" y2="262" stroke="#B9BEC6"/>
+  <text x="450" y="290" text-anchor="middle" font-size="12.5" fill="#5B6169">saved as tasks in the database</text>
+
+  <!-- arrows out -->
+  <line x1="602" y1="180" x2="674" y2="119" stroke="#0B6E5F" stroke-width="2" marker-end="url(#arrow)"/>
+  <line x1="602" y1="199" x2="674" y2="199" stroke="#0B6E5F" stroke-width="2" marker-end="url(#arrow)"/>
+  <line x1="602" y1="218" x2="674" y2="279" stroke="#0B6E5F" stroke-width="2" marker-end="url(#arrow)"/>
+
+  <!-- outputs -->
+  <rect x="680" y="86" width="200" height="66" rx="10" fill="#FFFFFF" stroke="#0E9384" stroke-width="1.5"/>
+  <text x="780" y="113" text-anchor="middle" font-size="15" font-weight="700" fill="#1B2A4A">A plant per task</text>
+  <text x="780" y="135" text-anchor="middle" font-size="12.5" fill="#5B6169">it grows as you finish it</text>
+
+  <rect x="680" y="166" width="200" height="66" rx="10" fill="#FFFFFF" stroke="#0E9384" stroke-width="1.5"/>
+  <text x="780" y="193" text-anchor="middle" font-size="15" font-weight="700" fill="#1B2A4A">Leadership brief</text>
+  <text x="780" y="215" text-anchor="middle" font-size="12.5" fill="#5B6169">on request, in the web app</text>
+
+  <rect x="680" y="246" width="200" height="66" rx="10" fill="#FFFFFF" stroke="#0E9384" stroke-width="1.5"/>
+  <text x="780" y="273" text-anchor="middle" font-size="15" font-weight="700" fill="#1B2A4A">9am Telegram digest</text>
+  <text x="780" y="295" text-anchor="middle" font-size="12.5" fill="#5B6169">Done · Snooze · Tomorrow</text>
+
+</svg>
