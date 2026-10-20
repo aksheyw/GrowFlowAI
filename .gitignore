@@ -43,3 +43,6 @@ dist/
 
 # Internal Claude Code wiki / notes — never expose publicly
 .claude/
+
+# Contains real note content: local only
+tasks/model-compare-*
