@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { supabase } from '../../../lib/supabase';
+import { n8nFetch } from '../../../lib/n8n';
 
 export interface SummaryData {
     tldr: string;
@@ -46,7 +47,7 @@ export const useSummaryGenerator = (
         const startTime = Date.now();
 
         try {
-            const response = await fetch('https://n8n.srv1134430.hstgr.cloud/webhook/generate-summary', {
+            const response = await n8nFetch('generate-summary', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({

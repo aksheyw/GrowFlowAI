@@ -1,9 +1,9 @@
 
-const N8N_WEBHOOK_URL = 'https://n8n.srv1134430.hstgr.cloud/webhook/manual-calendar-sync';
+import { n8nFetch } from './n8n';
 
 export async function syncTaskToCalendar(taskId: string, userId: string): Promise<boolean> {
     try {
-        const response = await fetch(N8N_WEBHOOK_URL, {
+        const response = await n8nFetch('manual-calendar-sync', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',

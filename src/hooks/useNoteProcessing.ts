@@ -17,6 +17,7 @@ import {
     estimateCompressedSize
 } from '../utils/audioCompression';
 import type { CompressionStage } from '../utils/audioCompression';
+import { n8nFetch } from '../lib/n8n';
 
 const EXAMPLE_NOTES = `Team standup meeting - Nov 19  
 Attendees: Alex, Jordan, and myself
@@ -213,7 +214,7 @@ export const useNoteProcessing = () => {
                 setCompressionProgress(prev => Math.min(prev + 10, 90));
             }, 500);
 
-            const response = await fetch('https://n8n.srv1134430.hstgr.cloud/webhook/growflow-transcribe', {
+            const response = await n8nFetch('growflow-transcribe', {
                 method: 'POST',
                 body: formData,
             });
@@ -328,7 +329,7 @@ export const useNoteProcessing = () => {
             const formData = new FormData();
             formData.append('data', file);
 
-            const response = await fetch('https://n8n.srv1134430.hstgr.cloud/webhook/growflow-vision', {
+            const response = await n8nFetch('growflow-vision', {
                 method: 'POST',
                 body: formData,
             });

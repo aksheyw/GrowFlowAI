@@ -26,6 +26,7 @@ import { SummaryModal } from '../components/LeadershipSummary';
 import LeadershipSummaryDisplay from '../components/meeting-note/LeadershipSummaryDisplay';
 import LeadershipGenerationProgress from '../components/meeting-note/LeadershipGenerationProgress';
 import { Button } from '../components/ui/Button';
+import { n8nFetch } from '../lib/n8n';
 
 type TaskFilter = 'all' | 'not_started' | 'in_progress' | 'done';
 
@@ -264,7 +265,7 @@ export default function MeetingNoteDetailPage() {
             // Add a toast to confirm action
             showToast({ type: 'info', title: 'Regenerating...', message: 'AI is rewriting the brief.' });
 
-            await fetch('https://n8n.srv1134430.hstgr.cloud/webhook/generate-summary', {
+            await n8nFetch('generate-summary', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ note_id: note.id })
