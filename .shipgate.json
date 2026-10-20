@@ -1,0 +1,5 @@
+{
+  "gates": {
+    "build": { "enabled": true, "command": "npm run build" }
+  }
+}
