@@ -135,17 +135,26 @@ function parseNotesBasic(noteText: string, defaultPriority: "Low" | "Medium" | "
   return tasks;
 }
 
-async function parseNotesWithOpenAI(noteText: string, openAiKey: string, defaultPriority: "Low" | "Medium" | "High" = 'Medium'): Promise<TaskData[]> {
+interface LlmProvider {
+  url: string;
+  key: string;
+  model: string;
+}
+
+const OPENROUTER_MODEL = 'deepseek/deepseek-v4.1-flash';
+const OPENAI_MODEL = 'gpt-4o-mini';
+
+async function parseNotesWithOpenAI(noteText: string, provider: LlmProvider, defaultPriority: "Low" | "Medium" | "High" = 'Medium'): Promise<TaskData[]> {
   try {
     const today = new Date().toISOString().split('T')[0];
-    const response = await fetch('https://api.openai.com/v1/chat/completions', {
+    const response = await fetch(provider.url, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'Authorization': `Bearer ${openAiKey}`,
+        'Authorization': `Bearer ${provider.key}`,
       },
       body: JSON.stringify({
-        model: 'gpt-4o-mini',
+        model: provider.model,
         messages: [
           {
             role: 'system',
@@ -169,20 +178,23 @@ async function parseNotesWithOpenAI(noteText: string, openAiKey: string, default
     const data = await response.json();
     const content = data.choices[0]?.message?.content;
 
+    // Malformed output throws, so the caller moves on to the next provider.
     if (!content) {
-      return [];
+      throw new Error(`${provider.model} returned no content`);
     }
 
-    let tasks: TaskData[];
+    let tasks: unknown;
     try {
       const cleanContent = content.replace(/```json\n?/g, '').replace(/```\n?/g, '').trim();
       tasks = JSON.parse(cleanContent);
     } catch {
-      console.error('Failed to parse OpenAI response:', content);
-      return [];
+      throw new Error(`${provider.model} returned invalid JSON`);
     }
 
-    return Array.isArray(tasks) ? tasks : [];
+    if (!Array.isArray(tasks)) {
+      throw new Error(`${provider.model} returned a non-array`);
+    }
+    return tasks as TaskData[];
   } catch (error) {
     console.error('Error parsing notes with OpenAI:', error);
     throw error;
@@ -201,6 +213,12 @@ Deno.serve(async (req: Request) => {
     const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
     const supabaseServiceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
     const openAiKey = Deno.env.get("OPENAI_API_KEY");
+    const openRouterKey = Deno.env.get("OPENROUTER_API_KEY");
+    // OpenRouter (DeepSeek) first when its key is set; OpenAI stays as the fallback.
+    const providers: LlmProvider[] = [
+      ...(openRouterKey ? [{ url: 'https://openrouter.ai/api/v1/chat/completions', key: openRouterKey, model: OPENROUTER_MODEL }] : []),
+      ...(openAiKey ? [{ url: 'https://api.openai.com/v1/chat/completions', key: openAiKey, model: OPENAI_MODEL }] : []),
+    ];
 
     const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
@@ -225,16 +243,19 @@ Deno.serve(async (req: Request) => {
       console.log('Processing notes with AI');
       const defaultPriority = body.default_priority || 'Medium';
 
-      if (!openAiKey) {
-        console.log('No OpenAI key found, using basic parser');
-        tasks = parseNotesBasic(body.note_text, defaultPriority);
-      } else {
+      let parsed = false;
+      for (const provider of providers) {
         try {
-          tasks = await parseNotesWithOpenAI(body.note_text, openAiKey, defaultPriority);
+          tasks = await parseNotesWithOpenAI(body.note_text, provider, defaultPriority);
+          parsed = true;
+          break;
         } catch (aiError) {
-          console.error('OpenAI parsing failed, falling back to basic parser:', aiError);
-          tasks = parseNotesBasic(body.note_text, defaultPriority);
+          console.error(`${provider.model} parsing failed, trying next option:`, aiError);
         }
+      }
+      if (!parsed) {
+        console.log('No AI provider succeeded, using basic parser');
+        tasks = parseNotesBasic(body.note_text, defaultPriority);
       }
 
       // Fallback: If AI returns no tasks, but we have text, treat the text as a task
