@@ -191,20 +191,17 @@ export default function MeetingNoteDetailPage() {
         if (!note || !user) return;
         setIsProcessingTasks(true);
         try {
-            const edgeFunctionUrl = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/process-ai-notes`;
-            const response = await fetch(edgeFunctionUrl, {
-                method: 'POST',
-                headers: { 'Authorization': `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY}`, 'Content-Type': 'application/json' },
-                body: JSON.stringify({
+            // invoke() sends the signed-in user's token, not the public key
+            const { data: result, error } = await supabase.functions.invoke('process-ai-notes', {
+                body: {
                     user_id: user.id,
                     note_text: note.content,
                     note_id: note.id,
                     default_priority: 'Medium'
-                })
+                }
             });
-            if (!response.ok) throw new Error('Failed');
+            if (error) throw error;
 
-            const result = await response.json();
             await fetchTasksOnly();
             showToast({ type: 'success', title: 'Success', message: `Created ${result.created || 0} tasks` });
         } catch {
