@@ -224,6 +224,34 @@ Deno.serve(async (req: Request) => {
 
     const body: RequestBody = await req.json();
 
+    // Bind user_id to the caller's login. Only the service role may act for another user.
+    const token = (req.headers.get("Authorization") ?? "").replace(/^Bearer\s+/i, "");
+    if (token !== supabaseServiceKey) {
+      const { data: authData, error: authError } = await supabase.auth.getUser(token);
+      if (authError || !authData?.user) {
+        return new Response(
+          JSON.stringify({ error: "You need to be signed in to do this." }),
+          { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        );
+      }
+      body.user_id = authData.user.id;
+
+      if (isN8nRequest(body) && body.note_id) {
+        const { data: note } = await supabase
+          .from("notes")
+          .select("id")
+          .eq("id", body.note_id)
+          .eq("user_id", body.user_id)
+          .maybeSingle();
+        if (!note) {
+          return new Response(
+            JSON.stringify({ error: "Note not found" }),
+            { status: 404, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+          );
+        }
+      }
+    }
+
     if (!body.user_id) {
       return new Response(
         JSON.stringify({ error: "user_id is required" }),
