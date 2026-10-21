@@ -19,12 +19,14 @@ The rolling file tasks/session-handoff.md is from 2026-05-06 and is STALE for §
 
 ## Open (owner action or next session)
 1. Owner: delete duplicate "Prepare mockups" Google Calendar event on Nov 22 (my test made it).
-2. Owner: enable "Available in MCP" on Email Ingestion o715tjnEsFmvAwgq and Memory Maker W7zIgkRU1YPDNV0z. Blocks item 3.
-3. process-ai-notes trusts body.user_id; anon key + any user_id can create tasks for another user. Fix: bind user_id to caller JWT, allow service-role. Needs item 2 to confirm no caller uses the anon key.
-4. n8n run history stores the service_role key (apikey header in executions). Fix: move to an n8n credential (UI) or turn off success-execution saving.
+2. DONE 2026-10-21: Email Ingestion and Memory Maker were readable through n8n-mcp after all; neither calls process-ai-notes.
+3. DONE 2026-10-21: process-ai-notes v13 binds user_id to the caller's login; service key still allowed; note ownership checked. (verified: anon-only call 401; logged-in app note created a task under the right owner)
+4. DONE 2026-10-21: the key leaked in FAILED runs (HTTP Request error records), not successful ones. Summary workflow's 3 Supabase HTTP nodes now use the n8n credential Izgj68viMSbUDE1o; its 11 old failed runs deleted. (verified: summary run 19823 saved title/date/brief)
+4b. DONE 2026-10-21 (found by Codex): webhook-telegram-note (verify_jwt off) accepted any user_id with no login. v7 now requires the service key. (verified: no-key and anon-key calls 401) Bot payload sends telegram_id, not user_id, so the bot path was already broken.
+4c. OPEN, owner call: one medium follow-up on task assignment. Detail only in the gitignored ledger .claude/wiki/open-security-findings.md.
 5. Telegram bot (P1 from May) still inactive.
 6. Model upgrades not done: voice cleanup node (gpt-4o-mini), brief (gpt-4.1: DeepSeek Pro too slow, Flash untested), vision (gpt-4o). Evidence: tasks/model-compare-2026-10-20.md.
 7. Calendar/bot SQL interpolation: manual path now UUID-validated; Telegram bot path still raw.
 
 ## Evidence files
-tasks/n8n-audit-2026-10-20.md · tasks/model-compare-2026-10-20.md (+ .raw.json) · tasks/openrouter-models-2026-10-20.txt · tasks/codex-review-process-ai-notes.md · .claude/wiki/open-security-findings.md
+tasks/n8n-audit-2026-10-20.md · tasks/model-compare-2026-10-20.md (+ .raw.json) · tasks/openrouter-models-2026-10-20.txt · tasks/codex-review-process-ai-notes.md · tasks/codex-review-auth-binding.md · .claude/wiki/open-security-findings.md

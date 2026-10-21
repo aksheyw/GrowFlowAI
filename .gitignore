@@ -46,3 +46,4 @@ dist/
 
 # Contains real note content: local only
 tasks/model-compare-*
+tasks/codex-review-auth-binding.md

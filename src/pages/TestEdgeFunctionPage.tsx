@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { ArrowLeft } from 'lucide-react';
+import { supabase } from '../lib/supabase';
 
 export default function TestEdgeFunctionPage() {
   const navigate = useNavigate();
@@ -15,16 +16,10 @@ export default function TestEdgeFunctionPage() {
     setLoading(true);
     setTestResult('Testing simple task insertion...');
 
-    const edgeFunctionUrl = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/process-ai-notes`;
-
     try {
-      const response = await fetch(edgeFunctionUrl, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY}`
-        },
-        body: JSON.stringify({
+      // invoke() sends the signed-in user's token; the function binds user_id to it.
+      const { data, error } = await supabase.functions.invoke('process-ai-notes', {
+        body: {
           user_id: user.id,
           tasks: [
             {
@@ -33,10 +28,9 @@ export default function TestEdgeFunctionPage() {
               status: 'Not Started'
             }
           ]
-        })
+        },
       });
-
-      const data = await response.json();
+      if (error) throw error;
       setTestResult(JSON.stringify(data, null, 2));
     } catch (error) {
       setTestResult('Error: ' + (error instanceof Error ? error.message : String(error)));
@@ -51,23 +45,15 @@ export default function TestEdgeFunctionPage() {
     setLoading(true);
     setTestResult('Testing note processing...');
 
-    const edgeFunctionUrl = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/process-ai-notes`;
-
     try {
-      const response = await fetch(edgeFunctionUrl, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY}`
-        },
-        body: JSON.stringify({
+      // invoke() sends the signed-in user's token; the function binds user_id to it.
+      const { data, error } = await supabase.functions.invoke('process-ai-notes', {
+        body: {
           user_id: user.id,
-          note_text: 'Test meeting notes: John needs to complete the report by Friday. Sarah will review it next week.',
-          note_id: crypto.randomUUID()
-        })
+          note_text: 'Test meeting notes: John needs to complete the report by Friday. Sarah will review it next week.'
+        },
       });
-
-      const data = await response.json();
+      if (error) throw error;
       setTestResult(JSON.stringify(data, null, 2));
     } catch (error) {
       setTestResult('Error: ' + (error instanceof Error ? error.message : String(error)));
