@@ -142,9 +142,9 @@ interface LlmProvider {
 }
 
 const OPENROUTER_MODEL = 'deepseek/deepseek-v4.1-flash';
-const OPENAI_MODEL = 'gpt-4o-mini';
+const OPENROUTER_FALLBACK_MODEL = 'z-ai/glm-5.3-flash';
 
-async function parseNotesWithOpenAI(noteText: string, provider: LlmProvider, defaultPriority: "Low" | "Medium" | "High" = 'Medium'): Promise<TaskData[]> {
+async function parseNotesWithLlm(noteText: string, provider: LlmProvider, defaultPriority: "Low" | "Medium" | "High" = 'Medium'): Promise<TaskData[]> {
   try {
     const today = new Date().toISOString().split('T')[0];
     const response = await fetch(provider.url, {
@@ -171,8 +171,8 @@ async function parseNotesWithOpenAI(noteText: string, provider: LlmProvider, def
 
     if (!response.ok) {
       const errorText = await response.text();
-      console.error('OpenAI API error:', errorText);
-      throw new Error(`OpenAI API failed: ${response.status}`);
+      console.error(`${provider.model} API error:`, errorText);
+      throw new Error(`${provider.model} API failed: ${response.status}`);
     }
 
     const data = await response.json();
@@ -196,7 +196,7 @@ async function parseNotesWithOpenAI(noteText: string, provider: LlmProvider, def
     }
     return tasks as TaskData[];
   } catch (error) {
-    console.error('Error parsing notes with OpenAI:', error);
+    console.error(`Error parsing notes with ${provider.model}:`, error);
     throw error;
   }
 }
@@ -212,13 +212,12 @@ Deno.serve(async (req: Request) => {
   try {
     const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
     const supabaseServiceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
-    const openAiKey = Deno.env.get("OPENAI_API_KEY");
     const openRouterKey = Deno.env.get("OPENROUTER_API_KEY");
-    // OpenRouter (DeepSeek) first when its key is set; OpenAI stays as the fallback.
-    const providers: LlmProvider[] = [
-      ...(openRouterKey ? [{ url: 'https://openrouter.ai/api/v1/chat/completions', key: openRouterKey, model: OPENROUTER_MODEL }] : []),
-      ...(openAiKey ? [{ url: 'https://api.openai.com/v1/chat/completions', key: openAiKey, model: OPENAI_MODEL }] : []),
-    ];
+    // DeepSeek first, GLM as the backup model; the regex parser is the last resort.
+    const openRouterUrl = 'https://openrouter.ai/api/v1/chat/completions';
+    const providers: LlmProvider[] = openRouterKey
+      ? [OPENROUTER_MODEL, OPENROUTER_FALLBACK_MODEL].map((model) => ({ url: openRouterUrl, key: openRouterKey, model }))
+      : [];
 
     const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
@@ -274,7 +273,7 @@ Deno.serve(async (req: Request) => {
       let parsed = false;
       for (const provider of providers) {
         try {
-          tasks = await parseNotesWithOpenAI(body.note_text, provider, defaultPriority);
+          tasks = await parseNotesWithLlm(body.note_text, provider, defaultPriority);
           parsed = true;
           break;
         } catch (aiError) {
